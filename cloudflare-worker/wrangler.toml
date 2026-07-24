@@ -1,0 +1,19 @@
+name = "senpai-den-api"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "production"
+
+# Bind Supabase URL as plain var (key goes in wrangler secret)
+# SUPABASE_URL set via: wrangler secret put SUPABASE_URL
+# SUPABASE_SERVICE_KEY set via: wrangler secret put SUPABASE_SERVICE_KEY
+
+[[r2_buckets]]
+binding = "MANGA_IMAGES"
+bucket_name = "manga-images"
+
+[dev]
+port = 8787
+local_protocol = "http"

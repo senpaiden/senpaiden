@@ -1,0 +1,51 @@
+# ============================================================
+# SENPAI DEN — GITIGNORE
+# ============================================================
+
+# Environment variables — NEVER commit
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/build/
+
+# Wrangler (Cloudflare)
+cloudflare-worker/.wrangler/
+
+# TypeScript build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Hugging Face Space build artifacts
+hf-worker/__pycache__/
+hf-worker/*.pyc
+hf-worker/.gradio/

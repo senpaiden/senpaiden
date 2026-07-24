@@ -1,0 +1,35 @@
+name: Evict Old Chapter Images
+on:
+  schedule:
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      retention_days:
+        description: 'Days to retain images (default: 30)'
+        required: false
+        default: '30'
+
+jobs:
+  evict:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: github-action/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+        working-directory: github-action
+      - name: Run eviction
+        working-directory: github-action
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          IMAGE_RETENTION_DAYS: ${{ github.event.inputs.retention_days || '30' }}
+        run: npx tsx scripts/evict.ts
