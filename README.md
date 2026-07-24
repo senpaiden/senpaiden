@@ -85,7 +85,34 @@ QUEUED → FAILED → DLQ → QUEUED       (admin retry)
 | [`PRD.md`](PRD.md) | Product Requirements: features, NFRs, constraints, locked decisions |
 | [`architecture.md`](architecture.md) | System design, DB schema, data flows, state machine |
 | [`docs/project-roadmap.md`](docs/project-roadmap.md) | 5-phase implementation plan with AI model recommendations |
-| [`.env.example`](.env.example) | All environment variables with source annotations |
+| [`.env.example`](.env.example) | All Environment Variables with source annotations |
+
+## Local Development (Hybrid Architecture)
+
+To run this platform locally without maxing out your machine's RAM, Senpai Den uses a **Hybrid Local Development** setup:
+
+- **Database:** Runs in the cloud (Supabase) to save 4GB+ of local RAM.
+- **Image Storage:** Runs locally via Docker (MinIO) to simulate Cloudflare R2.
+- **APIs:** Mock Provider API replaces external scrapers to prevent IP bans during rapid development.
+
+### How to Run Locally:
+1. Start the Local S3 bucket (MinIO) and Mock Provider:
+   ```bash
+   docker compose up -d
+   ```
+2. Trigger the Scraper (finds new manga):
+   ```bash
+   npx tsx scripts/scraper.ts
+   ```
+3. Start the Image Processor (Hugging Face Worker):
+   ```bash
+   cd hf-worker && npm run start
+   ```
+4. Start the Edge API and Frontend:
+   ```bash
+   cd cloudflare-worker && npx wrangler dev
+   cd frontend && npm run dev
+   ```
 
 ---
 
