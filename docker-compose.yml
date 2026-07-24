@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  mock-providers:
+    build: ./mock-providers
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=local_access_key
+      - MINIO_ROOT_PASSWORD=local_secret_key
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+volumes:
+  minio_data:

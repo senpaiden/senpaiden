@@ -245,8 +245,18 @@ Build the user-facing product. This is what users see, touch, and judge the plat
 - [ ] Wait 15 seconds on processing page — verify it polls and shows elapsed time
 - [ ] Set `content_freshness = 'stale'` in Supabase — verify stale banner appears in reader
 - [ ] Run Lighthouse on chapter reader — LCP <2.5s, CLS <0.1
-- [ ] Test on mobile Chrome (Android emulation) — verify no OOM crash on 20+ page manhwa chapter
-- [ ] Verify admin dashboard shows DLQ entries and manual retry works
+- [x] Test on mobile Chrome (Android emulation) — verify no OOM crash on 20+ page manhwa chapter
+- [x] Verify admin dashboard shows DLQ entries and manual retry works
+
+---
+
+## Local Development (Mock APIs)
+If you want to run the platform entirely locally without deploying the external `FireFly` or `MangaHook` scrapers, a mock API server is included.
+
+1. Start the mock provider:
+   `docker compose up -d`
+2. This spins up an Express server on `http://localhost:4000` that perfectly mimics the FireFly/MangaHook JSON interface with demo data (*Solo Leveling* and *Tower of God*).
+3. The `.env` file is pre-configured to point `FIREFLY_API_BASE_URL` to `http://localhost:4000`.
 
 ---
 
