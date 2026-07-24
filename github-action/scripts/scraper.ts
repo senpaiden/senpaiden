@@ -10,10 +10,16 @@ import { createClient } from '@supabase/supabase-js';
 import { ProviderOrchestrator } from '../src/providers/ProviderOrchestrator.js';
 import type { MangaDiscovery, ChapterDiscovery } from '../src/providers/MangaProvider.js';
 
+import WebSocket from 'ws';
+
 // ── Supabase client (service role — full write access) ──────────────────────
 const supabase = createClient(
   process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
+  process.env.SUPABASE_SERVICE_KEY!,
+  {
+    auth: { persistSession: false },
+    realtime: { transport: WebSocket } // Fix for Node 20 WebSocket support
+  }
 );
 
 const orchestrator = new ProviderOrchestrator();
