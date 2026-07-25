@@ -5,14 +5,22 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 ENVIRONMENT = "production"
+# Assuming SUPABASE_ANON_KEY is provided via wrangler secret in prod, but we can set a dev default if needed, 
+# or just mention it's bound. The user plan says "Add SUPABASE_ANON_KEY to wrangler.toml vars section"
 
 # Bind Supabase URL as plain var (key goes in wrangler secret)
 # SUPABASE_URL set via: wrangler secret put SUPABASE_URL
 # SUPABASE_SERVICE_KEY set via: wrangler secret put SUPABASE_SERVICE_KEY
+# SUPABASE_ANON_KEY set via: wrangler secret put SUPABASE_ANON_KEY
 
 [[r2_buckets]]
 binding = "MANGA_IMAGES"
 bucket_name = "manga-images"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "rate_limit_namespace_id_here"
+preview_id = "rate_limit_preview_id_here"
 
 [dev]
 port = 8787

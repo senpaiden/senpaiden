@@ -11,6 +11,7 @@ import express from 'express';
 import { createClient } from '@supabase/supabase-js';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import sharp from 'sharp';
+import pLimit from 'p-limit';
 import WebSocket from 'ws';
 
 // ── Configuration & Clients ───────────────────────────────────────────────────
@@ -56,7 +57,9 @@ interface ProcessedPage {
   page_number: number;
   r2_keys: string[];
   slice_dimensions: SliceDimension[];
+  blurhashes: string[];
 }
+import { encode } from 'blurhash';
 
 // ── 1. Watchdog: Timeout Handler ──────────────────────────────────────────────
 async function runWatchdog() {
@@ -158,29 +161,16 @@ async function uploadToR2(key: string, buffer: Buffer): Promise<void> {
 // ── 3. Main Poll Loop ─────────────────────────────────────────────────────────
 async function processNextJob() {
   try {
-    // 1. Claim a QUEUED job
+    // 1. Claim a QUEUED job atomically via RPC (Bug P1-A Fix)
     const { data: qData, error: qErr } = await supabase
-      .from('chapters')
-      .select('id, manga_id, chapter_number, source_url')
-      .eq('job_status', 'QUEUED')
-      .order('created_at', { ascending: true })
-      .limit(1)
+      .rpc('claim_next_chapter')
       .maybeSingle();
 
     if (qErr) throw qErr;
-    if (!qData) return; // No jobs
+    if (!qData) return false; // No jobs
 
     const chapterId = qData.id;
     console.log(`[Worker] Claiming Chapter ${chapterId} (Ch. ${qData.chapter_number})`);
-
-    // Lock it
-    const { error: lockErr } = await supabase
-      .from('chapters')
-      .update({ job_status: 'PROCESSING', processing_started_at: new Date().toISOString() })
-      .eq('id', chapterId)
-      .eq('job_status', 'QUEUED');
-
-    if (lockErr) throw lockErr;
 
     // Everything after this point operates on the locked chapter
     try {
@@ -194,43 +184,67 @@ async function processNextJob() {
       
       if (imageUrls.length === 0) throw new Error('No images returned by provider endpoint');
 
-      // 3. Process each page sequentially
-      const processedPages: ProcessedPage[] = [];
-      let pageNumber = 1;
+      // 3. Process pages in parallel (P2-B Fix)
+      const validUrls = imageUrls.filter(url => typeof url === 'string' && url.startsWith('http'));
+      if (validUrls.length === 0) throw new Error('No valid image URLs found');
 
-      for (const url of imageUrls) {
-        if (typeof url !== 'string' || !url.startsWith('http')) continue;
-        
-        console.log(`[Worker] Processing page ${pageNumber}/${imageUrls.length}...`);
-        const rawBuffer = await downloadImage(url);
-        const { buffers, dimensions } = await processImage(rawBuffer);
+      console.log(`[Worker] Processing ${validUrls.length} pages in parallel...`);
+      const limit = pLimit(5); // Process max 5 pages concurrently
 
-        const r2Keys: string[] = [];
-        for (let sliceIdx = 0; sliceIdx < buffers.length; sliceIdx++) {
-          const key = `manga/${chapterId}/${pageNumber}_${sliceIdx}.webp`;
-          await uploadToR2(key, buffers[sliceIdx]!);
-          r2Keys.push(key);
-        }
+      const processedPages: ProcessedPage[] = await Promise.all(
+        validUrls.map((url, idx) => limit(async () => {
+          const pageNumber = idx + 1;
+          console.log(`[Worker] Processing page ${pageNumber}/${validUrls.length}...`);
+          
+          const rawBuffer = await downloadImage(url);
+          const { buffers, dimensions } = await processImage(rawBuffer);
 
-        processedPages.push({
-          page_number: pageNumber,
-          r2_keys: r2Keys,
-          slice_dimensions: dimensions
-        });
+          const r2Keys: string[] = [];
+          const blurhashes: string[] = [];
+          for (let sliceIdx = 0; sliceIdx < buffers.length; sliceIdx++) {
+            const key = `manga/${chapterId}/${pageNumber}_${sliceIdx}.webp`;
+            const sliceBuffer = buffers[sliceIdx]!;
+            await uploadToR2(key, sliceBuffer);
+            r2Keys.push(key);
 
-        pageNumber++;
-      }
+            // Compute Blurhash for the slice
+            const rawPixelData = await sharp(sliceBuffer)
+              .raw()
+              .ensureAlpha()
+              .resize(32, 32, { fit: 'inside' }) // resize for speed and hash quality
+              .toBuffer({ resolveWithObject: true });
+            
+            const bHash = encode(
+              new Uint8ClampedArray(rawPixelData.data), 
+              rawPixelData.info.width, 
+              rawPixelData.info.height, 
+              4, 
+              4
+            );
+            blurhashes.push(bHash);
+          }
 
-      // 4. Save to Database
-      console.log(`[Worker] Saving ${processedPages.length} pages to DB...`);
-      for (const page of processedPages) {
-        await supabase.from('pages').insert({
+          return {
+            page_number: pageNumber,
+            r2_keys: r2Keys,
+            slice_dimensions: dimensions,
+            blurhashes
+          };
+        }))
+      );
+
+      // 4. Single Bulk Insert to Database (P2-C Fix)
+      console.log(`[Worker] Saving ${processedPages.length} pages to DB (bulk insert)...`);
+      const { error: insertErr } = await supabase.from('pages').insert(
+        processedPages.map(page => ({
           chapter_id: chapterId,
           page_number: page.page_number,
           r2_keys: page.r2_keys,
           slice_dimensions: JSON.stringify(page.slice_dimensions),
-        });
-      }
+          blurhash: JSON.stringify(page.blurhashes)
+        }))
+      );
+      if (insertErr) throw insertErr;
 
       // 5. Mark READY
       await supabase
@@ -239,6 +253,7 @@ async function processNextJob() {
         .eq('id', chapterId);
 
       console.log(`[Worker] Chapter ${chapterId} COMPLETE. ✓`);
+      return true;
 
     } catch (innerErr) {
       console.error(`[Worker] Job Failed for chapter ${chapterId}:`, innerErr);
@@ -255,10 +270,12 @@ async function processNextJob() {
         error_detail: String(innerErr),
         max_retries: parseInt(process.env.DLQ_MAX_RETRIES ?? '3', 10),
       });
+      return true; // Return true even on error so loop continues immediately if there's a backlog
     }
 
   } catch (err) {
     console.error(`[Worker] Polling/Locking Failed:`, err);
+    return false;
   }
 }
 
@@ -266,12 +283,15 @@ async function processNextJob() {
 async function pollLoop() {
   while (true) {
     try {
-      await processNextJob();
+      const didProcess = await processNextJob();
+      if (!didProcess) {
+        // Wait 10 seconds before polling again if queue is empty (P2-D Fix)
+        await new Promise(r => setTimeout(r, 10000));
+      }
     } catch (err) {
       console.error('[Worker] Fatal loop error:', err);
+      await new Promise(r => setTimeout(r, 10000));
     }
-    // Wait 10 seconds before polling again
-    await new Promise(r => setTimeout(r, 10000));
   }
 }
 

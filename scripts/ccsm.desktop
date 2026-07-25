@@ -1,0 +1,179 @@
+# Comprehensive Phase-by-Phase End-to-End Testing Plan
+
+This document establishes a rigorous, phase-by-phase testing strategy for the **Senpai Den Manga Platform**. It validates every architectural layer, database schema constraint, job queue state machine transition, provider failover rule, image processing pipeline, edge API gateway route, and frontend UI component specified in `PRD.md`, `architecture.md`, and `docs/project-roadmap.md`.
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> **Environment Prerequisites for Full Phase Verification:**
+> 1. **Local Containers:** Docker services (`mock-providers` on port 4000, `minio` on port 9000) must be running.
+> 2. **Supabase & MinIO Credentials:** `.env` must contain valid `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, and local MinIO R2 credentials (`NEXT_PUBLIC_R2_URL=http://localhost:9000/manga-images`).
+> 3. **Worker & Edge API:** `hf-worker` (port 7860/local background worker) and `cloudflare-worker` (port 8787) must be active during API & pipeline verification.
+
+> [!NOTE]
+> Testing will be conducted non-destructively using dedicated automated test scripts in `scripts/test/` and targeted HTTP requests to verify state transitions before running clean full-pipeline executions.
+
+---
+
+## Open Questions
+
+> [!NOTE]
+> None at present. All requirements and state machine specifications match the locked architectural constraints in `PRD.md` and `architecture.md`.
+
+---
+
+## Proposed Testing Phases & Test Suites
+
+---
+
+### Phase 1: Database Schema & Integrity Validation
+
+#### [NEW] [test_phase1_database.ts](file:///home/unshakensoul/senpai_den/scripts/test/test_phase1_database.ts)
+
+**Target Component:** Supabase PostgreSQL Schema (`manga`, `chapters`, `pages`, `dead_letter_queue`, `error_log`).
+
+**Test Items:**
+1. **Schema Constraint Verification:**
+   - Verify `manga.source_id` is unique.
+   - Verify `chapters.UNIQUE(manga_id, chapter_number)` constraint blocks duplicate chapter numbers per manga.
+   - Verify `pages.UNIQUE(chapter_id, page_number)` constraint.
+   - Confirm foreign key `ON DELETE CASCADE` behavior: deleting a manga cascades to `chapters` and `pages`.
+2. **State Machine Enum Integrity:**
+   - Verify valid `job_status` values (`DISCOVERED`, `QUEUED`, `PROCESSING`, `READY`, `FAILED`, `STALE_RETRY`, `ARCHIVED`).
+   - Verify valid `content_freshness` values (`fresh`, `stale`, `archived`).
+3. **Full-Text Search Indexing:**
+   - Test `pg_trgm` GIN index on `manga.title` using fuzzy search queries (`ILIKE '%solo%'`, `'eminence'`).
+   - Test GIN index on `manga.genres`.
+4. **JSONB & Array Structure Validation:**
+   - Verify `pages.r2_keys` array insertion and retrieval.
+   - Verify `pages.slice_dimensions` JSONB structure (`[{width: number, height: number}]`).
+
+---
+
+### Phase 2: Provider Adapters, Failover & Scraper Pipeline
+
+#### [NEW] [test_phase2_scraper.ts](file:///home/unshakensoul/senpai_den/scripts/test/test_phase2_scraper.ts)
+
+**Target Component:** Scraper Engine, Provider Adapter Layer (`BaseAdapter`, `FireFlyAdapter`, `MangaHookAdapter`, `ProviderOrchestrator`).
+
+**Test Items:**
+1. **BaseAdapter Infrastructure & Rate Limiting:**
+   - **2 req/s Throttling:** Fire 10 rapid HTTP requests through `throttledFetch()` and measure timestamp deltas to verify strict 2 req/s spacing.
+   - **User-Agent Rotation:** Inspect outgoing request headers to confirm rotation across 5 standard browser fingerprints.
+   - **100 req/run Cap:** Simulate discovery of 120 chapter items; verify scraper halts fetching after hitting 100 requests.
+2. **Dual-Provider Failover Orchestration:**
+   - **Primary Success:** Verify `FireFlyAdapter` discovers manga and queues chapters into Supabase with status `QUEUED`.
+   - **Primary Failure -> Secondary Fallback:** Simulate `FireFlyAdapter` HTTP 500 error; verify `ProviderOrchestrator` seamlessly fails over to `MangaHookAdapter`.
+   - **Dual-Provider Blackout:** Simulate both providers returning 500/404; verify error logged to `error_log` and `dead_letter_queue` record created with `error_type = 'PROVIDER_BLACKOUT'`.
+3. **Idempotency & Duplicate Protection:**
+   - Re-run scraper on existing manga/chapters; verify previously processed or queued chapters are skipped (`0 new queued`).
+
+---
+
+### Phase 3: Image Processing, Slicing & Storage Pipeline
+
+#### [NEW] [test_phase3_worker.ts](file:///home/unshakensoul/senpai_den/scripts/test/test_phase3_worker.ts)
+
+**Target Component:** `hf-worker` (Sharp image engine, MinIO/R2 S3 Client, Job Watchdog).
+
+**Test Items:**
+1. **Job Claiming & Concurrency:**
+   - Verify worker queries oldest `QUEUED` chapter, atomically updates status to `PROCESSING`, and sets `processing_started_at = NOW()`.
+2. **Manhwa Image Slicing Logic:**
+   - **Standard Manga Page (Height ≤ 2000px):** Verify page remains unsliced (1 single slice, `slice_count = 1`).
+   - **Tall Webtoon Strip (Height > 2000px):** Verify image is sliced at 1500px boundaries (e.g. 3600px height -> 3 slices: 1500px, 1500px, 600px).
+   - **WebP Compression:** Verify output slices are WebP format at 70% quality.
+3. **MinIO / R2 Upload & Path Format:**
+   - Verify upload keys match canonical path format: `manga/{chapter_id}/{page_number}_{slice_index}.webp`.
+   - Verify HTTP `Cache-Control: public, max-age=31536000, immutable` headers on uploaded objects.
+4. **Metadata & Slice Dimensions Integrity:**
+   - Verify `pages` table receives complete `r2_keys` array and `slice_dimensions` JSONB containing exact `{width, height}` for every slice.
+5. **Watchdog & 5-Minute Cutoff:**
+   - Set a chapter `job_status = 'PROCESSING'` with `processing_started_at` set to 6 minutes ago; run watchdog to verify automatic transition to `FAILED` and insertion into `dead_letter_queue`.
+6. **DLQ Exponential Backoff:**
+   - Test retry backoff calculation formula: `30s * 2^(retry_count - 1)` (Retry 1 = 30s, Retry 2 = 60s, Retry 3 = 120s).
+
+---
+
+### Phase 4: Edge Worker API Gateway & Caching
+
+#### [NEW] [test_phase4_api.ts](file:///home/unshakensoul/senpai_den/scripts/test/test_phase4_api.ts)
+
+**Target Component:** `cloudflare-worker` (Port 8787 endpoints & edge response headers).
+
+**Test Items:**
+1. **Endpoint Responses & Schemas:**
+   - `GET /api/manga?page=1&search=`: Test paginated list and fuzzy title search queries.
+   - `GET /api/manga/{id}`: Verify manga detail payload and chapter list ordering by `chapter_number`.
+   - `GET /api/chapter/{id}`: Verify retrieval of `r2_keys` and `slice_dimensions`.
+   - `GET /api/chapter/{id}/status`: Verify payload returns `{job_status, elapsed_seconds, content_freshness}`.
+   - `POST /api/chapter/{id}/read`: Verify `last_served_at` timestamp update and `view_count` increment.
+2. **Freshness Header Injection:**
+   - Test `X-Content-Freshness` header behavior for `fresh`, `stale`, and `archived` states.
+3. **Cache Control Verification:**
+   - `/api/manga` -> `Cache-Control: s-maxage=300`
+   - `/api/manga/{id}` -> `Cache-Control: s-maxage=60`
+   - `/api/chapter/{id}` -> `Cache-Control: s-maxage=3600` (for `READY` chapters)
+   - `/api/chapter/{id}/status` -> `Cache-Control: no-store` (never cached)
+
+---
+
+### Phase 5: Frontend UI & Manga Reader Components
+
+#### [NEW] [test_phase5_frontend.ts](file:///home/unshakensoul/senpai_den/scripts/test/test_phase5_frontend.ts)
+
+**Target Component:** Next.js 15 App Router Frontend (`/`, `/search`, `/manga/[id]`, `/manga/[id]/[chapter]`, `/manga/[id]/[chapter]/processing`, `/admin`).
+
+**Test Items:**
+1. **Homepage & Search:**
+   - Verify trending grid and recent updates strip rendering.
+   - Verify search input debouncing (300ms) and dynamic results.
+2. **Manga Detail & Chapter Status Badges:**
+   - Verify display of cover, author, genres, and chapter list with correct status indicators (`READY`, `QUEUED`, `PROCESSING`).
+3. **Manga Reader Component (`ReaderImage` & Reader Stream):**
+   - **Zero Layout Shift (CLS < 0.1):** Verify natural aspect ratio calculation with `w-full h-auto block align-bottom`.
+   - **Zero Gap Vertical Stacking:** Confirm images render flush without white borders or margins (`gap-0 m-0 p-0 border-0 leading-none`).
+   - **Dark Reader Container:** Confirm reader background remains pitch-black (`bg-black` / `bg-zinc-950`).
+   - **Eager vs. Lazy Loading:** Verify `priority` (eager) on first 2 slices, `lazy` on remaining slices.
+   - **Stale Content Banner:** Verify `StaleBanner` renders when `X-Content-Freshness` header is `stale` or `archived`.
+4. **Async Processing & Polling Page:**
+   - Open a `QUEUED` chapter; verify automatic redirect to `/processing` page.
+   - Verify 15-second polling interval and elapsed time counter.
+5. **Admin Dashboard:**
+   - Verify display of `dead_letter_queue` table, error details, manual job retry controls, and eviction actions.
+
+---
+
+## Verification Plan
+
+### Automated Test Execution Scripts
+
+To run tests across all phases, we will create dedicated executable test runner scripts in `scripts/test/`:
+
+```bash
+# Phase 1: Database & Schema Integrity Test
+npx tsx scripts/test/test_phase1_database.ts
+
+# Phase 2: Provider Adapters, Throttling & Failover Test
+npx tsx scripts/test/test_phase2_scraper.ts
+
+# Phase 3: Hugging Face Image Slicing & Storage Test
+npx tsx scripts/test/test_phase3_worker.ts
+
+# Phase 4: Cloudflare Worker Edge API Gateway & Caching Test
+npx tsx scripts/test/test_phase4_api.ts
+
+# Phase 5: Next.js Frontend SSR & Client Rendering Test
+npx tsx scripts/test/test_phase5_frontend.ts
+```
+
+### Manual Verification Matrix
+
+1. **Browser Visual Inspection:**
+   - Navigate to `http://localhost:3000/manga/<manga-uuid>/<chapter-number>` in Chrome/Firefox.
+   - Scroll through full 25+ page chapters to confirm zero image distortion, zero white boxes, and seamless vertical panel transitions.
+2. **Network Tab Audit:**
+   - Verify image slice requests return `HTTP 200 OK` from `http://localhost:9000/manga-images/...`.
+   - Verify `X-Content-Freshness` headers on chapter API requests.

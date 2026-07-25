@@ -11,29 +11,52 @@ import { createClient } from '@supabase/supabase-js';
 interface Env {
   MANGA_IMAGES: R2Bucket;
   SUPABASE_URL: string;
-  SUPABASE_SERVICE_KEY: string;
+  SUPABASE_ANON_KEY: string;     // For public read routes
+  SUPABASE_SERVICE_KEY: string;  // For write/admin routes only
+  RATE_LIMIT_KV: KVNamespace;    // For rate limiting
 }
 
 // Set up CORS using itty-router's built-in cors utility
-// This allows all origins (*) for development ease, but can be restricted later.
-const { preflight, corsify } = cors();
+const ALLOWED_ORIGINS = ['https://senpai-den.pages.dev', 'http://localhost:3000'];
+const { preflight, corsify } = cors({
+  origin: (origin) => ALLOWED_ORIGINS.includes(origin ?? '') ? origin : undefined,
+  allowMethods: ['GET', 'POST', 'OPTIONS'],
+});
+
+// Rate limiter middleware — 60 req/min per IP via Cloudflare KV
+async function rateLimitMiddleware(req: IRequest, env: Env): Promise<Response | undefined> {
+  const ip = req.headers.get('CF-Connecting-IP') ?? 'unknown';
+  const key = `rl:${ip}:${Math.floor(Date.now() / 60000)}`;
+  const count = parseInt((await env.RATE_LIMIT_KV?.get(key)) ?? '0');
+  if (count >= 60) return error(429, 'Too Many Requests');
+  await env.RATE_LIMIT_KV?.put(key, String(count + 1), { expirationTtl: 61 });
+}
 
 const router = AutoRouter<IRequest, [Env, ExecutionContext]>({
-  before: [preflight],
+  before: [preflight, rateLimitMiddleware],
   finally: [corsify],
   catch: (e) => error(500, e instanceof Error ? e.message : 'Internal Server Error'),
 });
 
 // Helper to initialize Supabase client
-const getSupabase = (env: Env) => 
+const getPublicSupabase = (env: Env) => 
+  createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
+    auth: { persistSession: false }
+  });
+
+const getAdminSupabase = (env: Env) => 
   createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY, {
-    auth: { persistSession: false } // Edge workers shouldn't persist sessions
+    auth: { persistSession: false }
   });
 
 // ── GET /api/manga ────────────────────────────────────────────────────────────
 // Paginated manga list with search
-router.get('/api/manga', async (req, env) => {
-  const supabase = getSupabase(env);
+router.get('/api/manga', async (req, env, ctx) => {
+  const cache = caches.default;
+  const cached = await cache.match(req.url);
+  if (cached) return cached;
+
+  const supabase = getPublicSupabase(env);
   const q = req.query.q as string | undefined;
   const page = parseInt((req.query.page as string) ?? '1', 10);
   const limit = 24;
@@ -52,18 +75,25 @@ router.get('/api/manga', async (req, env) => {
   const { data, count, error: dbError } = await query;
   if (dbError) throw new Error(dbError.message);
 
-  return new Response(JSON.stringify({ data, total: count, page, limit }), {
+  const response = new Response(JSON.stringify({ data, total: count, page, limit }), {
     headers: {
       'Content-Type': 'application/json',
-      'Cache-Control': 'public, max-age=60', // Cache for 1 minute
+      'Cache-Control': 's-maxage=60, stale-while-revalidate=300', // P3-B Fix
     }
   });
+
+  ctx.waitUntil(cache.put(req.url, response.clone()));
+  return response;
 });
 
 // ── GET /api/manga/:id ────────────────────────────────────────────────────────
 // Manga detail + chapter list
-router.get('/api/manga/:id', async (req, env) => {
-  const supabase = getSupabase(env);
+router.get('/api/manga/:id', async (req, env, ctx) => {
+  const cache = caches.default;
+  const cached = await cache.match(req.url);
+  if (cached) return cached;
+
+  const supabase = getPublicSupabase(env);
   const { id } = req.params;
 
   const { data: manga, error: mangaErr } = await supabase
@@ -82,10 +112,65 @@ router.get('/api/manga/:id', async (req, env) => {
 
   if (chapterErr) throw new Error(chapterErr.message);
 
-  return new Response(JSON.stringify({ ...manga, chapters }), {
+  const response = new Response(JSON.stringify({ ...manga, chapters }), {
     headers: {
       'Content-Type': 'application/json',
-      'Cache-Control': 'public, max-age=60', // Cache for 1 minute
+      'Cache-Control': 's-maxage=60, stale-while-revalidate=300', // P3-B Fix
+    }
+  });
+
+  ctx.waitUntil(cache.put(req.url, response.clone()));
+  return response;
+});
+
+// ── GET /api/manga/:mangaId/chapter/:chapterNum ───────────────────────────────
+// Compound endpoint to fetch manga metadata + chapter metadata + pages together (P3-A Fix)
+router.get('/api/manga/:mangaId/chapter/:chapterNum', async (req, env) => {
+  const supabase = getPublicSupabase(env);
+  const { mangaId, chapterNum } = req.params;
+
+  // Parallel fetch: manga header + chapter lookup simultaneously
+  const [mangaResult, chapterResult] = await Promise.all([
+    supabase.from('manga').select('id, title, status, genres, cover_url, author, description').eq('id', mangaId).single(),
+    supabase.from('chapters')
+      .select('id, chapter_number, job_status, title, created_at, content_freshness')
+      .eq('manga_id', mangaId)
+      .eq('chapter_number', parseFloat(chapterNum))
+      .single()
+  ]);
+
+  if (mangaResult.error || !mangaResult.data) return error(404, 'Manga not found');
+  if (chapterResult.error || !chapterResult.data) return error(404, 'Chapter not found');
+
+  const chapter = chapterResult.data;
+  if (chapter.job_status !== 'READY') return error(400, `Chapter not ready: ${chapter.job_status}`);
+
+  const pagesResult = await supabase.from('pages')
+    .select('page_number, r2_keys, slice_dimensions, blurhash')
+    .eq('chapter_id', chapter.id)
+    .order('page_number', { ascending: true });
+
+  // Also fetch all chapter numbers for navigation
+  const chaptersResult = await supabase.from('chapters')
+    .select('id, chapter_number, title, job_status, created_at')
+    .eq('manga_id', mangaId)
+    .order('chapter_number', { ascending: false });
+
+  // P3-B cache control: immutable if fresh, otherwise revalidate
+  const cacheControl = chapter.content_freshness === 'fresh' 
+    ? 'public, max-age=31536000, immutable' 
+    : 'no-cache, no-store, must-revalidate';
+
+  return new Response(JSON.stringify({
+    manga: mangaResult.data,
+    chapter: chapter,
+    chapters: chaptersResult.data ?? [],
+    pages: pagesResult.data ?? [],
+  }), {
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': cacheControl,
+      'X-Content-Freshness': chapter.content_freshness
     }
   });
 });
@@ -93,7 +178,7 @@ router.get('/api/manga/:id', async (req, env) => {
 // ── GET /api/chapter/:id ──────────────────────────────────────────────────────
 // Returns pages (r2_keys, slice_dimensions) and injects X-Content-Freshness
 router.get('/api/chapter/:id', async (req, env) => {
-  const supabase = getSupabase(env);
+  const supabase = getPublicSupabase(env);
   const { id } = req.params;
 
   // 1. Check chapter status and freshness
@@ -121,10 +206,10 @@ router.get('/api/chapter/:id', async (req, env) => {
     headers: {
       'Content-Type': 'application/json',
       'X-Content-Freshness': chapter.content_freshness,
-      // Cache forever for READY, but if STALE we don't want it cached forever
+      // Cache immutable for fresh, but require edge revalidation if stale (Bug M2 Fix)
       'Cache-Control': chapter.content_freshness === 'fresh' 
           ? 'public, max-age=31536000, immutable' 
-          : 'public, max-age=60',
+          : 'no-cache, no-store, must-revalidate',
     }
   });
 });
@@ -132,7 +217,7 @@ router.get('/api/chapter/:id', async (req, env) => {
 // ── GET /api/chapter/:id/status ───────────────────────────────────────────────
 // Frontend polling endpoint + Mini-watchdog for 5min timeouts
 router.get('/api/chapter/:id/status', async (req, env) => {
-  const supabase = getSupabase(env);
+  const supabase = getAdminSupabase(env);
   const { id } = req.params;
 
   const { data: chapter, error: dbError } = await supabase
@@ -185,7 +270,7 @@ router.get('/api/chapter/:id/status', async (req, env) => {
 // ── POST /api/chapter/:id/read ────────────────────────────────────────────────
 // Update last_served_at to prevent eviction, increment manga view_count
 router.post('/api/chapter/:id/read', async (req, env) => {
-  const supabase = getSupabase(env);
+  const supabase = getAdminSupabase(env);
   const { id } = req.params;
 
   // 1. Get manga_id to increment view count
