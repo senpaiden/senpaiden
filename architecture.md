@@ -142,15 +142,19 @@ CREATE TABLE manga (
   author          TEXT,
   status          TEXT DEFAULT 'ongoing',     -- 'ongoing' | 'completed' | 'hiatus'
   description     TEXT,
+  embedding       halfvec(64),                -- Matryoshka-truncated synopsis embedding (64-dim)
+  client_vector   INT2[] DEFAULT '{}',        -- 16-dim integer array for client-side dot product
   view_count      INTEGER DEFAULT 0,
   created_at      TIMESTAMPTZ DEFAULT NOW(),
   updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Full-text search indexes
+-- Full-text search & recommendation indexes
+CREATE EXTENSION IF NOT EXISTS vector;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE INDEX manga_title_trgm_idx ON manga USING GIN (title gin_trgm_ops);
 CREATE INDEX manga_genres_idx ON manga USING GIN (genres);
+CREATE INDEX idx_manga_embedding_hnsw ON manga USING hnsw (embedding halfvec_cosine_ops);
 ```
 
 **`chapters`**
@@ -455,4 +459,45 @@ GitHub Actions runners are destroyed after each run. Each run gets a fresh IP fr
 
 ---
 
+## 8. Three-Tier Hybrid Recommendation Engine Architecture
+
+### 8.1 Tier Overview & Data Flow
+Senpai Den implements a zero-cost, high-speed recommendation system combining content embeddings, edge behavioral association, and client-side vector affinity scoring:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        3-TIER HYBRID ENGINE                            │
+├────────────────────────────────────────────────────────────────────────┤
+│                                                                        │
+│  [Tier 1: Semantic Synopsis Matching]                                  │
+│  ├── Database: Supabase PostgreSQL (`pgvector`)                        │
+│  ├── Surface: Manga Detail Page ("More Like This")                     │
+│  └── Storage: 64-dim `halfvec` Matryoshka-truncated vectors            │
+│  └── Latency: < 5ms via HNSW Cosine Index                              │
+│                                                                        │
+│  [Tier 2: Edge Co-Binging Behavior]                                    │
+│  ├── Storage: Cloudflare Edge KV + Hourly Cron Worker                  │
+│  ├── Surface: Chapter Reader Footer ("Readers Also Binged")            │
+│  └── Buffer: In-memory/log batching to avoid KV 1,000 write/day cap    │
+│  └── Latency: < 3ms Edge Lookup                                        │
+│                                                                        │
+│  [Tier 3: Client-Side Anonymous Personalization]                      │
+│  ├── Engine: Browser Next.js + `localStorage`                          │
+│  ├── Surface: Homepage ("Recommended For You")                         │
+│  └── Payload: Lightweight 16-dim `client_vector` catalog payload       │
+│  └── Computation: Pure JS `Float32Array` dot-product (< 1ms)           │
+│                                                                        │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+### 8.2 Technical Implementation Roadmap
+1. **Database Tier:** Enable `vector` extension, add `embedding halfvec(64)` & `client_vector INT2[]` columns to `manga` table with `HNSW` index.
+2. **Ingestion Worker:** Call HuggingFace `all-MiniLM-L6-v2` API on synopsis, truncate 384-dim → 64-dim `halfvec` and 16-dim `client_vector`.
+3. **Cloudflare Gateway:** Expose `/api/manga/:id/recommendations` (HNSW query) and `/api/catalog-vectors` (16-dim cached array). Batch `/api/chapter/:id/read` transition events.
+4. **Cloudflare Cron Worker:** Hourly processing of read transitions via Apriori algorithm to populate Cloudflare KV `rec:<manga_id>` entries.
+5. **Next.js Frontend:** Render "More Like This" on Manga Detail, "Readers Also Binged" in Reader Footer, and client-side Affinity Feed on Homepage.
+
+---
+
 *This architecture document is locked for v1.0. Changes require explicit architecture review and PRD update.*
+

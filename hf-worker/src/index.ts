@@ -7,12 +7,18 @@
 // ============================================================
 
 import 'dotenv/config';
+import dns from 'dns';
 import express from 'express';
 import { createClient } from '@supabase/supabase-js';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import sharp from 'sharp';
 import pLimit from 'p-limit';
 import WebSocket from 'ws';
+
+// Force Node 20 DNS lookup to prefer IPv4 (fixes undici IPv6 timeout & ENOTFOUND)
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder('ipv4first');
+}
 
 // ── Configuration & Clients ───────────────────────────────────────────────────
 const PORT = process.env.PORT || 7860;
@@ -93,8 +99,8 @@ async function runWatchdog() {
         max_retries: parseInt(process.env.DLQ_MAX_RETRIES ?? '3', 10),
       });
     }
-  } catch (err) {
-    console.error(`[Watchdog] Error:`, err);
+  } catch (err: any) {
+    console.warn(`[Watchdog] Supabase connection notice: ${err?.message || String(err)}`);
   }
 }
 setInterval(runWatchdog, 60 * 1000); // Run every 60s
@@ -273,8 +279,8 @@ async function processNextJob() {
       return true; // Return true even on error so loop continues immediately if there's a backlog
     }
 
-  } catch (err) {
-    console.error(`[Worker] Polling/Locking Failed:`, err);
+  } catch (err: any) {
+    console.warn(`[Worker] Supabase connection notice: ${err?.message || String(err)}`);
     return false;
   }
 }

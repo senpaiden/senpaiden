@@ -85,7 +85,7 @@ export class FireFlyAdapter extends BaseAdapter {
         sourceProvider: this.providerName,
         title:          item.title ?? item.name ?? 'Untitled',
         coverUrl:       item.thumbnail ?? item.cover,
-        genres:         this.parseGenres(item.genres),
+        genres:         this.normalizeGenres(this.parseGenres(item.genres)),
         author:         Array.isArray(item.authors)
                           ? item.authors.join(', ')
                           : (item.authors ?? item.author),

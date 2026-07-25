@@ -65,6 +65,119 @@ export abstract class BaseAdapter implements MangaProvider {
     return result as Promise<Response>;
   }
 
+  /**
+   * Normalizes dirty genres from upstream providers into a clean set of core genres.
+   */
+  protected normalizeGenres(rawGenres: string[] | undefined): string[] {
+    if (!rawGenres || rawGenres.length === 0) return [];
+    
+    // Comprehensive mapping dictionary to fix dirty data across all manga/manhwa/manhua
+    const GENRE_MAP: Record<string, string> = {
+      // Sci-Fi / Cyberpunk
+      'science fiction': 'Sci-Fi',
+      'sci fi': 'Sci-Fi',
+      'sci-fi': 'Sci-Fi',
+      'cyberpunk': 'Sci-Fi',
+      'mecha': 'Sci-Fi',
+      
+      // Demographics & Base
+      'shounen': 'Action',
+      'shojo': 'Romance',
+      'shoujo': 'Romance',
+      'seinen': 'Drama',
+      'josei': 'Drama',
+      
+      // Action & Martial Arts
+      'martial arts': 'Action',
+      'wuxia': 'Action',
+      'xianxia': 'Action',
+      'cultivation': 'Action',
+      
+      // Isekai & Reincarnation
+      'isekai': 'Isekai',
+      'reincarnation': 'Isekai',
+      'transmigration': 'Isekai',
+      'time travel': 'Isekai',
+      'system': 'Isekai',
+      
+      // Fantasy & Supernatural
+      'magic': 'Fantasy',
+      'supernatural': 'Supernatural',
+      'demons': 'Supernatural',
+      'vampires': 'Supernatural',
+      'zombies': 'Supernatural',
+      'monsters': 'Fantasy',
+      'ghosts': 'Supernatural',
+      
+      // Romance
+      'romcom': 'Romance',
+      'romance': 'Romance',
+      
+      // Mature & NSFW
+      'ecchi': 'Mature',
+      'smut': 'Mature',
+      'mature': 'Mature',
+      'adult': 'Mature',
+      'hentai': 'Mature',
+      '18+': 'Mature',
+      
+      // LGBTQ+
+      'boys love': 'BL',
+      'bl': 'BL',
+      'yaoi': 'BL',
+      'shounen ai': 'BL',
+      'shounen-ai': 'BL',
+      'girls love': 'GL',
+      'gl': 'GL',
+      'yuri': 'GL',
+      'shoujo ai': 'GL',
+      'shoujo-ai': 'GL',
+      
+      // School & Slice of Life
+      'school life': 'School Life',
+      'school': 'School Life',
+      'slice of life': 'Slice of Life',
+      'everyday': 'Slice of Life',
+      
+      // General
+      'comedy': 'Comedy',
+      'horror': 'Horror',
+      'mystery': 'Mystery',
+      'psychological': 'Psychological',
+      'thriller': 'Thriller',
+      'tragedy': 'Tragedy',
+      'historical': 'Historical',
+      'sports': 'Sports',
+      'cooking': 'Slice of Life',
+      'medical': 'Drama',
+      
+      // Formats (often tagged as genres)
+      'webtoon': 'Webtoon',
+      'manhwa': 'Webtoon',
+      'manhua': 'Webtoon',
+      'colored': 'Webtoon',
+      'full color': 'Webtoon'
+    };
+
+    const validGenres = new Set<string>();
+
+    rawGenres.forEach(g => {
+      const lower = g.trim().toLowerCase();
+      if (!lower) return;
+      
+      const mapped = GENRE_MAP[lower];
+      if (mapped) {
+        validGenres.add(mapped);
+      } else {
+        // Fallback: Capitalize first letter of each word
+        const formatted = lower.replace(/\b\w/g, c => c.toUpperCase());
+        validGenres.add(formatted);
+      }
+    });
+
+    return Array.from(validGenres);
+  }
+
   // Abstract methods — implemented by concrete adapters
   abstract fetchLatestManga(page: number): Promise<MangaDiscovery[]>;
   abstract fetchChapterPages(chapterId: string): Promise<string[]>;

@@ -90,7 +90,7 @@ export class MangaHookAdapter extends BaseAdapter {
         sourceProvider: this.providerName,
         title:          item.mangaName ?? item.title ?? 'Untitled',
         coverUrl:       item.coverImage ?? item.thumbnail,
-        genres:         this.parseGenres(item.genres),
+        genres:         this.normalizeGenres(this.parseGenres(item.genres)),
         author:         Array.isArray(item.authors)
                           ? item.authors.join(', ')
                           : (item.authors ?? item.author),

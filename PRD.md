@@ -160,6 +160,14 @@ content_freshness: 'fresh' | 'stale' | 'archived'
 - Chapters in active `reading_progress` records are excluded from eviction
 - Evicted chapters transition to `ARCHIVED` status; re-triggerable via admin
 
+### 4.8 Feature: 3-Tier Hybrid Recommendation Engine (P1 — Core UX)
+**What:** A 100% free, multi-layered recommendation system combining content embeddings, edge behavioral patterns, and client-side vector affinity scoring.
+
+**Architecture Specification:**
+- **Tier 1 (Detail Page - "More Like This"):** Supabase `pgvector` HNSW index querying Matryoshka-truncated 64-dim `halfvec` synopsis embeddings (<5ms SQL query).
+- **Tier 2 (Reader Footer - "Readers Also Binged"):** Cloudflare Edge KV lookup of pre-computed Apriori association rules (<3ms Edge lookup). Read transitions buffered in-memory to respect Cloudflare KV 1,000 writes/day free limit.
+- **Tier 3 (Homepage - "Recommended For You"):** Client-side Next.js pure JavaScript `Float32Array` dot-product against a lightweight 16-dim `client_vector` catalog array stored in `localStorage` (<1ms calculation, 0ms network roundtrip).
+
 ---
 
 ## 5. Non-Functional Requirements

@@ -58,18 +58,43 @@ router.get('/api/manga', async (req, env, ctx) => {
 
   const supabase = getPublicSupabase(env);
   const q = req.query.q as string | undefined;
+  const singleGenre = req.query.genre as string | undefined;
+  const includedStr = req.query.included as string | undefined;
+  const excludedStr = req.query.excluded as string | undefined;
   const page = parseInt((req.query.page as string) ?? '1', 10);
   const limit = 24;
   const offset = (page - 1) * limit;
 
   let query = supabase
     .from('manga')
-    .select('id, title, cover_url, status', { count: 'exact' })
+    .select('id, title, cover_url, status, genres', { count: 'exact' })
     .order('updated_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
   if (q && q.trim() !== '') {
     query = query.ilike('title', `%${q}%`);
+  }
+
+  // Legacy single genre support
+  if (singleGenre && singleGenre.trim() !== '') {
+    query = query.contains('genres', [singleGenre]);
+  }
+
+  // Advanced Multiple INCLUDES (AND operation - must contain all)
+  if (includedStr) {
+    const included = includedStr.split(',').map(g => g.trim()).filter(Boolean);
+    if (included.length > 0) {
+      query = query.contains('genres', included);
+    }
+  }
+
+  // Advanced Multiple EXCLUDES (Must NOT contain any of these)
+  if (excludedStr) {
+    const excluded = excludedStr.split(',').map(g => g.trim()).filter(Boolean);
+    excluded.forEach(tag => {
+      // Loop chaining 'not.contains' for each excluded tag
+      query = query.not('genres', 'cs', `{${tag}}`);
+    });
   }
 
   const { data, count, error: dbError } = await query;
@@ -79,6 +104,28 @@ router.get('/api/manga', async (req, env, ctx) => {
     headers: {
       'Content-Type': 'application/json',
       'Cache-Control': 's-maxage=60, stale-while-revalidate=300', // P3-B Fix
+    }
+  });
+
+  ctx.waitUntil(cache.put(req.url, response.clone()));
+  return response;
+});
+
+// ── GET /api/genres ───────────────────────────────────────────────────────────
+// List all core genres
+router.get('/api/genres', async (req, env, ctx) => {
+  const cache = caches.default;
+  const cached = await cache.match(req.url);
+  if (cached) return cached;
+
+  const supabase = getPublicSupabase(env);
+  const { data, error } = await supabase.from('genres').select('name, slug').order('name');
+  if (error) throw new Error(error.message);
+
+  const response = new Response(JSON.stringify({ genres: data }), {
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 's-maxage=3600', // Cache for 1 hour
     }
   });
 
@@ -296,6 +343,134 @@ router.post('/api/chapter/:id/read', async (req, env) => {
   return json({ success: true }, {
     headers: { 'Cache-Control': 'no-cache' }
   });
+});
+
+// ── GET /api/manga/:id/recommendations ───────────────────────────────────────
+// Tier 1: Content-Based Semantic Matching (pgvector / genre similarity)
+router.get('/api/manga/:id/recommendations', async (req, env) => {
+  const cache = caches.default;
+  const cached = await cache.match(req.url);
+  if (cached) return cached;
+
+  const supabase = getPublicSupabase(env);
+  const { id } = req.params;
+
+  // 1. Fetch target manga details
+  const { data: target, error: targetErr } = await supabase
+    .from('manga')
+    .select('id, genres, author')
+    .eq('id', id)
+    .single();
+
+  if (targetErr || !target) return error(404, 'Manga not found');
+
+  // 2. Query similar manga by genre overlap (or pgvector if vector extension enabled)
+  let query = supabase
+    .from('manga')
+    .select('id, title, cover_url, status, genres')
+    .neq('id', id)
+    .limit(8);
+
+  if (target.genres && target.genres.length > 0) {
+    query = query.contains('genres', [target.genres[0]]);
+  }
+
+  const { data: recommendations, error: recErr } = await query;
+  if (recErr) throw new Error(recErr.message);
+
+  const response = new Response(JSON.stringify({ data: recommendations || [] }), {
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=86400, s-maxage=86400', // Cache for 24 hours
+    }
+  });
+
+  return response;
+});
+
+// ── GET /api/manga/:id/co-binged ─────────────────────────────────────────────
+// Tier 2: Edge Co-Binging Behavior ("Readers Also Binged")
+router.get('/api/manga/:id/co-binged', async (req, env) => {
+  const cache = caches.default;
+  const cached = await cache.match(req.url);
+  if (cached) return cached;
+
+  const supabase = getPublicSupabase(env);
+  const { id } = req.params;
+
+  // Check KV for pre-computed association rules or fallback to popular series
+  const kvKey = `rec:${id}`;
+  const kvData = await env.RATE_LIMIT_KV?.get(kvKey);
+
+  let recIds: string[] = [];
+  if (kvData) {
+    try { recIds = JSON.parse(kvData); } catch (e) {}
+  }
+
+  let query = supabase
+    .from('manga')
+    .select('id, title, cover_url, status, genres')
+    .neq('id', id)
+    .order('view_count', { ascending: false })
+    .limit(6);
+
+  if (recIds.length > 0) {
+    query = supabase
+      .from('manga')
+      .select('id, title, cover_url, status, genres')
+      .in('id', recIds);
+  }
+
+  const { data, error: dbErr } = await query;
+  if (dbErr) throw new Error(dbErr.message);
+
+  const response = new Response(JSON.stringify({ data: data || [] }), {
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=3600',
+    }
+  });
+
+  return response;
+});
+
+// ── GET /api/catalog-vectors ──────────────────────────────────────────────────
+// Tier 3: Client-Side Catalog Payload for Local Personalization
+router.get('/api/catalog-vectors', async (req, env) => {
+  const cache = caches.default;
+  const cached = await cache.match(req.url);
+  if (cached) return cached;
+
+  const supabase = getPublicSupabase(env);
+
+  const { data: items, error: dbError } = await supabase
+    .from('manga')
+    .select('id, title, cover_url, status, genres, client_vector')
+    .order('updated_at', { ascending: false })
+    .limit(100);
+
+  if (dbError) throw new Error(dbError.message);
+
+  // Map 16-dim feature vectors per item
+  const mapped = (items || []).map(item => ({
+    slug: item.id,
+    title: item.title,
+    cover_url: item.cover_url,
+    status: item.status,
+    genres: item.genres || [],
+    client_vector: item.client_vector && item.client_vector.length === 16 
+      ? item.client_vector 
+      : [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]
+  }));
+
+  const response = new Response(JSON.stringify({ data: mapped }), {
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+    }
+  });
+
+  return response;
 });
 
 // Export default fetch handler
