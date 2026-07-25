@@ -443,34 +443,40 @@ router.get('/api/catalog-vectors', async (req, env) => {
 
   const supabase = getPublicSupabase(env);
 
-  const { data: items, error: dbError } = await supabase
+  // Attempt select with client_vector or fallback to standard columns
+  let { data: items, error: dbError } = await supabase
     .from('manga')
     .select('id, title, cover_url, status, genres, client_vector')
     .order('updated_at', { ascending: false })
     .limit(100);
 
-  if (dbError) throw new Error(dbError.message);
+  if (dbError) {
+    const fallbackRes = await supabase
+      .from('manga')
+      .select('id, title, cover_url, status, genres')
+      .order('updated_at', { ascending: false })
+      .limit(100);
+    items = fallbackRes.data as any;
+  }
 
   // Map 16-dim feature vectors per item
-  const mapped = (items || []).map(item => ({
+  const mapped = (items || []).map((item: any) => ({
     slug: item.id,
     title: item.title,
     cover_url: item.cover_url,
     status: item.status,
     genres: item.genres || [],
-    client_vector: item.client_vector && item.client_vector.length === 16 
+    client_vector: Array.isArray(item.client_vector) && item.client_vector.length === 16 
       ? item.client_vector 
       : [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]
   }));
 
-  const response = new Response(JSON.stringify({ data: mapped }), {
+  return new Response(JSON.stringify({ data: mapped }), {
     headers: {
       'Content-Type': 'application/json',
       'Cache-Control': 'public, max-age=86400, s-maxage=86400',
     }
   });
-
-  return response;
 });
 
 // Export default fetch handler
