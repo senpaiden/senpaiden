@@ -22,7 +22,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
       notFound();
     }
     
-    const { manga, chapter, chapters, pages } = await compoundRes.json();
+    const { manga, chapter, chapters, pages, available_languages } = await compoundRes.json();
     const freshness = compoundRes.headers.get('x-content-freshness') as "fresh" | "stale" | "archived" | null;
     
     // Trigger read increment asynchronously
@@ -59,6 +59,8 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
         slices={allSlices}
         freshness={freshness ?? undefined}
         r2BaseUrl={r2BaseUrl}
+        availableLanguages={available_languages || ["en", "es", "fr"]}
+        currentLanguage={chapter?.language || "en"}
       />
     );
   } catch (e) {

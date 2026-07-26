@@ -6,9 +6,9 @@
 
 *Free. Fast. Unbreakable.*
 
-[![Phase](https://img.shields.io/badge/Phase-0%20Complete-brightgreen)](docs/project-roadmap.md)
-[![Architecture](https://img.shields.io/badge/Architecture-Locked-blue)](architecture.md)
-[![PRD](https://img.shields.io/badge/PRD-v1.0.0-purple)](PRD.md)
+[![Phase](https://img.shields.io/badge/Phase-v1.1%20Complete-brightgreen)](docs/project-roadmap.md)
+[![Architecture](https://img.shields.io/badge/Architecture-v1.1-blue)](architecture.md)
+[![PRD](https://img.shields.io/badge/PRD-v1.1.0-purple)](PRD.md)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 </div>
@@ -19,12 +19,15 @@
 
 Senpai Den is a **free, mobile-first manga and manhwa reading platform** engineered to outperform incumbents by being structurally superior — not by matching their resources. It runs entirely on free-tier cloud infrastructure and is designed to survive the failure modes that kill competitor products:
 
-| Problem | Giant Platform Failure | Senpai Den Solution |
+| Feature / Challenge | Incumbent Failure | Senpai Den Solution |
 |---|---|---|
 | **Traffic Spikes** | Origin 502s cascade to users | Cloudflare edge serves cached images globally |
 | **API Provider Outage** | Site goes down | Stale R2 cache served + silent DLQ retry |
 | **Mobile OOM Crashes** | 15,000px manhwa images crash WebViews | HF worker pre-slices to 1,500px segments |
-| **Single Point of Failure** | Provider goes down = platform down | Adapter pattern swaps providers without downtime |
+| **Reading Experience** | Basic 1-column scroll | **3 Modes**: Webtoon, Single Page, **Double Spread Book View** |
+| **Layout Adjustments** | Static image sizing | **3 Fits**: Fit Width, Fit Height (`90vh`), Original Size |
+| **Multi-Language Support** | Fragmented catalogs per language | **ISO-639 Sub-Layer**: 1-tap `en`, `es`, `fr`, `ja` HUD switcher |
+| **Page Load Latency** | Sequential page downloads | **In-Memory Preloader**: Pre-caches 4–6 upcoming page slices |
 
 ---
 
@@ -219,9 +222,23 @@ npm run dev
 
 ---
 
+## 🛠️ Service Control & Master Utilities
+
+To manage all background workers, Docker containers, dev servers, and network ports in one step:
+
+```bash
+# 🛑 Stop all services, containers, workers & free RAM
+./stop_all.sh
+
+# 🚀 Restart all services
+./start_all.sh
+```
+
+---
+
 ## Key Design Decisions
 
-These decisions are **locked** for v1.0 and documented in the PRD:
+These decisions are **locked** for v1.1 and documented in the PRD:
 
 | ID | Decision |
 |---|---|
@@ -230,6 +247,9 @@ These decisions are **locked** for v1.0 and documented in the PRD:
 | `AD-003` | 1500px naive pixel-cut; `slice_dimensions` JSONB in Supabase (not R2 manifest) |
 | `AD-004` | 30-day image eviction; chapter metadata retained forever |
 | `AD-005` | Ephemeral GitHub Actions IPs + UA rotation + 2 req/s + 100 req/run |
+| `AD-006` | Canonical Manga + Multi-Language Sub-Layer (`title_i18n`, `language`, `scanlation_group`) |
+| `AD-007` | 3 Reading Modes (Webtoon, Single, Double Spread) + 3 Page Fit Layout Modes |
+| `AD-008` | Background Image Preloader Engine caching 4–6 upcoming page slices in browser memory |
 
 ---
 
@@ -243,4 +263,3 @@ Issues and PRs will be enabled after Phase 3 is complete.
 <div align="center">
 Built with architectural obsession. No VC funding. No compromises.
 </div>
-# senpaiden

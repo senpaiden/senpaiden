@@ -1,9 +1,9 @@
 # Product Requirements Document
 # Senpai Den — The Giant-Killer Manga Platform
 
-**Version:** 1.0.0  
-**Status:** Locked (Post /grill-me Session)  
-**Last Updated:** 2026-07-24  
+**Version:** 1.1.0  
+**Status:** Updated (Multi-Language & Advanced Reader UX)  
+**Last Updated:** 2026-07-25  
 **Author:** Architecture Review Board  
 
 ---

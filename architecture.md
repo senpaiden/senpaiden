@@ -1,9 +1,9 @@
 # System Architecture
 # Senpai Den — Giant-Killer Manga Platform
 
-**Version:** 1.0.0  
-**Status:** Locked (Post /grill-me Session)  
-**Last Updated:** 2026-07-24  
+**Version:** 1.1.0  
+**Status:** Updated & Locked (Multi-Language & Advanced Reader Features Integrated)  
+**Last Updated:** 2026-07-25  
 
 ---
 
@@ -12,6 +12,28 @@
 Senpai Den is built on a single guiding principle: **no synchronous dependency chain reaches the user**.
 
 Every component that can fail (scrapers, image processors, upstream APIs) is decoupled from the read path via a persistent queue. Users always receive a response — either fresh content, stale content with an honest banner, or a lightweight polling page. A blank screen or 502 is architecturally impossible.
+
+---
+
+## 1.1 Key Architectural Upgrades (v1.1)
+
+1. **Canonical Manga + Multi-Language Sub-Layer (`title_i18n`, `language`, `scanlation_group`)**:
+   - Single canonical `manga` entity with localized JSONB titles and synopses.
+   - Composite identity on `chapters`: `UNIQUE (manga_id, chapter_number, language, scanlation_group)`.
+   - Edge Worker language cascade: User Preference → English (`en`) → Available Scan Candidate.
+
+2. **3 Selectable Reader Modes & 3 Page Fit Layout Modes**:
+   - Modes: **Webtoon Continuous Strip**, **Single Page Flip**, **Double Spread Book View** (side-by-side Page A + Page B).
+   - Fits: **Fit to Width**, **Fit to Height** (`90vh` viewport clamp), **Original Size / No Limit**.
+
+3. **In-Memory Image Preloader Engine**:
+   - Background browser preloader (`new Image().src = ...`) caching upcoming 4–6 page slices in advance for MangaDex-level instant page turns.
+
+4. **Series Completion Celebration Modal**:
+   - Contextual end-of-series modal replacing cluttering inline recommendations.
+
+5. **Master Control Scripts**:
+   - [`stop_all.sh`](file:///home/unshakensoul/senpai_den/stop_all.sh) and [`start_all.sh`](file:///home/unshakensoul/senpai_den/start_all.sh) for one-step service management.
 
 ---
 

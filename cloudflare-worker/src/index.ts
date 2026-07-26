@@ -153,16 +153,18 @@ router.get('/api/manga/:id', async (req, env, ctx) => {
 
   const { data: chapters, error: chapterErr } = await supabase
     .from('chapters')
-    .select('id, chapter_number, title, job_status, created_at')
+    .select('id, chapter_number, title, job_status, created_at, language, scanlation_group')
     .eq('manga_id', id)
     .order('chapter_number', { ascending: false });
 
   if (chapterErr) throw new Error(chapterErr.message);
 
-  const response = new Response(JSON.stringify({ ...manga, chapters }), {
+  const availableLangs = Array.from(new Set((chapters || []).map(c => c.language || 'en')));
+
+  const response = new Response(JSON.stringify({ ...manga, chapters: chapters || [], available_languages: availableLangs }), {
     headers: {
       'Content-Type': 'application/json',
-      'Cache-Control': 's-maxage=60, stale-while-revalidate=300', // P3-B Fix
+      'Cache-Control': 's-maxage=60, stale-while-revalidate=300',
     }
   });
 
@@ -171,25 +173,39 @@ router.get('/api/manga/:id', async (req, env, ctx) => {
 });
 
 // ── GET /api/manga/:mangaId/chapter/:chapterNum ───────────────────────────────
-// Compound endpoint to fetch manga metadata + chapter metadata + pages together (P3-A Fix)
+// Compound endpoint to fetch manga metadata + chapter metadata + pages together (Multi-Lang Enabled)
 router.get('/api/manga/:mangaId/chapter/:chapterNum', async (req, env) => {
   const supabase = getPublicSupabase(env);
   const { mangaId, chapterNum } = req.params;
+  const url = new URL(req.url);
+  const langParam = url.searchParams.get('lang') || 'en';
+  const groupParam = url.searchParams.get('group');
 
   // Parallel fetch: manga header + chapter lookup simultaneously
-  const [mangaResult, chapterResult] = await Promise.all([
-    supabase.from('manga').select('id, title, status, genres, cover_url, author, description').eq('id', mangaId).single(),
-    supabase.from('chapters')
-      .select('id, chapter_number, job_status, title, created_at, content_freshness')
-      .eq('manga_id', mangaId)
-      .eq('chapter_number', parseFloat(chapterNum))
-      .single()
+  let chapterQuery = supabase.from('chapters')
+    .select('id, chapter_number, job_status, title, created_at, content_freshness, language, scanlation_group')
+    .eq('manga_id', mangaId)
+    .eq('chapter_number', parseFloat(chapterNum));
+
+  if (groupParam) {
+    chapterQuery = chapterQuery.eq('scanlation_group', groupParam);
+  }
+
+  const [mangaResult, chapterCandidatesResult] = await Promise.all([
+    supabase.from('manga').select('id, title, status, genres, cover_url, author, description, title_i18n').eq('id', mangaId).single(),
+    chapterQuery
   ]);
 
   if (mangaResult.error || !mangaResult.data) return error(404, 'Manga not found');
-  if (chapterResult.error || !chapterResult.data) return error(404, 'Chapter not found');
+  
+  const candidates = chapterCandidatesResult.data || [];
+  if (candidates.length === 0) return error(404, 'Chapter not found');
 
-  const chapter = chapterResult.data;
+  // Multi-Language Cascade: 1. Exact requested lang -> 2. English 'en' -> 3. First candidate
+  let chapter = candidates.find(c => c.language === langParam);
+  if (!chapter) chapter = candidates.find(c => c.language === 'en');
+  if (!chapter) chapter = candidates[0];
+
   if (chapter.job_status !== 'READY') return error(400, `Chapter not ready: ${chapter.job_status}`);
 
   const pagesResult = await supabase.from('pages')
@@ -197,13 +213,14 @@ router.get('/api/manga/:mangaId/chapter/:chapterNum', async (req, env) => {
     .eq('chapter_id', chapter.id)
     .order('page_number', { ascending: true });
 
-  // Also fetch all chapter numbers for navigation
+  // Fetch all chapters for navigation
   const chaptersResult = await supabase.from('chapters')
-    .select('id, chapter_number, title, job_status, created_at')
+    .select('id, chapter_number, title, job_status, created_at, language, scanlation_group')
     .eq('manga_id', mangaId)
     .order('chapter_number', { ascending: false });
 
-  // P3-B cache control: immutable if fresh, otherwise revalidate
+  const availableLangs = Array.from(new Set((chaptersResult.data || []).map(c => c.language || 'en')));
+
   const cacheControl = chapter.content_freshness === 'fresh' 
     ? 'public, max-age=31536000, immutable' 
     : 'no-cache, no-store, must-revalidate';
@@ -213,6 +230,7 @@ router.get('/api/manga/:mangaId/chapter/:chapterNum', async (req, env) => {
     chapter: chapter,
     chapters: chaptersResult.data ?? [],
     pages: pagesResult.data ?? [],
+    available_languages: availableLangs
   }), {
     headers: {
       'Content-Type': 'application/json',

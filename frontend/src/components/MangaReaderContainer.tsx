@@ -19,7 +19,9 @@ import {
   Trophy,
   Sparkles,
   X,
-  PartyPopper
+  PartyPopper,
+  Globe,
+  Users
 } from "lucide-react";
 import { ReaderImage, PageFitMode } from "./ReaderImage";
 import { StaleBanner } from "./StaleBanner";
@@ -39,6 +41,8 @@ interface ChapterMetadata {
   chapter_number: number;
   title?: string;
   job_status?: string;
+  language?: string;
+  scanlation_group?: string;
 }
 
 interface MangaReaderContainerProps {
@@ -49,6 +53,8 @@ interface MangaReaderContainerProps {
   slices: SliceData[];
   freshness?: "fresh" | "stale" | "archived";
   r2BaseUrl: string;
+  availableLanguages?: string[];
+  currentLanguage?: string;
 }
 
 const getSliceUrl = (baseUrl: string, key: string) => {
@@ -69,7 +75,9 @@ export function MangaReaderContainer({
   chapters,
   slices,
   freshness,
-  r2BaseUrl
+  r2BaseUrl,
+  availableLanguages = ["en", "es", "fr"],
+  currentLanguage = "en"
 }: MangaReaderContainerProps) {
   const router = useRouter();
   const [isHudVisible, setIsHudVisible] = useState(true);
@@ -77,6 +85,7 @@ export function MangaReaderContainer({
   const [isCounterVisible, setIsCounterVisible] = useState(false);
   const [readingMode, setReadingMode] = useState<ReadingMode>("webtoon");
   const [pageFit, setPageFit] = useState<PageFitMode>("fit-width");
+  const [selectedLang, setSelectedLang] = useState<string>(currentLanguage);
   const [isEndModalOpen, setIsEndModalOpen] = useState(false);
   const [activePagedIndex, setActivePagedIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -96,21 +105,8 @@ export function MangaReaderContainer({
     return () => window.removeEventListener('resize', updateWidth);
   }, []);
 
-  // Background Image Preloader Engine (MangaDex Fast Loading Hack)
-  useEffect(() => {
-    if (!slices || slices.length === 0) return;
-    const startIndex = readingMode === "webtoon" ? currentSliceIndex : activePagedIndex;
-    const preloadCount = readingMode === "double" ? 6 : 4;
-
-    for (let i = 1; i <= preloadCount; i++) {
-      const targetIdx = startIndex + i;
-      if (slices[targetIdx]) {
-        const imgUrl = getSliceUrl(r2BaseUrl, slices[targetIdx].key);
-        const img = new Image();
-        img.src = imgUrl;
-      }
-    }
-  }, [slices, currentSliceIndex, activePagedIndex, readingMode, r2BaseUrl]);
+  // We rely on React-level hidden image rendering for preloading so we can control fetchPriority
+  // and prevent bandwidth competition with the active page.
 
   const virtualizer = useWindowVirtualizer({
     count: readingMode === 'webtoon' ? slices.length : 0,
@@ -337,6 +333,12 @@ export function MangaReaderContainer({
       setActivePagedIndex(nextIdx);
       saveProgress(nextIdx);
       triggerCounterVisibility();
+
+      // Phase 3 Fix: Predictive Prefetching at 70% threshold for Paged modes
+      if (!hasPrefetchedNext.current && nextChapter && nextIdx >= slices.length * 0.7) {
+        hasPrefetchedNext.current = true;
+        prefetchNextChapter(nextChapter.chapter_number);
+      }
     } else if (nextChapter) {
       navigateToChapter(nextChapter);
     } else {
@@ -490,6 +492,28 @@ export function MangaReaderContainer({
                 </button>
               </div>
 
+              {/* Multi-Language ISO Selector Pill */}
+              <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10">
+                <Globe className="w-3.5 h-3.5 text-[#A1A1AA] ml-1 hidden sm:block shrink-0" />
+                <select
+                  value={selectedLang}
+                  onChange={(e) => {
+                    const newLang = e.target.value;
+                    setSelectedLang(newLang);
+                    localStorage.setItem("senpai_preferred_lang", newLang);
+                    router.push(`/manga/${mangaId}/${chapterNumber}?lang=${newLang}`);
+                  }}
+                  className="bg-transparent text-white text-xs rounded-lg px-1.5 py-1 focus:outline-none cursor-pointer font-medium"
+                  title="Change Chapter Translation Language"
+                >
+                  {availableLanguages.map((lang) => (
+                    <option key={lang} value={lang} className="bg-[#101016] text-white">
+                      {lang === 'en' ? '🇬🇧 EN' : lang === 'es' ? '🇪🇸 ES' : lang === 'fr' ? '🇫🇷 FR' : lang === 'ja' ? '🇯🇵 JA' : lang.toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <button
                 onClick={toggleFullscreen}
                 className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-[#A1A1AA] hover:text-white transition-colors border border-white/10"
@@ -598,6 +622,21 @@ export function MangaReaderContainer({
           </div>
         )}
       </div>
+
+      {/* Smart Preloader Queue (Background Idle Fetching) */}
+      {/* Renders upcoming pages silently so the browser downloads them AFTER visible ones */}
+      {readingMode !== "webtoon" && (
+        <div className="absolute w-0 h-0 overflow-hidden opacity-0 pointer-events-none" aria-hidden="true">
+          {slices.slice(activePagedIndex + (readingMode === "double" ? 2 : 1), activePagedIndex + (readingMode === "double" ? 6 : 4)).map((slice) => (
+            <img 
+              key={`preload-${slice.key}`} 
+              src={getSliceUrl(r2BaseUrl, slice.key)} 
+              decoding="async"
+              alt="" 
+            />
+          ))}
+        </div>
+      )}
 
       {/* Floating Bottom Nav HUD */}
       <footer

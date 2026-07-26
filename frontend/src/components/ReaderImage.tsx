@@ -40,7 +40,8 @@ export function ReaderImage({ src, width, height, priority = false, blurhash, co
   const getFitImageClass = () => {
     const alignClass = getAlignClass();
     if (pageFit === "fit-height") {
-      return `max-h-[85vh] sm:max-h-[90vh] w-auto ${alignClass} object-contain block m-0 p-0 border-0 align-bottom`;
+      // 144px accounts for pt-16 (64px) header and pb-20 (80px) footer to perfectly fit without scrollbars
+      return `max-h-[calc(100dvh-144px)] w-auto ${alignClass} object-contain block m-0 p-0 border-0 align-bottom`;
     }
     if (pageFit === "original") {
       return `max-w-none max-h-none w-auto h-auto block m-0 p-0 border-0 align-bottom`;
