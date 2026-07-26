@@ -278,14 +278,14 @@ export function MangaReaderContainer({
           window.scrollBy({ top: -350, behavior: "smooth" });
         }
       } else if (e.key === "ArrowRight" || e.key === "PageDown") {
-        if (readingMode === "paged") {
+        if (readingMode === "single" || readingMode === "double") {
           e.preventDefault();
           nextPagedPage();
         } else if (e.key === "ArrowRight" && nextChapter) {
           router.push(`/manga/${mangaId}/${nextChapter.chapter_number}`);
         }
       } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
-        if (readingMode === "paged") {
+        if (readingMode === "single" || readingMode === "double") {
           e.preventDefault();
           prevPagedPage();
         } else if (e.key === "ArrowLeft" && prevChapter) {

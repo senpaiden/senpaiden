@@ -1,152 +1,212 @@
-import Link from "next/link";
-import { MangaCard } from "@/components/MangaCard";
-import { TopBar } from "@/components/TopBar";
-import { AdvancedFilterPanel } from "@/components/AdvancedFilterPanel";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+"use client";
 
-export const revalidate = 60; // Edge Cache
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense } from "react";
+import { Search, SlidersHorizontal, Star, Bookmark, ChevronDown, X, Filter } from "lucide-react";
+import { NewMangaCard } from "@/components/NewMangaCard";
 
-export const metadata = {
-  title: "Discover — Senpai Den",
-  description: "Discover trending manga, manhwa, and webtoons curated for your next binge on Senpai Den.",
-};
+const TYPES = ["All", "Manga", "Manhwa", "Manhua"];
+const STATUSES = ["All", "Ongoing", "Completed", "Hiatus"];
+const SORT_OPTIONS = ["Popularity", "Rating", "Latest", "A-Z", "Chapters"];
 
-export default async function Discover({ searchParams }: { searchParams: Promise<{ genre?: string; page?: string; included?: string; excluded?: string }> }) {
-  const resolvedParams = await searchParams;
-  const currentGenre = resolvedParams.genre || "All";
-  const pageNum = parseInt(resolvedParams.page || "1", 10);
-  const included = resolvedParams.included;
-  const excluded = resolvedParams.excluded;
-  const limit = 24;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+const GENRES_DATA = [
+  { name: "Action", emoji: "⚔️", color: "#FF2E2E" },
+  { name: "Romance", emoji: "💕", color: "#EC4899" },
+  { name: "Fantasy", emoji: "✨", color: "#8B5CF6" },
+  { name: "Comedy", emoji: "😂", color: "#F59E0B" },
+  { name: "Horror", emoji: "👻", color: "#10B981" },
+  { name: "Sci-Fi", emoji: "🚀", color: "#3B82F6" },
+  { name: "Drama", emoji: "🎭", color: "#9333EA" },
+  { name: "Slice of Life", emoji: "☕", color: "#EAB308" }
+];
+
+function ExplorePageContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   
-  let mangas: any[] = [];
-  let totalCount = 0;
+  const [query, setQuery] = useState(searchParams.get("q") || "");
+  const [typeFilter, setTypeFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
+  
+  const initialGenre = searchParams.get("genre");
+  const [genreFilter, setGenreFilter] = useState<string[]>(initialGenre ? [initialGenre] : []);
+  
+  const initialSort = searchParams.get("sort");
+  const [sortBy, setSortBy] = useState(initialSort === "updated" ? "Latest" : "Popularity");
+  
+  const [showFilters, setShowFilters] = useState(false);
+  
+  const [mangas, setMangas] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  try {
-    let url = new URL(`${apiUrl}/api/manga`);
-    url.searchParams.set("page", pageNum.toString());
-    url.searchParams.set("limit", limit.toString());
+  useEffect(() => {
+    async function fetchData() {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+      try {
+        const res = await fetch(`${apiUrl}/api/manga?page=1&limit=50`);
+        if (res.ok) {
+          const data = await res.json();
+          // Map to match UI shape
+          const mapped = (data.data || []).map((m: any) => ({
+            id: m.id,
+            slug: m.id,
+            title: m.title,
+            author: m.author || "Unknown",
+            genres: m.genres || ["Action"],
+            latest_chapter_number: m.latest_chapter_number || 1,
+            status: m.status || "Ongoing",
+            cover: m.cover_url,
+            cover_url: m.cover_url,
+            type: m.type || "Manga",
+            rating: m.rating || 4.8,
+            isNew: Math.random() > 0.8
+          }));
+          setMangas(mapped);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  const filtered = useMemo(() => {
+    let list = [...mangas];
+    if (query) list = list.filter((m) => m.title.toLowerCase().includes(query.toLowerCase()) || m.author.toLowerCase().includes(query.toLowerCase()));
+    if (typeFilter !== "All") list = list.filter((m) => m.type === typeFilter);
+    if (statusFilter !== "All") list = list.filter((m) => m.status === statusFilter);
+    if (genreFilter.length) list = list.filter((m) => genreFilter.every((g) => m.genres.includes(g)));
     
-    if (currentGenre !== "All" && !included) {
-      url.searchParams.set("genre", currentGenre);
-    }
-    if (included) url.searchParams.set("included", included);
-    if (excluded) url.searchParams.set("excluded", excluded);
-      
-    const res = await fetch(url.toString());
-    if (res.ok) {
-      const data = await res.json();
-      mangas = data.data || [];
-      totalCount = data.total || mangas.length;
-    }
-  } catch (e) {
-    console.error("Failed to fetch mangas:", e);
-  }
+    if (sortBy === "Rating") list.sort((a, b) => b.rating - a.rating);
+    else if (sortBy === "Latest") list.sort((a, b) => b.latest_chapter_number - a.latest_chapter_number);
+    else if (sortBy === "A-Z") list.sort((a, b) => a.title.localeCompare(b.title));
+    else if (sortBy === "Chapters") list.sort((a, b) => b.latest_chapter_number - a.latest_chapter_number);
+    return list;
+  }, [mangas, query, typeFilter, statusFilter, genreFilter, sortBy]);
 
-  const uiMangas = mangas.map((m: any) => ({
-    slug: m.id,
-    title: m.title,
-    altTitle: m.alt_title || "",
-    description: m.description || "",
-    genres: m.genres || ["Action", "Fantasy"],
-    latestChapter: m.latest_chapter_number || 1,
-    status: m.status || "Ongoing",
-    cover_url: m.cover_url,
-    coverHue: 250,
-    coverHue2: 300,
-  }));
-
-  const POPULAR_GENRES = ["Action", "Romance", "Fantasy", "Drama", "Comedy", "Sci-Fi", "Slice of Life", "Mystery", "Horror"];
-
-  const buildUrl = (targetPage: number, genre: string) => {
-    const params = new URLSearchParams();
-    if (genre !== "All") params.set("genre", genre);
-    if (targetPage > 1) params.set("page", targetPage.toString());
-    const str = params.toString();
-    return `/discover${str ? `?${str}` : ""}`;
-  };
-
-  const totalPages = Math.ceil(totalCount / limit) || 1;
+  const toggleGenre = (g: string) =>
+    setGenreFilter((prev) => prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]);
 
   return (
-    <div className="pb-28 md:pb-8">
-      <TopBar />
-      <div className="mx-auto max-w-7xl px-4 pt-4 md:px-8 md:pt-8">
-        <h1 className="text-2xl font-black md:text-3xl">Discover</h1>
-        <p className="mt-1 text-sm text-[#A1A1AA]">Handpicked worlds waiting inside the Den.</p>
+    <div className="min-h-screen text-foreground pb-20 md:pb-8">
+      {/* Header */}
+      <div className="px-4 md:px-8 pt-8 pb-6 border-b border-primary/10">
+        <h1 className="text-3xl font-black mb-1 text-white font-rajdhani">
+          Explore <span className="text-primary">Manga</span>
+        </h1>
+        <p className="text-sm text-muted-foreground mb-6">Discover your next obsession from 10,000+ titles</p>
 
-        {/* Genre Filters */}
-        <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto pb-1 items-center">
-          <AdvancedFilterPanel />
-          <div className="h-6 w-px bg-white/10 mx-1 shrink-0" />
-          
-          {["All", ...POPULAR_GENRES].map((g) => {
-            const isActive = g === currentGenre;
-            return (
-              <Link
-                key={g}
-                href={buildUrl(1, g)}
-                className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                  isActive
-                    ? "sd-gradient border-transparent text-white"
-                    : "border-white/10 bg-white/5 text-[#A1A1AA] hover:text-white"
-                }`}
+        {/* Search + controls */}
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+          <div className="flex-1 max-w-xl relative">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by title, author, or genre..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm outline-none text-foreground placeholder:text-muted-foreground transition-colors bg-white/5 border border-primary/15 focus:border-primary/50 font-noto"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <button onClick={() => setShowFilters((s) => !s)}
+              className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all border flex-1 md:flex-none ${showFilters ? 'bg-primary/15 border-primary/40 text-primary' : 'bg-white/5 border-white/10 text-white'}`}
+            >
+              <SlidersHorizontal size={15} /> Filters {genreFilter.length > 0 && `(${genreFilter.length})`}
+            </button>
+            <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl px-2">
+              <span className="text-xs text-muted-foreground hidden sm:inline">Sort:</span>
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
+                className="py-2.5 rounded-xl text-sm outline-none cursor-pointer bg-transparent text-white font-exo border-none"
               >
-                {g}
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* Manga Cards Grid */}
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
-          {uiMangas.map((m) => (
-            <MangaCard key={m.slug} manga={m} showChapter />
-          ))}
-        </div>
-
-        {/* Pagination Controls */}
-        <div className="mt-10 flex items-center justify-between border-t border-white/10 pt-6">
-          <p className="text-xs text-[#A1A1AA]">
-            Page <span className="font-bold text-white">{pageNum}</span> of <span className="font-bold text-white">{totalPages}</span>
-          </p>
-
-          <div className="flex gap-2">
-            {pageNum > 1 ? (
-              <Link
-                href={buildUrl(pageNum - 1, currentGenre)}
-                className="inline-flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white hover:bg-white/10 transition"
-              >
-                <ChevronLeft className="h-4 w-4" /> Previous
-              </Link>
-            ) : (
-              <button
-                disabled
-                className="inline-flex items-center gap-1 rounded-xl border border-white/5 bg-white/5 px-4 py-2 text-xs font-semibold text-[#71717A] opacity-50 cursor-not-allowed"
-              >
-                <ChevronLeft className="h-4 w-4" /> Previous
-              </button>
-            )}
-
-            {uiMangas.length === limit ? (
-              <Link
-                href={buildUrl(pageNum + 1, currentGenre)}
-                className="inline-flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-white hover:bg-white/10 transition"
-              >
-                Next <ChevronRight className="h-4 w-4" />
-              </Link>
-            ) : (
-              <button
-                disabled
-                className="inline-flex items-center gap-1 rounded-xl border border-white/5 bg-white/5 px-4 py-2 text-xs font-semibold text-[#71717A] opacity-50 cursor-not-allowed"
-              >
-                Next <ChevronRight className="h-4 w-4" />
-              </button>
-            )}
+                {SORT_OPTIONS.map((o) => <option key={o} value={o} className="bg-[#161B22]">{o}</option>)}
+              </select>
+            </div>
           </div>
         </div>
+
+        {/* Type + Status pills */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mt-4 overflow-x-auto no-scrollbar pb-2">
+          <div className="flex gap-2 shrink-0">
+            {TYPES.map((t) => (
+              <button key={t} onClick={() => setTypeFilter(t)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${typeFilter === t ? 'bg-primary text-white shadow-[0_0_10px_rgba(255,46,46,0.35)]' : 'bg-white/5 text-muted-foreground hover:bg-white/10'}`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+          <div className="w-px h-5 bg-white/10 hidden sm:block shrink-0" />
+          <div className="flex gap-2 shrink-0">
+            {STATUSES.map((s) => (
+              <button key={s} onClick={() => setStatusFilter(s)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${statusFilter === s ? 'bg-primary/15 text-primary border-primary/35' : 'bg-transparent text-muted-foreground border-transparent hover:bg-white/5'}`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Genre filter panel */}
+        {showFilters && (
+          <div className="mt-4 p-4 rounded-2xl bg-[#161B22]/90 border border-primary/10">
+            <div className="flex items-center gap-2 mb-3">
+              <Filter size={13} className="text-primary" />
+              <span className="text-xs font-bold text-white">Filter by Genre</span>
+              {genreFilter.length > 0 && (
+                <button onClick={() => setGenreFilter([])} className="text-[10px] text-muted-foreground hover:text-white ml-2">Clear all</button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {GENRES_DATA.map((g) => {
+                const active = genreFilter.includes(g.name);
+                return (
+                  <button key={g.name} onClick={() => toggleGenre(g.name)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${active ? 'bg-red-500/10 border-red-500/30 text-primary' : 'bg-white/5 border-white/10 text-muted-foreground'}`}
+                  >
+                    <span>{g.emoji}</span> {g.name}
+                    {active && <X size={10} />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Results */}
+      <div className="px-4 md:px-8 py-6">
+        <div className="flex items-center justify-between mb-5">
+          <span className="text-sm text-muted-foreground">
+            Showing <span className="text-white font-bold">{filtered.length}</span> results
+          </span>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-20 text-muted-foreground font-jetbrains">Loading latest series...</div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="text-5xl mb-4">🔍</div>
+            <h3 className="text-xl font-black text-white mb-2 font-rajdhani">No results found</h3>
+            <p className="text-muted-foreground text-sm">Try different keywords or remove filters</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+            {filtered.map((m, i) => (
+              <NewMangaCard key={m.id} manga={m} idx={i} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
+  );
+}
+
+export default function ExplorePage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-muted-foreground font-jetbrains">Loading...</div>}>
+      <ExplorePageContent />
+    </Suspense>
   );
 }
