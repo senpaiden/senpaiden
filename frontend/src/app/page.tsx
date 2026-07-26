@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { MangaCard } from "@/components/MangaCard";
-import { TopBar } from "@/components/TopBar";
 import { AddToLibraryButton } from "@/components/AddToLibraryButton";
 import { HomeLibraryRow } from "@/components/HomeLibraryRow";
 import { PersonalizedFeedRow } from "@/components/PersonalizedFeedRow";
@@ -47,7 +46,6 @@ export default async function Home() {
 
   return (
     <div className="pb-28 md:pb-8">
-      <TopBar transparent />
 
       {/* Hero */}
       <section className="relative">

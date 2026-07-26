@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { TopBar } from "@/components/TopBar";
+
 import { MangaCard } from "@/components/MangaCard";
 import { History as HistoryIcon, Trash2 } from "lucide-react";
 import type { Manga } from "@/lib/manga-data";
@@ -91,7 +91,7 @@ export default function HistoryPage() {
 
   return (
     <div className="pb-28 md:pb-8">
-      <TopBar />
+
       <div className="mx-auto max-w-7xl px-4 pt-4 md:px-8 md:pt-8">
         <div className="flex items-center justify-between">
           <div>

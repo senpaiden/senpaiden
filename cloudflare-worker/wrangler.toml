@@ -5,6 +5,9 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 ENVIRONMENT = "production"
+SUPABASE_URL = ""
+SUPABASE_ANON_KEY = ""
+SUPABASE_SERVICE_KEY = ""
 # Assuming SUPABASE_ANON_KEY is provided via wrangler secret in prod, but we can set a dev default if needed, 
 # or just mention it's bound. The user plan says "Add SUPABASE_ANON_KEY to wrangler.toml vars section"
 

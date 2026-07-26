@@ -18,7 +18,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY!,
   {
     auth: { persistSession: false },
-    realtime: { transport: WebSocket } // Fix for Node 20 WebSocket support
+    realtime: { transport: WebSocket as any } // Fix for Node 20 WebSocket support
   }
 );
 

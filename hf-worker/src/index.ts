@@ -32,7 +32,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY!,
   {
     auth: { persistSession: false },
-    realtime: { transport: WebSocket } // Fix for Node 20 WebSocket support
+    realtime: { transport: WebSocket as any } // Fix for Node 20 WebSocket support
   }
 );
 
@@ -175,14 +175,15 @@ async function processNextJob() {
     if (qErr) throw qErr;
     if (!qData) return false; // No jobs
 
-    const chapterId = qData.id;
-    console.log(`[Worker] Claiming Chapter ${chapterId} (Ch. ${qData.chapter_number})`);
+    const qChapter = qData as { id: string; chapter_number: number; source_url: string };
+    const chapterId = qChapter.id;
+    console.log(`[Worker] Claiming Chapter ${chapterId} (Ch. ${qChapter.chapter_number})`);
 
     // Everything after this point operates on the locked chapter
     try {
       // 2. Fetch image URLs from Provider API
-      console.log(`[Worker] Fetching source images from: ${qData.source_url}`);
-      const sourceRes = await fetch(qData.source_url);
+      console.log(`[Worker] Fetching source images from: ${qChapter.source_url}`);
+      const sourceRes = await fetch(qChapter.source_url);
       if (!sourceRes.ok) throw new Error(`Provider HTTP ${sourceRes.status} for images`);
       
       const sourceData = await sourceRes.json();

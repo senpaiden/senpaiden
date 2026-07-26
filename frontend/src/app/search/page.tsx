@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { TopBar } from "@/components/TopBar";
+
 import { MangaCard } from "@/components/MangaCard";
 import { Search as SearchIcon, X, Loader2, Frown } from "lucide-react";
 import type { Manga } from "@/lib/manga-data";
@@ -74,7 +74,7 @@ export default function SearchPage() {
 
   return (
     <div className="pb-28 md:pb-8">
-      <TopBar />
+
       <div className="mx-auto max-w-7xl px-4 pt-4 md:px-8 md:pt-8">
         
         {/* Search Input Box */}

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { MangaCard } from "@/components/MangaCard";
-import { TopBar } from "@/components/TopBar";
 import { AdvancedFilterPanel } from "@/components/AdvancedFilterPanel";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -71,7 +70,6 @@ export default async function Discover({ searchParams }: { searchParams: Promise
 
   return (
     <div className="pb-28 md:pb-8">
-      <TopBar />
       <div className="mx-auto max-w-7xl px-4 pt-4 md:px-8 md:pt-8">
         <h1 className="text-2xl font-black md:text-3xl">Discover</h1>
         <p className="mt-1 text-sm text-[#A1A1AA]">Handpicked worlds waiting inside the Den.</p>
