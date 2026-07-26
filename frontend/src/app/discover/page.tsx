@@ -10,12 +10,13 @@ export const metadata = {
   description: "Discover trending manga, manhwa, and webtoons curated for your next binge on Senpai Den.",
 };
 
-export default async function Discover({ searchParams }: { searchParams: Promise<{ genre?: string; page?: string; included?: string; excluded?: string }> }) {
+export default async function Discover({ searchParams }: { searchParams: Promise<{ genre?: string; page?: string; included?: string; excluded?: string; sort?: string }> }) {
   const resolvedParams = await searchParams;
   const currentGenre = resolvedParams.genre || "All";
   const pageNum = parseInt(resolvedParams.page || "1", 10);
   const included = resolvedParams.included;
   const excluded = resolvedParams.excluded;
+  const sort = resolvedParams.sort;
   const limit = 24;
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
   
@@ -32,6 +33,7 @@ export default async function Discover({ searchParams }: { searchParams: Promise
     }
     if (included) url.searchParams.set("included", included);
     if (excluded) url.searchParams.set("excluded", excluded);
+    if (sort) url.searchParams.set("sort", sort);
       
     const res = await fetch(url.toString());
     if (res.ok) {
@@ -62,17 +64,20 @@ export default async function Discover({ searchParams }: { searchParams: Promise
     const params = new URLSearchParams();
     if (genre !== "All") params.set("genre", genre);
     if (targetPage > 1) params.set("page", targetPage.toString());
+    if (sort) params.set("sort", sort);
     const str = params.toString();
     return `/discover${str ? `?${str}` : ""}`;
   };
 
   const totalPages = Math.ceil(totalCount / limit) || 1;
 
+  const isLatest = sort === "updated";
+
   return (
     <div className="pb-28 md:pb-8">
       <div className="mx-auto max-w-7xl px-4 pt-4 md:px-8 md:pt-8">
-        <h1 className="text-2xl font-black md:text-3xl">Discover</h1>
-        <p className="mt-1 text-sm text-[#A1A1AA]">Handpicked worlds waiting inside the Den.</p>
+        <h1 className="text-2xl font-black md:text-3xl">{isLatest ? "Latest Releases" : "Search"}</h1>
+        <p className="mt-1 text-sm text-[#A1A1AA]">{isLatest ? "Manga with recently updated chapters." : "Handpicked worlds waiting inside the Den."}</p>
 
         {/* Genre Filters */}
         <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto pb-1 items-center">

@@ -12,12 +12,10 @@ import {
 
 const SIDEBAR_ITEMS = [
   { icon: Home, label: "Home", path: "/" },
-  { icon: Compass, label: "Explore", path: "/discover" },
-  { icon: List, label: "Manga List", path: "/discover" },
+  { icon: Search, label: "Search", path: "/discover" },
   { icon: LayoutGrid, label: "Categories", path: "/discover?genre=Action" },
-  { icon: TrendingUp, label: "Popular", path: "/discover?sort=popular" },
-  { icon: RefreshCw, label: "Updates", path: "/discover?sort=updated" },
-  { icon: Bookmark, label: "Bookmarks", path: "/library" },
+  { icon: RefreshCw, label: "Latest Releases", path: "/discover?sort=updated" },
+  { icon: Bookmark, label: "Library", path: "/library" },
   { icon: History, label: "History", path: "/history" },
 ];
 
@@ -65,16 +63,17 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSiteLoading, setIsSiteLoading] = useState(true);
 
+  const isReader = pathname.match(/^\/manga\/[^/]+\/[^/]+(\/.*)?$/);
+
   useEffect(() => {
     const hasSeenIntro = localStorage.getItem("hasSeenIntro");
-    
     if (hasSeenIntro) {
       setIsSiteLoading(false);
     } else {
       const timer = setTimeout(() => {
         setIsSiteLoading(false);
         localStorage.setItem("hasSeenIntro", "true");
-      }, 10000); // 10 seconds
+      }, 300); // Fast 300ms transition
       return () => clearTimeout(timer);
     }
   }, []);
@@ -114,6 +113,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* MOBILE TOP NAV (Visible only on small screens) */}
+      {!isReader && (
       <nav className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center px-4 h-14 gap-2 bg-[#0F1117]/95 backdrop-blur-xl border-b border-red-500/10">
         
         <button className="p-2 -ml-2 text-muted-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -128,8 +128,10 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
           <Search size={20} />
         </Link>
       </nav>
+      )}
 
       {/* DESKTOP SIDEBAR */}
+      {!isReader && (
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-[260px] flex-col z-50 bg-[#0F1117]/95 backdrop-blur-xl border-r border-white/5 overflow-y-auto no-scrollbar pb-6">
         {/* LOGO */}
         <Link href="/" className="flex items-center justify-center gap-3 px-4 py-4 shrink-0 border-b border-white/5">
@@ -180,8 +182,10 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
            </div>
         </div>
       </aside>
+      )}
 
       {/* MOBILE BOTTOM NAV */}
+      {!isReader && (
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#0F1117]/95 backdrop-blur-xl border-t border-primary/10 z-50 flex items-center justify-around px-2 pb-safe">
         {SIDEBAR_ITEMS.slice(0, 5).map((item, i) => {
            const Icon = item.icon;
@@ -197,6 +201,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
            )
         })}
       </nav>
+      )}
 
       {/* MOBILE SIDE MENU OVERLAY */}
       {mobileMenuOpen && (
@@ -213,8 +218,9 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 flex flex-col min-h-screen md:pl-[260px] relative z-10 min-w-0 overflow-hidden">
+      <div className={`flex-1 flex flex-col min-h-screen ${!isReader ? "md:pl-[260px]" : "md:pl-0"} relative z-10 min-w-0 overflow-hidden`}>
         {/* DESKTOP TOP NAV */}
+        {!isReader && (
         <header className="hidden md:flex h-[72px] items-center px-8 shrink-0 relative z-20">
           <form onSubmit={handleSearch} className="relative w-full max-w-[320px]">
             <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
@@ -234,7 +240,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
               <Bell size={18} />
               <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-primary border-2 border-[#0F1117]" />
             </button>
-            <Link href="/profile" className="flex items-center gap-2 pl-2 cursor-pointer group">
+            <Link href="/library" className="flex items-center gap-2 pl-2 cursor-pointer group">
               <div className="flex flex-col items-end">
                 <span className="text-[12px] font-bold text-white group-hover:text-primary transition-colors">Senpai</span>
                 <span className="text-[10px] text-zinc-500">Lv. 26</span>
@@ -246,9 +252,10 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
         </header>
+        )}
         
         {/* PAGE CONTENT */}
-        <main className="flex-1 overflow-x-hidden pt-14 md:pt-0 pb-16 md:pb-0 w-full">
+        <main className={`flex-1 overflow-x-hidden ${!isReader ? "pt-14 md:pt-0 pb-16 md:pb-0" : ""} w-full`}>
           {children}
         </main>
       </div>
