@@ -1,15 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,700&family=Noto+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -28,112 +23,161 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
   --color-ring: var(--ring);
-
-  --color-sd-black: #050507;
-  --color-sd-bg: #08080C;
-  --color-sd-surface: #101016;
-  --color-sd-surface-2: #16161F;
-  --color-sd-border: rgba(255,255,255,0.08);
-  --color-sd-border-hover: rgba(255,255,255,0.16);
-  --color-sd-text: #FFFFFF;
-  --color-sd-text-2: #A1A1AA;
-  --color-sd-text-3: #71717A;
-  --color-sd-violet: #8B5CF6;
-  --color-sd-purple: #A855F7;
-  --color-sd-magenta: #D946EF;
-  --color-sd-cyan: #22D3EE;
-  --color-sd-blue: #38BDF8;
-  --color-sd-success: #22C55E;
-  --color-sd-warning: #F59E0B;
-  --color-sd-error: #EF4444;
-
-  --font-sans: var(--font-inter);
-  --font-display: var(--font-outfit);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 }
 
 @layer base {
   :root {
-    --radius: 0.75rem;
-    --background: #08080C;
-    --foreground: #FFFFFF;
-    --card: #101016;
-    --card-foreground: #FFFFFF;
-    --popover: #101016;
-    --popover-foreground: #FFFFFF;
-    --primary: #8B5CF6;
-    --primary-foreground: #FFFFFF;
-    --secondary: #16161F;
-    --secondary-foreground: #FFFFFF;
-    --muted: #16161F;
-    --muted-foreground: #A1A1AA;
-    --accent: #22D3EE;
-    --accent-foreground: #050507;
-    --destructive: #EF4444;
-    --destructive-foreground: #FFFFFF;
-    --border: rgba(255,255,255,0.08);
-    --input: rgba(255,255,255,0.12);
-    --ring: #8B5CF6;
+    --font-size: 16px;
+    --background: #0F1117;
+    --foreground: #F8FAFC;
+    --card: #161B22;
+    --card-foreground: #F8FAFC;
+    --popover: #161B22;
+    --popover-foreground: #F8FAFC;
+    --primary: #FF2E2E;
+    --primary-foreground: #F8FAFC;
+    --secondary: #1E2530;
+    --secondary-foreground: #F8FAFC;
+    --muted: #1a1f29;
+    --muted-foreground: #8892a4;
+    --accent: #FF2E2E;
+    --accent-foreground: #F8FAFC;
+    --destructive: #FF2E2E;
+    --destructive-foreground: #F8FAFC;
+    --border: rgba(255, 46, 46, 0.12);
+    --input: rgba(255,255,255,0.06);
+    --input-background: #1a1f29;
+    --switch-background: #2a3040;
+    --font-weight-medium: 600;
+    --font-weight-normal: 400;
+    --ring: rgba(255, 46, 46, 0.5);
+    --chart-1: #FF2E2E;
+    --chart-2: #FF6B6B;
+    --chart-3: #FFD700;
+    --chart-4: #7C3AED;
+    --chart-5: #06B6D4;
+    --radius: 1rem;
+    --sidebar: #0F1117;
+    --sidebar-foreground: #F8FAFC;
+    --sidebar-primary: #FF2E2E;
+    --sidebar-primary-foreground: #F8FAFC;
+    --sidebar-accent: #161B22;
+    --sidebar-accent-foreground: #F8FAFC;
+    --sidebar-border: rgba(255, 46, 46, 0.1);
+    --sidebar-ring: rgba(255, 46, 46, 0.5);
   }
   
-  * { border-color: var(--color-border); }
-  
-  html, body {
-    background-color: var(--background);
-    color: var(--foreground);
-    color-scheme: dark;
-    font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  .dark {
+    --background: #0F1117;
+    --foreground: #F8FAFC;
+    --card: #161B22;
+    --card-foreground: #F8FAFC;
+    --popover: #161B22;
+    --popover-foreground: #F8FAFC;
+    --primary: #FF2E2E;
+    --primary-foreground: #F8FAFC;
+    --secondary: #1E2530;
+    --secondary-foreground: #F8FAFC;
+    --muted: #1a1f29;
+    --muted-foreground: #8892a4;
+    --accent: #FF2E2E;
+    --accent-foreground: #F8FAFC;
+    --destructive: #FF2E2E;
+    --destructive-foreground: #F8FAFC;
+    --border: rgba(255, 46, 46, 0.12);
+    --input: rgba(255,255,255,0.06);
+    --ring: rgba(255, 46, 46, 0.5);
+    --font-weight-medium: 600;
+    --font-weight-normal: 400;
+    --chart-1: #FF2E2E;
+    --chart-2: #FF6B6B;
+    --chart-3: #FFD700;
+    --chart-4: #7C3AED;
+    --chart-5: #06B6D4;
+    --sidebar: #0F1117;
+    --sidebar-foreground: #F8FAFC;
+    --sidebar-primary: #FF2E2E;
+    --sidebar-primary-foreground: #F8FAFC;
+    --sidebar-accent: #161B22;
+    --sidebar-accent-foreground: #F8FAFC;
+    --sidebar-border: rgba(255, 46, 46, 0.1);
+    --sidebar-ring: rgba(255, 46, 46, 0.5);
   }
-  body { min-height: 100vh; }
+
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+  h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+  label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+  input {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
 }
 
-@utility sd-gradient {
-  background-image: linear-gradient(135deg, #8B5CF6 0%, #A855F7 45%, #22D3EE 100%);
-}
-@utility sd-gradient-text {
-  background-image: linear-gradient(135deg, #8B5CF6 0%, #A855F7 45%, #22D3EE 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-@utility sd-glass {
-  background-color: rgba(18, 18, 27, 0.72);
-  backdrop-filter: blur(18px) saturate(140%);
-  border: 1px solid rgba(255,255,255,0.08);
-}
-@utility sd-shimmer {
-  background: linear-gradient(90deg, #101016 0%, #1a1a24 40%, #101016 80%);
-  background-size: 200% 100%;
-  animation: sdShimmer 1.6s linear infinite;
-}
 @utility no-scrollbar {
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
 }
 
-@keyframes sdShimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-@keyframes sdRise {
-  0% { transform: translateY(100%); opacity: 0.4; }
-  50% { opacity: 1; }
-  100% { transform: translateY(-100%); opacity: 0; }
-}
-@keyframes sdPulseGlow {
-  0%,100% { box-shadow: 0 0 20px rgba(139,92,246,0.35); }
-  50% { box-shadow: 0 0 34px rgba(139,92,246,0.65); }
-}
-@keyframes sdFadeUp {
-  0% { opacity: 0; transform: translateY(8px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.001ms !important;
-    transition-duration: 0.001ms !important;
-  }
+@utility glass-panel {
+  @apply bg-white/5 backdrop-blur-md border border-white/10;
 }

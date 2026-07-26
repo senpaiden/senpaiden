@@ -1,0 +1,258 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  Home, Compass, List, LayoutGrid, TrendingUp, RefreshCw,
+  Bookmark, History, Users, Search, Bell, Flame, Upload,
+  ChevronDown, Crown, Menu, X, Shield,
+  Moon, Sun, Laptop
+} from "lucide-react";
+
+const SIDEBAR_ITEMS = [
+  { icon: Home, label: "Home", path: "/" },
+  { icon: Compass, label: "Explore", path: "/discover" },
+  { icon: List, label: "Manga List", path: "/discover" },
+  { icon: LayoutGrid, label: "Categories", path: "/discover?genre=Action" },
+  { icon: TrendingUp, label: "Popular", path: "/discover?sort=popular" },
+  { icon: RefreshCw, label: "Updates", path: "/discover?sort=updated" },
+  { icon: Bookmark, label: "Bookmarks", path: "/library" },
+  { icon: History, label: "History", path: "/history" },
+];
+
+function DiscordIcon(props: any) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M15.39 5.862a12.834 12.834 0 0 0-3.328-1.047 1 1 0 0 0-.825.437l-.373.6a13.383 13.383 0 0 0-3.738 0l-.373-.6a1 1 0 0 0-.825-.437 12.834 12.834 0 0 0-3.328 1.047 1 1 0 0 0-.58.825c-.247 5.762 1.34 10.99 4.316 14.582a1 1 0 0 0 .736.38 12.887 12.887 0 0 0 3.791-1.22 1 1 0 0 0 .151-1.636 10.224 10.224 0 0 1-1.353-.878 1 1 0 0 1 .158-1.68l.192-.12a10.016 10.016 0 0 0 7.822 0l.192.12a1 1 0 0 1 .158 1.68 10.224 10.224 0 0 1-1.353.878 1 1 0 0 0 .151 1.636 12.887 12.887 0 0 0 3.791 1.22 1 1 0 0 0 .736-.38c2.976-3.591 4.563-8.82 4.316-14.582a1 1 0 0 0-.58-.825Z"/>
+      <circle cx="8.5" cy="12.5" r="1.5" fill="currentColor"/>
+      <circle cx="15.5" cy="12.5" r="1.5" fill="currentColor"/>
+    </svg>
+  )
+}
+
+function TwitterIcon(props: any) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/>
+    </svg>
+  )
+}
+
+function InstagramIcon(props: any) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+    </svg>
+  )
+}
+
+function YoutubeIcon(props: any) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M2.5 7.1C2.6 5.8 3.7 4.7 5 4.6 9.4 4.3 14.6 4.3 19 4.6c1.3.1 2.4 1.2 2.5 2.5.3 2.7.3 7.1 0 9.8-.1 1.3-1.2 2.4-2.5 2.5-4.4.3-9.6.3-19 0-1.3-.1-2.4-1.2-2.5-2.5-.3-2.7-.3-7.1 0-9.8z"/>
+      <path d="m9.5 15.5 7-3.5-7-3.5v7z"/>
+    </svg>
+  )
+}
+
+export function SiteLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [search, setSearch] = useState("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isSiteLoading, setIsSiteLoading] = useState(true);
+
+  useEffect(() => {
+    const hasSeenIntro = localStorage.getItem("hasSeenIntro");
+    
+    if (hasSeenIntro) {
+      setIsSiteLoading(false);
+    } else {
+      const timer = setTimeout(() => {
+        setIsSiteLoading(false);
+        localStorage.setItem("hasSeenIntro", "true");
+      }, 10000); // 10 seconds
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const isActive = (path: string) => {
+    if (path === "/" && pathname === "/") return true;
+    if (path !== "/" && pathname.startsWith(path)) return true;
+    return false;
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (search.trim()) {
+      router.push(`/search?q=${encodeURIComponent(search)}`);
+    }
+  };
+
+  return (
+    <div className="min-h-screen w-full flex font-exo bg-background text-foreground relative">
+      {/* Ambient glows */}
+      <div className="fixed inset-0 pointer-events-none z-0 hidden md:block">
+        <div className="absolute top-0 left-1/3 w-[700px] h-[500px] rounded-full opacity-[0.06]"
+          style={{ background: "radial-gradient(circle, #FF2E2E 0%, transparent 70%)" }} />
+        <div className="absolute bottom-1/2 right-1/4 w-[400px] h-[400px] rounded-full opacity-[0.04]"
+          style={{ background: "radial-gradient(circle, #7C3AED 0%, transparent 70%)" }} />
+      </div>
+
+      {/* LOADING SCREEN */}
+      <div className={`fixed inset-0 z-[100] bg-[#0F1117] transition-opacity duration-500 flex items-center justify-center ${isSiteLoading ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+        <video 
+          src="/loading-page.mp4" 
+          autoPlay 
+          playsInline 
+          loop 
+          className="w-full h-full object-cover"
+        />
+      </div>
+
+      {/* MOBILE TOP NAV (Visible only on small screens) */}
+      <nav className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center px-4 h-14 gap-2 bg-[#0F1117]/95 backdrop-blur-xl border-b border-red-500/10">
+        
+        <button className="p-2 -ml-2 text-muted-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+
+        <Link href="/" className="flex items-center gap-2 mx-auto">
+          <img src="/logo.png" alt="SenpaiDen Logo" className="h-7 w-auto object-contain" />
+        </Link>
+        
+        <Link href="/search" className="p-2 -mr-2 text-muted-foreground">
+          <Search size={20} />
+        </Link>
+      </nav>
+
+      {/* DESKTOP SIDEBAR */}
+      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-[260px] flex-col z-50 bg-[#0F1117]/95 backdrop-blur-xl border-r border-white/5 overflow-y-auto no-scrollbar pb-6">
+        {/* LOGO */}
+        <Link href="/" className="flex items-center justify-center gap-3 px-4 py-4 shrink-0 border-b border-white/5">
+          <img src="/logo.png" alt="SenpaiDen Logo" className="w-full max-w-[200px] h-auto object-contain drop-shadow-[0_0_8px_rgba(255,46,46,0.3)]" />
+        </Link>
+
+        {/* MENU ITEMS */}
+        <div className="flex-1 flex flex-col gap-1 px-4 mt-2">
+          {SIDEBAR_ITEMS.map((item, i) => {
+            const Icon = item.icon;
+            const reallyActive = isActive(item.path);
+
+            return (
+              <Link key={i} href={item.path}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200"
+                style={{
+                  background: reallyActive ? "#FF2E2E" : "transparent",
+                  color: reallyActive ? "white" : "#A1A1AA" // zinc-400
+                }}>
+                <Icon size={18} className={reallyActive ? "text-white" : "text-zinc-400"} />
+                <span className="text-[13px] font-bold font-noto tracking-wide">{item.label}</span>
+              </Link>
+            );
+          })}
+          {/* Removed Upload Manga Button */}
+        </div>
+
+        {/* NEW CHAPTER LOGO */}
+        <div className="mt-8 px-4 relative mb-2 flex-shrink-0 flex justify-center">
+          <img src="/new-chapter-logo.png" alt="New Chapter" className="w-full scale-110 h-auto object-contain drop-shadow-[0_0_15px_rgba(255,46,46,0.15)]" />
+        </div>
+
+        {/* FOOTER */}
+        <div className="mt-auto px-6 pt-4 flex flex-col gap-5 flex-shrink-0">
+           <div>
+              <p className="text-[9px] text-zinc-600 font-medium leading-tight mb-3">
+                © 2026 SenpaiDen<br />All rights reserved.
+              </p>
+              <div className="flex items-center gap-1 bg-white/5 rounded-full p-1 w-fit">
+                 <button className="p-1.5 rounded-full bg-white/10 text-white shadow-sm"><Moon size={12} /></button>
+                 <button className="p-1.5 rounded-full text-zinc-500 hover:text-white"><Sun size={12} /></button>
+                 <button className="p-1.5 rounded-full text-zinc-500 hover:text-white"><Laptop size={12} /></button>
+                 <div className="w-px h-3 bg-white/10 mx-1" />
+                 <Link href="/admin" className="p-1.5 rounded-full text-zinc-500 hover:text-primary transition-colors">
+                   <Shield size={12} />
+                 </Link>
+              </div>
+           </div>
+        </div>
+      </aside>
+
+      {/* MOBILE BOTTOM NAV */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#0F1117]/95 backdrop-blur-xl border-t border-primary/10 z-50 flex items-center justify-around px-2 pb-safe">
+        {SIDEBAR_ITEMS.slice(0, 5).map((item, i) => {
+           const Icon = item.icon;
+           const reallyActive = isActive(item.path);
+           return (
+              <Link key={i} href={item.path} className="flex flex-col items-center justify-center w-12 h-12 gap-1 relative">
+                <Icon size={20} style={{ color: reallyActive ? "#FF2E2E" : "#8892a4" }} />
+                {reallyActive && (
+                  <span className="absolute -top-1 w-1 h-1 rounded-full bg-primary shadow-[0_0_8px_#FF2E2E]" />
+                )}
+                <span className="text-[9px] font-semibold" style={{ color: reallyActive ? "#FF2E2E" : "#8892a4" }}>{item.label}</span>
+              </Link>
+           )
+        })}
+      </nav>
+
+      {/* MOBILE SIDE MENU OVERLAY */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)}>
+          <div className="absolute top-14 left-0 bottom-0 w-64 bg-[#0F1117] border-r border-primary/10 flex flex-col py-4 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+             {SIDEBAR_ITEMS.map((item, i) => (
+                <Link key={i} href={item.path} onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-4 px-6 py-3 hover:bg-white/5 transition-colors">
+                   <item.icon size={20} className={isActive(item.path) ? "text-primary" : "text-muted-foreground"} />
+                   <span className={`font-semibold ${isActive(item.path) ? "text-primary" : "text-foreground"}`}>{item.label}</span>
+                </Link>
+             ))}
+          </div>
+        </div>
+      )}
+
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col min-h-screen md:pl-[260px] relative z-10 min-w-0 overflow-hidden">
+        {/* DESKTOP TOP NAV */}
+        <header className="hidden md:flex h-[72px] items-center px-8 shrink-0 relative z-20">
+          <form onSubmit={handleSearch} className="relative w-full max-w-[320px]">
+            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search manga..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-2xl text-[13px] text-foreground placeholder:text-zinc-500 outline-none transition-all font-noto bg-white/5 border border-white/5 hover:border-white/10 focus:border-primary/50 focus:bg-white/10"
+            />
+          </form>
+
+          <div className="flex items-center gap-4 ml-auto">
+            <button className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all bg-[#FFD700]/10 border border-[#FFD700]/20 text-[#FFD700] hover:bg-[#FFD700]/20">
+              <Crown size={14} /> Premium
+            </button>
+            <button className="relative w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/5 text-zinc-400 hover:text-white transition-colors">
+              <Bell size={18} />
+              <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-primary border-2 border-[#0F1117]" />
+            </button>
+            <Link href="/profile" className="flex items-center gap-2 pl-2 cursor-pointer group">
+              <div className="flex flex-col items-end">
+                <span className="text-[12px] font-bold text-white group-hover:text-primary transition-colors">Senpai</span>
+                <span className="text-[10px] text-zinc-500">Lv. 26</span>
+              </div>
+              <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-800 border-2 border-white/10 group-hover:border-primary transition-colors">
+                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop&auto=format" alt="User" className="w-full h-full object-cover" />
+              </div>
+              <ChevronDown size={14} className="text-zinc-500 ml-1" />
+            </Link>
+          </div>
+        </header>
+        
+        {/* PAGE CONTENT */}
+        <main className="flex-1 overflow-x-hidden pt-14 md:pt-0 pb-16 md:pb-0 w-full">
+          {children}
+        </main>
+      </div>
+
+    </div>
+  );
+}

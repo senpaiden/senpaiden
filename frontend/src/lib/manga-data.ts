@@ -12,6 +12,7 @@ export interface Manga {
   cover_url?: string;
   author?: string;
   artist?: string;
+  tag?: string;
   latestChapter?: number;
   progress?: { chapter: number; page: number; percent: number };
   chapters?: any[];

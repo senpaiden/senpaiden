@@ -17,9 +17,13 @@ interface Env {
 }
 
 // Set up CORS using itty-router's built-in cors utility
-const ALLOWED_ORIGINS = ['https://senpai-den.pages.dev', 'http://localhost:3000'];
+const ALLOWED_ORIGINS = ['https://senpai-den.pages.dev'];
 const { preflight, corsify } = cors({
-  origin: (origin) => ALLOWED_ORIGINS.includes(origin ?? '') ? origin : undefined,
+  origin: (origin) => {
+    if (!origin) return undefined;
+    if (origin.startsWith('http://localhost:')) return origin;
+    return ALLOWED_ORIGINS.includes(origin) ? origin : undefined;
+  },
   allowMethods: ['GET', 'POST', 'OPTIONS'],
 });
 
@@ -480,4 +484,4 @@ router.get('/api/catalog-vectors', async (req, env) => {
 });
 
 // Export default fetch handler
-export default { ...router };
+export default router;

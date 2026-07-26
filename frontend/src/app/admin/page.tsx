@@ -5,7 +5,7 @@ import { AlertTriangle, CheckCircle, RotateCcw, XCircle } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 // Server Action to trigger a retry for a DLQ item
-async function retryDlqItem(formData: FormData) {
+export async function retryDlqItem(formData: FormData) {
   "use server";
   
   const id = formData.get("id") as string;
@@ -19,11 +19,11 @@ async function retryDlqItem(formData: FormData) {
   // 1. Fetch current DLQ record
   const { data: dlqItem } = await supabase
     .from('dead_letter_queue')
-    .select('attempts, max_retries')
+    .select('retry_count, max_retries')
     .eq('id', id)
     .single();
 
-  const attempts = (dlqItem?.attempts || 0) + 1;
+  const attempts = (dlqItem?.retry_count || 0) + 1;
   const maxRetries = dlqItem?.max_retries || 3;
 
   if (attempts > maxRetries) {
@@ -45,7 +45,7 @@ async function retryDlqItem(formData: FormData) {
   // 3. Increment retry counter & mark resolved
   await supabase
     .from('dead_letter_queue')
-    .update({ attempts, resolved: true, resolved_at: new Date().toISOString() })
+    .update({ retry_count: attempts, resolved: true, resolved_at: new Date().toISOString() })
     .eq('id', id);
 
   revalidatePath("/admin");

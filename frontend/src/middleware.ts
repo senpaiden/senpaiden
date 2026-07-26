@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/admin')) {
+    if (process.env.NODE_ENV === 'development') {
+      return NextResponse.next();
+    }
     const adminKey = request.headers.get('x-admin-key') ?? request.nextUrl.searchParams.get('key');
     const expectedKey = process.env.ADMIN_SECRET_KEY;
     if (!expectedKey || adminKey !== expectedKey) {
