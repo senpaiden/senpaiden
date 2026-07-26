@@ -81,7 +81,7 @@ export default async function Home() {
 
             <div className="mt-5 flex flex-wrap gap-2">
               <Link
-                href={`/manga/${featured.slug}/1`}
+                href={`/manga/${featured.slug}`}
                 className="group inline-flex items-center gap-2 rounded-xl sd-gradient px-5 py-3 text-sm font-bold text-white shadow-[0_10px_30px_-10px_rgba(139,92,246,0.7)] transition-transform active:scale-[0.97]"
               >
                 <Play className="h-4 w-4 fill-white" />

@@ -51,8 +51,8 @@ export function MangaDetailView({ manga }: { manga: MangaData }) {
     try {
       const libraryStr = localStorage.getItem("senpai_library");
       if (libraryStr) {
-        const library: string[] = JSON.parse(libraryStr);
-        setIsBookmarked(library.includes(manga.id));
+        const library = JSON.parse(libraryStr);
+        setIsBookmarked(library.some((m: any) => typeof m === "string" ? m === manga.id : m.slug === manga.id || m.id === manga.id));
       }
     } catch (e) {}
 
@@ -79,16 +79,27 @@ export function MangaDetailView({ manga }: { manga: MangaData }) {
   const toggleBookmark = () => {
     try {
       const libraryStr = localStorage.getItem("senpai_library");
-      let library: string[] = libraryStr ? JSON.parse(libraryStr) : [];
+      let library: any[] = libraryStr ? JSON.parse(libraryStr) : [];
 
       if (isBookmarked) {
-        library = library.filter(id => id !== manga.id);
+        library = library.filter((m: any) => typeof m === "string" ? m !== manga.id : (m.slug !== manga.id && m.id !== manga.id));
         setIsBookmarked(false);
       } else {
-        library.push(manga.id);
+        const mangaObj = {
+          slug: manga.id,
+          title: manga.title,
+          altTitle: "",
+          description: manga.description || "",
+          genres: manga.genres || ["Action"],
+          status: manga.status || "Ongoing",
+          cover_url: manga.cover_url,
+          latestChapter: manga.chapters?.length > 0 ? Math.max(...manga.chapters.map(c => c.chapter_number)) : 1,
+        };
+        library.push(mangaObj);
         setIsBookmarked(true);
       }
       localStorage.setItem("senpai_library", JSON.stringify(library));
+      window.dispatchEvent(new CustomEvent("senpai_library_updated"));
     } catch (e) {}
   };
 

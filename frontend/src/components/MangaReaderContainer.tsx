@@ -26,6 +26,7 @@ import {
 import { ReaderImage, PageFitMode } from "./ReaderImage";
 import { StaleBanner } from "./StaleBanner";
 import { RecommendationsRow } from "./RecommendationsRow";
+import { saveHistoryDB } from "@/lib/indexed-db";
 
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
 
@@ -175,16 +176,18 @@ export function MangaReaderContainer({
   // Debounced progress saver reference to prevent scroll thrashing (Bug M1 Fix)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Persist current progress to localStorage
+  // Persist current progress to localStorage and IndexedDB
   const saveProgress = (index: number) => {
     setCurrentSliceIndex(index);
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => {
-      localStorage.setItem(`senpai_progress_${mangaId}`, JSON.stringify({
-        chapterNumber,
+      saveHistoryDB({
+        mangaId,
+        title: mangaTitle,
+        chapterNumber: parseFloat(chapterNumber),
         sliceIndex: index,
         timestamp: Date.now()
-      }));
+      });
     }, 250);
   };
 

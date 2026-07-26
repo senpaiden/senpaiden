@@ -19,6 +19,43 @@ export function MangaDetailClient({ manga, chapters, related }: { manga: any; ch
   const startChapter = chapters.length > 0 ? Math.min(...chapters.map(c => c.chapter_number)) : 1;
   const latestChapter = chapters.length > 0 ? Math.max(...chapters.map(c => c.chapter_number)) : 1;
 
+  useEffect(() => {
+    try {
+      const libraryStr = localStorage.getItem("senpai_library");
+      if (libraryStr) {
+        const library = JSON.parse(libraryStr);
+        setSaved(library.some((m: any) => typeof m === "string" ? m === manga.id : m.slug === manga.id || m.id === manga.id));
+      }
+    } catch (e) {}
+  }, [manga.id]);
+
+  const toggleSave = () => {
+    try {
+      const libraryStr = localStorage.getItem("senpai_library");
+      let library: any[] = libraryStr ? JSON.parse(libraryStr) : [];
+
+      if (saved) {
+        library = library.filter((m: any) => typeof m === "string" ? m !== manga.id : (m.slug !== manga.id && m.id !== manga.id));
+        setSaved(false);
+      } else {
+        const mangaObj = {
+          slug: manga.id,
+          title: manga.title,
+          altTitle: "",
+          description: manga.description || "",
+          genres: manga.genres || ["Action"],
+          status: manga.status || "Ongoing",
+          cover_url: manga.cover_url,
+          latestChapter: chapters.length > 0 ? Math.max(...chapters.map(c => c.chapter_number)) : 1,
+        };
+        library.push(mangaObj);
+        setSaved(true);
+      }
+      localStorage.setItem("senpai_library", JSON.stringify(library));
+      window.dispatchEvent(new CustomEvent("senpai_library_updated"));
+    } catch (e) {}
+  };
+
   const REVIEWS = [
     { user: "akira_dx", avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=40&h=40&fit=crop&auto=format", rating: 10, text: "Absolutely mind-blowing. Every chapter leaves you speechless. The art is insane and the story hits different. 10/10 no contest.", likes: 428, time: "3 days ago" },
     { user: "luna_void", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=40&h=40&fit=crop&auto=format", rating: 9, text: "One of the best stories I've read in years. The character development is incredible and the world-building is unmatched.", likes: 312, time: "1 week ago" },
@@ -92,7 +129,7 @@ export function MangaDetailClient({ manga, chapters, related }: { manga: any; ch
                 className="hidden sm:flex items-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm transition-all hover:bg-white/10 bg-white/5 border border-white/10">
                 Latest Chapter
               </button>
-              <button onClick={() => setSaved((s) => !s)}
+              <button onClick={toggleSave}
                 className={`w-10 md:w-12 h-10 md:h-12 rounded-xl flex items-center justify-center transition-all border ${saved ? 'bg-primary/15 border-primary/40' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>
                 <Bookmark size={17} className={saved ? "fill-red-500 text-red-500" : ""} />
               </button>
@@ -144,7 +181,7 @@ export function MangaDetailClient({ manga, chapters, related }: { manga: any; ch
               </div>
               <div className="flex flex-col gap-2">
                 {chapters.map((ch: any) => (
-                  <Link href={`/read/${manga.id}/${ch.chapter_number}`} key={ch.chapter_number}
+                  <Link href={`/manga/${manga.id}/${ch.chapter_number}`} key={ch.chapter_number}
                     className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl group transition-all hover:scale-[1.01] bg-[#161B22]/80 border border-white/5 hover:border-primary/25">
                     <div className="w-12 md:w-14 text-center md:text-right">
                       <span className="text-xs md:text-sm font-black text-primary font-jetbrains">Ch.{ch.chapter_number}</span>

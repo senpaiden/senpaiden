@@ -39,11 +39,18 @@ export default async function MangaDetail({ params }: { params: Promise<{ id: st
   }
 
   try {
-    // Fetch related mangas (mocking by fetching first page)
-    const relatedRes = await fetch(`${apiUrl}/api/manga?page=1&limit=5`);
-    if (relatedRes.ok) {
-       const relatedData = await relatedRes.json();
-       related = relatedData.data.filter((m: any) => m.id !== manga.id).slice(0, 4);
+    // Fetch related mangas using recommendations endpoint with fallback
+    const recRes = await fetch(`${apiUrl}/api/manga/${resolvedParams.id}/co-binged`, { next: { revalidate: 3600 } });
+    if (recRes.ok) {
+      const recData = await recRes.json();
+      related = recData.data || [];
+    }
+    if (!related || related.length === 0) {
+      const relatedRes = await fetch(`${apiUrl}/api/manga?page=1&limit=6`, { next: { revalidate: 60 } });
+      if (relatedRes.ok) {
+        const relatedData = await relatedRes.json();
+        related = (relatedData.data || []).filter((m: any) => m.id !== manga.id).slice(0, 4);
+      }
     }
   } catch(e) {}
 
