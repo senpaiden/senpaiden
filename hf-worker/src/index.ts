@@ -15,7 +15,29 @@ import sharp from 'sharp';
 import pLimit from 'p-limit';
 import WebSocket from 'ws';
 import { encode } from 'blurhash';
-import { Agent, setGlobalDispatcher } from 'undici';
+import { Agent, ProxyAgent, setGlobalDispatcher, fetch } from 'undici';
+
+// Load Webshare rotating proxies from .env if available
+const PROXY_LIST = process.env.ROTATING_PROXIES
+  ? process.env.ROTATING_PROXIES.split(',').map(p => p.trim()).filter(Boolean)
+  : [];
+
+let proxyIndex = 0;
+const proxyAgents: ProxyAgent[] = PROXY_LIST.map(uri => new ProxyAgent({
+  uri,
+  connect: { timeout: 30_000 }
+}));
+
+if (proxyAgents.length > 0) {
+  console.log(`[Worker Engine] Loaded ${proxyAgents.length} Webshare rotating proxies for IP rotation.`);
+}
+
+function getNextDispatcher() {
+  if (proxyAgents.length === 0) return undefined;
+  const agent = proxyAgents[proxyIndex % proxyAgents.length];
+  proxyIndex++;
+  return agent;
+}
 
 // Increase Node undici socket connection timeout from 10s default to 30s
 setGlobalDispatcher(new Agent({
@@ -114,7 +136,7 @@ async function waitMangaDexRateLimit() {
   }
 }
 
-async function fetchWithRetry(url: string, retries = 5, isMangaDexApi = false): Promise<Response> {
+async function fetchWithRetry(url: string, retries = 5, isMangaDexApi = false): Promise<any> {
   const headers: Record<string, string> = {
     'User-Agent': 'SenpaiDenWorker/1.0 (https://github.com/senpaiden)',
     'Accept': 'application/json, image/*, */*'
@@ -126,8 +148,14 @@ async function fetchWithRetry(url: string, retries = 5, isMangaDexApi = false): 
         await waitMangaDexRateLimit();
       }
 
+      const dispatcher = getNextDispatcher();
+      const fetchOpts: any = { headers, signal: AbortSignal.timeout(30000) };
+      if (dispatcher) {
+        fetchOpts.dispatcher = dispatcher;
+      }
+
       // 30-second timeout per fetch request to avoid undici socket pool timeout
-      const res = await fetch(url, { headers, signal: AbortSignal.timeout(30000) });
+      const res = await fetch(url, fetchOpts);
 
       if (res.status === 429) {
         const retryAfterHeader = res.headers.get('Retry-After');
@@ -284,6 +312,10 @@ async function processNextJob() {
       let fetchUrl = qChapter.source_url;
       let isMangaDex = false;
 
+      if (fetchUrl.includes('mangaplus.shueisha.co.jp') || fetchUrl.includes('mangadex.org/title/')) {
+        throw new Error(`External licensed provider unsupported: ${fetchUrl}`);
+      }
+
       if (fetchUrl.includes('mangadex.org/chapter/')) {
         const chapterUuid = fetchUrl.split('/chapter/')[1]?.split('/')[0]?.split('?')[0];
         fetchUrl = `https://api.mangadex.org/at-home/server/${chapterUuid}`;
@@ -293,6 +325,11 @@ async function processNextJob() {
       console.log(`[Worker] Fetching source images from: ${fetchUrl}`);
       const sourceRes = await fetchWithRetry(fetchUrl, 5, isMangaDex);
       const textBody = await sourceRes.text();
+
+      if (textBody.trim().startsWith('<')) {
+        throw new Error(`Provider returned HTML page instead of API JSON (${fetchUrl})`);
+      }
+
       let sourceData: any;
       try {
         sourceData = JSON.parse(textBody);
@@ -320,7 +357,7 @@ async function processNextJob() {
       if (validUrls.length === 0) throw new Error('No valid image URLs found');
 
       console.log(`[Worker] Processing ${validUrls.length} pages in parallel...`);
-      const limit = pLimit(4); // Process 4 pages concurrently per chapter to ensure smooth network stability
+      const limit = pLimit(6); // Process 6 pages concurrently per chapter for optimal socket & memory balance
 
       const processedPages: ProcessedPage[] = await Promise.all(
         validUrls.map((url, idx) => limit(async () => {
