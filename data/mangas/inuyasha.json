@@ -1,0 +1,41 @@
+{
+  "title": "Inuyasha",
+  "slug": "inuyasha",
+  "mangaId": "279c2494-8f85-4e5b-8bfb-a3223441fd13",
+  "coverUrl": "https://uploads.mangadex.org/covers/279c2494-8f85-4e5b-8bfb-a3223441fd13/f5adb427-2312-4f9c-9d0d-6a0e21172b87.jpg.256.jpg",
+  "description": "Kagome is a modern Japanese high-school girl. Never the type to believe in myths and legends, her world view dramatically changes when, one day, she's pulled out of her own time and into another! There, in Japan's ancient past, Kagome discovers more than a few of those dusty old legends are true, and that her destiny is linked to one legendary creature in particular–the dog-like half-demon called Inuyasha! That same trick of fate also ties them both to the Shikon Jewel, or \"Jewel of Four Souls.\" But demons beware…the smallest shard of the Shikon Jewel can give the user unimaginable power.  \n \n\n---\nOfficial Release:\n- English release by [Viz Media](https://www.viz.com/inuyasha)\n- Indonesian release by Elex Media\n\n\n---\n- **Won the 47th Shogakukan Manga Award for Shonen in 2002**",
+  "status": "completed",
+  "totalChapters": 4,
+  "chapters": [
+    {
+      "chapterId": "09f68624-ce46-4741-9235-6c6032109cbc",
+      "chapterNumber": 1,
+      "title": "The Accursed Youth",
+      "externalUrl": null,
+      "pages": []
+    },
+    {
+      "chapterId": "39ee2419-2c26-4a56-b966-b34ac1f1decf",
+      "chapterNumber": 1,
+      "title": "Chapter 1",
+      "externalUrl": "https://viz.com/vizmanga/-/chapter/27162",
+      "pages": []
+    },
+    {
+      "chapterId": "91fb100c-96d5-498d-beb1-558dc82ac05c",
+      "chapterNumber": 2,
+      "title": "Chapter 2",
+      "externalUrl": "https://viz.com/vizmanga/-/chapter/27163",
+      "pages": []
+    },
+    {
+      "chapterId": "413af3fe-bcdd-48ef-b2e1-d5631089b5bf",
+      "chapterNumber": 3,
+      "title": "Chapter 3",
+      "externalUrl": "https://viz.com/vizmanga/-/chapter/27164",
+      "pages": []
+    }
+  ],
+  "scrapedAt": "2026-08-02T06:57:56.040Z",
+  "enrichmentStatus": "external_redirects"
+}

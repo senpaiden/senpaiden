@@ -1,0 +1,27 @@
+{
+  "title": "Parasyte",
+  "slug": "parasyte",
+  "mangaId": "07823fcd-f2c9-458c-9824-3eae62b2a006",
+  "coverUrl": "https://uploads.mangadex.org/covers/07823fcd-f2c9-458c-9824-3eae62b2a006/6ab29145-70f1-4ef7-97de-241394b4c530.jpg.256.jpg",
+  "description": "They arrive in silence and darkness. They descend from the skies. They have a hunger for human flesh. They are everywhere. They are parasites, alien creatures who must invade - and take control of - a human host to survive. And once they have infected their victims, they can assume any deadly form they choose: monsters with giant teeth, winged demons, creatures with blades for hands. But most have chosen to conceal their lethal purpose behind ordinary human faces. So no one knows their secret - except an ordinary high school student. Shin is battling for control of his own body against an alien parasite, but can he find a way to warn humanity of the horrors to come?\n\n[Alternate Official English](https://kodansha.us/series/parasyte/)\n\n---\n- **Won the Kodansha Manga Award for General Manga in 1993**\n- **Won the Seiun Award for Best Comic in 1996**",
+  "status": "completed",
+  "totalChapters": 2,
+  "chapters": [
+    {
+      "chapterId": "f98543f5-1be1-45dc-834d-5a9bde1bf482",
+      "chapterNumber": 1,
+      "title": "Invasion",
+      "externalUrl": "https://kodansha.us/reader/21620",
+      "pages": []
+    },
+    {
+      "chapterId": "5285e369-e4d0-402d-8f90-d31ac2c1a69d",
+      "chapterNumber": 2,
+      "title": "Wild Animal",
+      "externalUrl": "https://kodansha.us/reader/21619",
+      "pages": []
+    }
+  ],
+  "scrapedAt": "2026-08-02T06:58:11.241Z",
+  "enrichmentStatus": "external_redirects"
+}

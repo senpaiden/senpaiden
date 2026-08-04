@@ -1,0 +1,34 @@
+{
+  "title": "Demon Slayer",
+  "slug": "demon-slayer",
+  "mangaId": "789642f8-ca89-4e4e-8f7b-eee4d17ea08b",
+  "coverUrl": "https://uploads.mangadex.org/covers/789642f8-ca89-4e4e-8f7b-eee4d17ea08b/60530e72-f76f-45d5-b6f9-f95e05058fc3.png.256.jpg",
+  "description": "Since ancient times, rumors have abounded of man-eating demons lurking in the woods. Because of this, the local townsfolk never venture outside at night. Legend has it that a demon slayer also roams the night, hunting down these bloodthirsty demons.  \nEver since the death of his father, Tanjirou has taken it upon himself to support his mother and five siblings. Although their lives may be hardened by tragedy, they've found happiness. But that ephemeral warmth is shattered one day when Tanjirou finds his family slaughtered and the lone survivor, his sister Nezuko, turned into a demon. Adding to this sorrow, a demon hunter named Tomioka Giyuu arrived and was about to finish Nezuko off, but to his surprise she and Tanjiro started to protect each other. Seeing this oddity and Tanjiro's promising fighting skills, Giyuu decides to send them to his old mentor to be trained.  \nSo begins Tanjiro's life as a demon hunter, bound on a quest to cure his sister and find the one who murdered his entire family.  \n\n----\nAlternative English: [MANGA Plus](https://mangaplus.shueisha.co.jp/titles/100009)",
+  "status": "completed",
+  "totalChapters": 3,
+  "chapters": [
+    {
+      "chapterId": "d5d78164-ee1b-4d77-9c4c-9f678cf27d2e",
+      "chapterNumber": 1,
+      "title": "Cruelty",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000303",
+      "pages": []
+    },
+    {
+      "chapterId": "05860e96-00c3-4ccf-822b-0b90e43d481d",
+      "chapterNumber": 2,
+      "title": "The Stranger",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000304",
+      "pages": []
+    },
+    {
+      "chapterId": "2cee724f-12b8-4334-9e26-5d3c6ab5aedc",
+      "chapterNumber": 3,
+      "title": "To Return By Dawn Without Fail",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000305",
+      "pages": []
+    }
+  ],
+  "scrapedAt": "2026-08-02T06:56:55.837Z",
+  "enrichmentStatus": "external_redirects"
+}

@@ -1,0 +1,60 @@
+{
+  "title": "Kaiju No. 8",
+  "slug": "kaiju-no-8",
+  "mangaId": "237d527f-adb5-420e-8e6e-b7dd006fbe47",
+  "coverUrl": "https://uploads.mangadex.org/covers/237d527f-adb5-420e-8e6e-b7dd006fbe47/f48790fc-547c-4a10-8bef-56a373ddbb1c.jpg.256.jpg",
+  "description": "Kafka hopes to one day keep his pact with his childhood friend Mina to join the Japan Defense Force and fight by her side. But while she’s out neutralizing kaiju as Third Division captain, Kafka is stuck cleaning up the aftermath of her battles. When a sudden rule change makes Kafka eligible for the Defense Force, he decides to try out for the squad once more. There's just one problem. He's made the Defense Force's neutralization list under the code name Kaiju No. 8.\n___\n**Links:**\n- Alternative Official English - [Viz](https://www.viz.com/kaiju-no-8)",
+  "status": "completed",
+  "totalChapters": 7,
+  "chapters": [
+    {
+      "chapterId": "1d6e7834-c581-4e62-b7d5-644ce6bdf0c6",
+      "chapterNumber": 1,
+      "title": "The Man Who Became a Monster",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1007603",
+      "pages": []
+    },
+    {
+      "chapterId": "53e07f5e-78d2-498f-acf6-22a34f14947e",
+      "chapterNumber": 2,
+      "title": "Valkyrie, Dignified and Invincible",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1007604",
+      "pages": []
+    },
+    {
+      "chapterId": "92d9d4b0-f117-44c3-af08-9673f2efcff3",
+      "chapterNumber": 3,
+      "title": "Monsters, Must be Banished From This World",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1007605",
+      "pages": []
+    },
+    {
+      "chapterId": "413c30cb-2c0b-4786-8b43-bf64549dd84d",
+      "chapterNumber": 4,
+      "title": "Chapter 4",
+      "externalUrl": "https://viz.com/shonenjump/-/chapter/21013",
+      "pages": []
+    },
+    {
+      "chapterId": "e643f5aa-c09f-4511-969a-8efe48aa4512",
+      "chapterNumber": 5,
+      "title": "Chapter 5",
+      "externalUrl": "https://viz.com/shonenjump/-/chapter/21014",
+      "pages": []
+    },
+    {
+      "chapterId": "15fe127e-7055-449f-bcc9-386b68a1a55e",
+      "chapterNumber": 6,
+      "title": "Chapter 6",
+      "externalUrl": "https://viz.com/shonenjump/-/chapter/21043"
+    },
+    {
+      "chapterId": "46362c7b-146b-4e1c-ace8-aaf18c65be5f",
+      "chapterNumber": 7,
+      "title": "Chapter 7",
+      "externalUrl": "https://viz.com/shonenjump/-/chapter/21078"
+    }
+  ],
+  "scrapedAt": "2026-08-02T06:58:21.004Z",
+  "enrichmentStatus": "external_redirects"
+}

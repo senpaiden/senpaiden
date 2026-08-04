@@ -1,0 +1,34 @@
+{
+  "title": "Tokyo Ghoul",
+  "slug": "tokyo-ghoul",
+  "mangaId": "6a1d1cb1-ecd5-40d9-89ff-9d88e40b136b",
+  "coverUrl": "https://uploads.mangadex.org/covers/6a1d1cb1-ecd5-40d9-89ff-9d88e40b136b/040e8ae9-4ddd-49d2-8986-56782b391714.jpg.256.jpg",
+  "description": "Lurking within the shadows of Tokyo are frightening beings known as \"ghouls,\" who satisfy their hunger by feeding on humans once night falls. Ken Kaneki, an unsuspecting university freshman, finds himself caught in a world between humans and ghouls when his date turns out to be a ghoul after his flesh.\n\n[Written by MAL Rewrite]",
+  "status": "completed",
+  "totalChapters": 3,
+  "chapters": [
+    {
+      "chapterId": "196c6db3-93a4-41df-852d-fe8fb84e7280",
+      "chapterNumber": 1,
+      "title": "Tragedy",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000601",
+      "pages": []
+    },
+    {
+      "chapterId": "3435c955-4d3e-4d09-909e-43374bd9b573",
+      "chapterNumber": 2,
+      "title": "Oddity",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000602",
+      "pages": []
+    },
+    {
+      "chapterId": "e94645eb-03c2-4ab7-a4ef-a4cc0064d584",
+      "chapterNumber": 3,
+      "title": "Worst",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000603",
+      "pages": []
+    }
+  ],
+  "scrapedAt": "2026-08-02T06:57:11.789Z",
+  "enrichmentStatus": "external_redirects"
+}

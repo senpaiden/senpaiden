@@ -1,0 +1,34 @@
+{
+  "title": "Haikyuu!!",
+  "slug": "haikyuu",
+  "mangaId": "8f8b7cb0-7109-46e8-b12c-0448a6453dfa",
+  "coverUrl": "https://uploads.mangadex.org/covers/8f8b7cb0-7109-46e8-b12c-0448a6453dfa/0929bd2f-284d-44c8-bc44-9a3da5f1002f.jpg.256.jpg",
+  "description": "Shoyo Hinata is out to prove that in volleyball you don’t need to be tall to fly!\nEver since he saw the legendary player known as “the Little Giant” compete at the national volleyball finals, Shoyo Hinata has been aiming to be the best volleyball player ever! Who says you need to be tall to play volleyball when you can jump higher than anyone else?\n___\n[Official X](https://x.com/haikyu_com)",
+  "status": "completed",
+  "totalChapters": 3,
+  "chapters": [
+    {
+      "chapterId": "788e2153-f393-4c20-be4b-c53fb27e1d5b",
+      "chapterNumber": 1,
+      "title": "Endings and Beginnings",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000331",
+      "pages": []
+    },
+    {
+      "chapterId": "e850f14b-0631-4da3-a4af-44b84870ae80",
+      "chapterNumber": 2,
+      "title": "Karasuno High School Volleyball Club",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000332",
+      "pages": []
+    },
+    {
+      "chapterId": "b6c4e9f2-16cc-439a-a85d-67372f54b3c6",
+      "chapterNumber": 3,
+      "title": "Single-Celled Organisms",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000333",
+      "pages": []
+    }
+  ],
+  "scrapedAt": "2026-08-02T06:57:35.710Z",
+  "enrichmentStatus": "external_redirects"
+}

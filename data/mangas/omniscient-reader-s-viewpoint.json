@@ -1,0 +1,41 @@
+{
+  "title": "Omniscient Reader's Viewpoint",
+  "slug": "omniscient-reader-s-viewpoint",
+  "mangaId": "9a414441-bbad-43f1-a3a7-dc262ca790a3",
+  "coverUrl": "https://uploads.mangadex.org/covers/9a414441-bbad-43f1-a3a7-dc262ca790a3/be18dc9a-7f1c-4ca5-b318-ffff2d7d58c3.jpg.256.jpg",
+  "description": "Dokja was an average office worker whose sole interest was reading his favorite web novel 'Three Ways to Survive the Apocalypse.' But when the novel suddenly becomes reality, he is the only person who knows how the world will end. Armed with this realization, Dokja uses his understanding to change the course of the story, and the world, as he knows it.",
+  "status": "ongoing",
+  "totalChapters": 4,
+  "chapters": [
+    {
+      "chapterId": "d3c06606-4ee7-4454-a3a7-ffdb9ecf5d26",
+      "chapterNumber": 255,
+      "title": "Asmodeus (Part 3)",
+      "externalUrl": null,
+      "pages": []
+    },
+    {
+      "chapterId": "151886b7-a7a7-4907-bdce-d66ee479e049",
+      "chapterNumber": 256,
+      "title": "Asmodeus (Part 4)",
+      "externalUrl": null,
+      "pages": []
+    },
+    {
+      "chapterId": "3d53a617-0baa-4641-a8a2-31768ffe8f35",
+      "chapterNumber": 259,
+      "title": "Asmodeus (Part 7)",
+      "externalUrl": null,
+      "pages": []
+    },
+    {
+      "chapterId": "55aee379-7ceb-48d3-bec0-67d7cc7e3675",
+      "chapterNumber": 262,
+      "title": "Sky-Breaking Sword Saint (3)",
+      "externalUrl": null,
+      "pages": []
+    }
+  ],
+  "scrapedAt": "2026-08-02T06:58:30.907Z",
+  "enrichmentStatus": "partial"
+}

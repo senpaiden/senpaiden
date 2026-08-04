@@ -1,0 +1,54 @@
+{
+  "title": "Dr. Stone",
+  "slug": "dr-stone",
+  "mangaId": "cfc3d743-bd89-48e2-991f-63e680cc4edf",
+  "coverUrl": "https://uploads.mangadex.org/covers/cfc3d743-bd89-48e2-991f-63e680cc4edf/1905884c-adc0-4651-aea2-c061c9f02763.jpg.256.jpg",
+  "description": "Imagine waking to a world where every last human has been mysteriously turned to stone…  \n\nOne fateful day, all of humanity was petrified by a blinding flash of light. After several millennia, high schooler Taiju awakens and finds himself lost in a world of statues. However, he's not alone! His science-loving friend Senku's been up and running for a few months and he's got a grand plan in mind—to kickstart civilization with the power of science!\n\n---\nAlt. Official English: [Viz](https://www.viz.com/dr-stone)",
+  "status": "completed",
+  "totalChapters": 6,
+  "chapters": [
+    {
+      "chapterId": "57ceb2e1-5de8-4b48-b9d1-27b2c094bd30",
+      "chapterNumber": 1,
+      "title": "Stone World",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000310",
+      "pages": []
+    },
+    {
+      "chapterId": "e646d41d-876f-4039-80f4-9ba19cf69211",
+      "chapterNumber": 1,
+      "title": "Chapter 1",
+      "externalUrl": "https://viz.com/shonenjump/-/chapter/5558",
+      "pages": []
+    },
+    {
+      "chapterId": "147cdbd0-a8fa-4efb-9d45-0e5bd73ed764",
+      "chapterNumber": 2,
+      "title": "Fantasy vs. Science",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000311",
+      "pages": []
+    },
+    {
+      "chapterId": "8d3bb23f-b53f-48ca-b66b-757004c9a8ec",
+      "chapterNumber": 2,
+      "title": "Chapter 2",
+      "externalUrl": "https://viz.com/shonenjump/-/chapter/5581",
+      "pages": []
+    },
+    {
+      "chapterId": "ba639395-0494-448e-95b2-22debce6a66c",
+      "chapterNumber": 3,
+      "title": "King of the Stone World",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000312",
+      "pages": []
+    },
+    {
+      "chapterId": "5d351449-6270-4bc2-a3d3-e61c9da20458",
+      "chapterNumber": 3,
+      "title": "Chapter 3",
+      "externalUrl": "https://viz.com/shonenjump/-/chapter/5587"
+    }
+  ],
+  "scrapedAt": "2026-08-02T06:57:41.748Z",
+  "enrichmentStatus": "external_redirects"
+}

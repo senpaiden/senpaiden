@@ -1,0 +1,72 @@
+{
+  "title": "Black Clover",
+  "slug": "black-clover",
+  "mangaId": "e7eabe96-aa17-476f-b431-2497d5e9d060",
+  "coverUrl": "https://uploads.mangadex.org/covers/e7eabe96-aa17-476f-b431-2497d5e9d060/4e184bfe-62d4-408d-a3fb-459420dc3714.jpg.256.jpg",
+  "description": "Asta and Yuno were abandoned together at the same church, and have been inseparable since. As children, they promised that they would compete against each other to see who would become the next Emperor Magus. However, as they grew up, some differences between them became plain. Yuno was a genius with magic, with amazing power and control, while Asta could not use magic at all, and tried to make up for his lack by training physically. When they received their Grimoires at age 15, Yuno got a spectacular book with a four-leaf clover (most people receive a three-leaf-clover), while Asta received nothing at all. However, when Yuno was threatened, the truth about Asta's power was revealed, he received a five-leaf clover Grimoire, a black clover! Now the two friends are heading out in the world, both seeking the same goal!\n___\n**Official English Volumes:** [VIZ](https://www.viz.com/shonenjump/chapters/black-clover)",
+  "status": "completed",
+  "totalChapters": 9,
+  "chapters": [
+    {
+      "chapterId": "65698b34-e7e1-4e42-8b79-a5bf6c8827b8",
+      "chapterNumber": 1,
+      "title": "The Boy's Vow",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000177",
+      "pages": []
+    },
+    {
+      "chapterId": "4dc50687-4861-4b59-bb3d-86f7c3205191",
+      "chapterNumber": 2,
+      "title": "The Magic Knights Entrance Exam",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000178",
+      "pages": []
+    },
+    {
+      "chapterId": "e19ff935-5c95-41ce-981c-10d51f211089",
+      "chapterNumber": 3,
+      "title": "The Road to the Wizard King",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000179",
+      "pages": []
+    },
+    {
+      "chapterId": "5628e938-464e-4f16-9edc-e38b075926dc",
+      "chapterNumber": 387,
+      "title": "Limit Breakers",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1026639",
+      "pages": []
+    },
+    {
+      "chapterId": "d8f3ed25-bc1c-4f42-bfbc-8e8fcb840b59",
+      "chapterNumber": 388,
+      "title": "The Hour of Judgment",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1027121",
+      "pages": []
+    },
+    {
+      "chapterId": "78c78946-111f-4ec3-b4dc-18d6a06a34d5",
+      "chapterNumber": 389,
+      "title": "The Ultimate Achievement",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1027122"
+    },
+    {
+      "chapterId": "8964b70e-71a6-49d1-b1fa-3f27d854922c",
+      "chapterNumber": 390,
+      "title": "The Promised Showdown",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1027801"
+    },
+    {
+      "chapterId": "5312ee45-8f9b-426f-8305-6f31d182a90f",
+      "chapterNumber": 391,
+      "title": "A Conclusion Reached",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1027802"
+    },
+    {
+      "chapterId": "77530bcb-299c-468a-8833-c7bb22ae83b6",
+      "chapterNumber": 392,
+      "title": "Final Page: Beyond Not Giving Up",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1027803"
+    }
+  ],
+  "scrapedAt": "2026-08-02T06:57:38.700Z",
+  "enrichmentStatus": "external_redirects"
+}

@@ -1,0 +1,34 @@
+{
+  "title": "Naruto",
+  "slug": "naruto",
+  "mangaId": "6b1eb93e-473a-4ab3-9922-1a66d2a29a4a",
+  "coverUrl": "https://uploads.mangadex.org/covers/6b1eb93e-473a-4ab3-9922-1a66d2a29a4a/c5a3090c-4ca0-40a2-9102-e0ee0c6dac15.jpg.256.jpg",
+  "description": "Before Naruto's birth, a great demon fox had attacked the Hidden Leaf Village. The 4th Hokage from the leaf village sealed the demon inside the newly born Naruto, causing him to unknowingly grow up detested by his fellow villagers. Despite his lack of talent in many areas of ninjutsu, Naruto strives for only one goal: to gain the title of Hokage, the strongest ninja in his village. Desiring the respect he never received, Naruto works toward his dream with fellow friends Sasuke and Sakura and mentor Kakashi as they go through many trials and battles that come with being a ninja.  \n\n\n---",
+  "status": "completed",
+  "totalChapters": 3,
+  "chapters": [
+    {
+      "chapterId": "4c462c01-14de-410d-a9ba-9b019e47f52b",
+      "chapterNumber": 1,
+      "title": "Uzumaki Naruto!",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000397",
+      "pages": []
+    },
+    {
+      "chapterId": "bc273d7f-5b0f-4767-896a-627edf70daee",
+      "chapterNumber": 2,
+      "title": "Konohamaru!!",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000398",
+      "pages": []
+    },
+    {
+      "chapterId": "585c3143-75d5-4052-a80d-44c7aa962d16",
+      "chapterNumber": 3,
+      "title": "Enter Sasuke!",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000399",
+      "pages": []
+    }
+  ],
+  "scrapedAt": "2026-08-02T06:56:39.300Z",
+  "enrichmentStatus": "external_redirects"
+}

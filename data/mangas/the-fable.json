@@ -1,0 +1,27 @@
+{
+  "title": "The Fable",
+  "slug": "the-fable",
+  "mangaId": "5209fe10-4a14-403f-8837-2ccf8cced253",
+  "coverUrl": "https://uploads.mangadex.org/covers/5209fe10-4a14-403f-8837-2ccf8cced253/2640816a-8037-4500-b853-0da72bdaaba8.jpg.256.jpg",
+  "description": "A fabled genius at killing resides somewhere hidden in Tokyo. Taught since childhood to obey the orders of his boss, he is ordered to live in Osaka as a normal person for one year in order for the boss to lay low.\n\n**Won the 41st Kodansha Manga Award for General Manga in 2017.**\n___\n**Alt Official English:** [K MANGA](https://kmanga.kodansha.com/title/10055/episode/323851) - United States, Japan, Canada, Australia, New Zealand, Singapore, Philippines, Thailand, Vietnam, Hong Kong, Taiwan, India, Mexico, and Brazil only.",
+  "status": "completed",
+  "totalChapters": 2,
+  "chapters": [
+    {
+      "chapterId": "3ccca05a-5fbe-4327-bbab-aacf8df0774d",
+      "chapterNumber": 1,
+      "title": "Moving",
+      "externalUrl": "https://kodansha.us/reader/31022",
+      "pages": []
+    },
+    {
+      "chapterId": "522200ed-10cc-4a2c-84ad-ade49f2b8e20",
+      "chapterNumber": 2,
+      "title": "The Sato Siblings",
+      "externalUrl": "https://kodansha.us/reader/31182",
+      "pages": []
+    }
+  ],
+  "scrapedAt": "2026-08-02T06:58:17.865Z",
+  "enrichmentStatus": "external_redirects"
+}

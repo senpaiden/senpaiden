@@ -1,0 +1,34 @@
+{
+  "title": "Rurouni Kenshin",
+  "slug": "rurouni-kenshin",
+  "mangaId": "754a46fa-62fa-457a-bc3b-4f31bf1373d4",
+  "coverUrl": "https://uploads.mangadex.org/covers/754a46fa-62fa-457a-bc3b-4f31bf1373d4/644c949b-0308-4799-8510-4ff5f12849a3.jpg.256.jpg",
+  "description": "140 years ago in Kyoto, with the coming of the American \"Black Ships,\" there arose a warrior who, felling men with his bloodstained blade, gained the name Hitokiri, man slayer! His killer blade helped close the turbulent Bakumatsu era and slashed open the progressive age known as Meiji . Then he vanished, and with the flow of years, became legend.  \n  \nTen years later, a young woman's life is saved when she happens upon a strange wandering swordsman named Kenshin. The young woman accepts the wanderer into her dojo, despite his secretive past, and the two become fast friends. As their relationship grows, they meet and make more friends (as well as enemies), and they grow accustomed to their life together.  \n  \nHowever, one man can only run from his past for so long, and it isn't long before Kenshin is forced to face the life he thought he'd left behind. Now, together with his friends, he must fight the ghosts of his past if he wants the people he loves to have any kind of future.  \n  \nContains a side story called Yahiko no Sakabato.\n\n\n---\nOfficial Release:\n- Indonesian release by Elex Media as **Samurai X** (2001)",
+  "status": "completed",
+  "totalChapters": 3,
+  "chapters": [
+    {
+      "chapterId": "d6afff9d-9b14-40f3-8c98-3b52e692596b",
+      "chapterNumber": 1,
+      "title": "Kenshin • Himura Battōsai",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000556",
+      "pages": []
+    },
+    {
+      "chapterId": "4c722f2d-7673-4ac6-af4d-f8f6e383bbb1",
+      "chapterNumber": 2,
+      "title": "Rurouni in the City",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000557",
+      "pages": []
+    },
+    {
+      "chapterId": "118794a6-1044-4709-aab0-9217242bb05c",
+      "chapterNumber": 3,
+      "title": "Tokyo Samurai",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000558",
+      "pages": []
+    }
+  ],
+  "scrapedAt": "2026-08-02T06:57:57.651Z",
+  "enrichmentStatus": "external_redirects"
+}

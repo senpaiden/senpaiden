@@ -1,0 +1,34 @@
+{
+  "title": "Dragon Ball",
+  "slug": "dragon-ball",
+  "mangaId": "40bc649f-7b49-4645-859e-6cd94136e722",
+  "coverUrl": "https://uploads.mangadex.org/covers/40bc649f-7b49-4645-859e-6cd94136e722/b048eb82-670b-4b41-9fc1-38bf7dd52159.jpg.256.jpg",
+  "description": "Dragon Ball follows the adventures of Goku from his childhood through adulthood as he trains in martial arts and explores the world in search of the seven mystical orbs known as the Dragon Balls, which can summon a wish-granting dragon when gathered. Along his journey, Goku makes several friends and battles a wide variety of villains, many of whom also seek the Dragon Balls for their own desires. Along the way becoming the strongest warrior in the universe.\n\nPart II (the post-time skip portion) of Dragon Ball is also known as 'Dragon Ball Z' in North America.\n\n---\n\n- **The 4th Best Selling Manga in History**",
+  "status": "completed",
+  "totalChapters": 3,
+  "chapters": [
+    {
+      "chapterId": "e7d84400-3db6-4473-9d86-d0c0459db87c",
+      "chapterNumber": 1,
+      "title": "Bloomers and the Monkey King",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000762",
+      "pages": []
+    },
+    {
+      "chapterId": "1496f9b1-1315-47b5-9385-8e40ce3dfa11",
+      "chapterNumber": 2,
+      "title": "No Balls!",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000763",
+      "pages": []
+    },
+    {
+      "chapterId": "7ebadef5-3c46-460b-bd69-fe53383a9b05",
+      "chapterNumber": 3,
+      "title": "Sea Monkeys",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1000764",
+      "pages": []
+    }
+  ],
+  "scrapedAt": "2026-08-02T06:56:42.574Z",
+  "enrichmentStatus": "external_redirects"
+}

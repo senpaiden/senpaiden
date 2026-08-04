@@ -1,0 +1,732 @@
+{
+  "title": "Coiling Dragon",
+  "slug": "coiling-dragon",
+  "mangaId": "77b1fb34-f891-4c8e-b48b-2d425a304c37",
+  "coverUrl": "https://uploads.mangadex.org/covers/77b1fb34-f891-4c8e-b48b-2d425a304c37/864325e1-1bdd-4252-b748-e9d750680979.jpg.256.jpg",
+  "description": "Linley is a young noble of a declining, once-powerful clan which once dominated the world. He has large aspirations and wants to save his clan. Linley's journey begins with an accident when he discovers a ring. He took a liking to this ring, which had a dragon carved coiling around it. Upon being injured during a battle between two powerful fighters he discovers that his ring is not what he thought it was and possesses powers beyond his imagination.",
+  "status": "completed",
+  "totalChapters": 100,
+  "chapters": [
+    {
+      "chapterId": "22f0dd25-3612-4743-926a-c63eed94bd0a",
+      "chapterNumber": 1,
+      "title": "Chapter 1",
+      "externalUrl": null,
+      "pages": [
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x1-c09a7a4c582fb2ddd451d0778d38208b72832d0ff0162a0e9fae6c8690aa78b3.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x2-5f3df2f2f9767eff4368f80ccb74ff6e56568ce216cf8440d538377ecc8f92bc.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x3-b3381a1173878e1df9df7ed6d083a990f4164edc15594432b4c4f1454fdcb007.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x4-ca74732f562c8bbaaa8736e121ee7c7b7c110d7a826d98b9db20c1c6516e5f26.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x5-1cbed642d027203a1f94ed1f605fd9877d6ded6cdf7fe2f086544691281fef06.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x6-cf0c1c1dd7d27ee049eef693dcda2372dd3e7f8efecd8e1e441fdee96a2aec5b.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x7-a3981a4372af3c509f44bb058dd545872d253c9a6452f93d9fd98f52aa226877.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x8-ddf3933a36ea4d7d75a8c99e15049ddff87715380cb8ecda9591194313f18077.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x9-b6bd6e48bc82c5a67f52b24a0a06af9a6bbad4c79cb5f97b47f1568bed6d53c2.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x10-0015c17bf17575178d8abb21f06eac2403e77d12e2e28ae553f38964fc2e8b56.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x11-b023fd4006279073c7ca8a71cee5afb2a6d90d53330824dbb51583734de7dced.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x12-713a4250c653a0fd99a8c973f632b847a7e7a35bcb6ec59691442df144b32b37.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x13-a3383bb7fc35f4bb0ea186497b8df939aa48b68414f71e0e2431b336821751ef.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x14-2c600e6fb8a89a425dda74e131a4b25fb0c62a0e850492f642a7e39b7886b920.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x15-306bba3ebd8adb001b866b9402a330931a4eeb0d0c0b684c7e2b5f97bcc3b2eb.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x16-6f808c6e46f29ddd7619743f81943934eb8072f197be96769df4bc5de6e59374.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x17-e5a9942db5ac3b64e7b64f4ea494d795fac05a2268dc8ca8314f813566505295.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x18-02e72db2b6efd03da751970d720d04f36000c66c221bf143b180382f4616f7d1.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x19-aa8b5ba748d454cd813a59f77614795253814d1357265e2bf3f45bbb7f7f26e6.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x20-738a7e55462825fb031aa98a18fdc9da6efeb87184ca26be269cbf1e3d008805.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x21-049ba4480b6d9667e9b024c906693d2e0042bfb8f87695b62a24c3855f623536.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x22-921e5b24661526d9a1c5f527d2b60c83ddb436dd8044352a8171d27a08ecb7d7.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x23-d2ecb49da7fd220a625da773722dff038f53bf9b5c0156a3e7eca204add24497.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x24-45c85b0c9c7882a72df692210b79fb82e5ea7606c159162868f47fbd46fa6fd5.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x25-c68c19e04c7da14d9f78aff20d14980ce1bce01458fc3f0907e12f6170ab0e41.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x26-ca3f84448c860e6a641547423894696a15c4387415f54419468ba9c1610b67f7.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x27-42ae2b9509320cafc7dcd64a0623f972f74ee8c11d9b52ed279ac14e2c701e89.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x28-011f77eca333f0e32a7ef81ed01a064274b8af75ab5af7c47e2d4b7ce891a9c0.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x29-6945f0adaa6c3e528c38e29d2b7424a17df826ef69724eba8bc865455054b54e.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x30-13823480600d3e49b7846800b7fa2ecd6dcc2e91817a5d97fd45d8caf4eeb9bd.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x31-ea89dee2676591e51b7b50c6bbac686d3326a743ea8cc4b3c2425f3c3c10ee9b.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/1e6cd9d02cd954deb0446c1442f32232/x32-0567f845245475564f260cf25761c900521ffccc78e8c123a8bdad204b2cc6d5.jpg"
+      ]
+    },
+    {
+      "chapterId": "357d3dfc-f5c3-4fc9-93bd-4bb647422b1e",
+      "chapterNumber": 2,
+      "title": "Chapter 2",
+      "externalUrl": null,
+      "pages": [
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x1-19f60794be6fbcacb0b7ec40f7c826fce6a27185f07338979004a288f317313e.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x2-1fa99cc9f8889c635e3ad283d2b18bcd94eab60df13fb5e8b120b814095d135b.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x3-e41f0fdf83e76aa835a50812f44f7d37b4e6820eaed39ec5ec18f84086280ca4.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x4-f0ee065f83214e233cc1ca2b474c511fd8dac31f6c2141198abef0794f27dbf9.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x5-5a190594965a385e135a12d72511688f405226237b9f42672cb35101d96034b4.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x6-e724f7fff277e1e324d85efab7cdd0582c641ce25ca119137047c5b95c8a949b.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x7-eda246dccc14c53a533ff4a4cc8a6b61c54f5eb97e8723816e32f69a3cdb423e.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x8-7980206c9aaae63ee4fb6e2611c62ec2e3aee0bcc0084b2bb75861ea5d182f47.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x9-7a01deda2ab441441206c2eba8b23cc22efab38be35765d5e13c00efb77c87ab.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x10-e9255eb520b573cab31bf9343261577e00659cdc0c6cc7b590941732d3d9d0cb.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x11-50d368ea30615f25d2d9138830312915a62b7e2b978a0d1f2321aa428e211f4a.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x12-2b39ab736b53dfce610722ddbe0da7222aed7dd12e33fd04a781637d72678e20.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x13-ae8a6bb9b02803d29b8e2b3860e33338caf7e42681b3cf894c28762a8e0f16da.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x14-6dc87928aa40bb5ed657a6e546a2b0668668faff34115a719522394772951004.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x15-dabf1ace05c7b07feade22f0cfd0ada2b436cb6a0f4a4974f9676a6a47dc1ef3.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x16-f2046e61366fe5871cee6f09d4150d4eb9a2b182e5937ce6b8df6ad3e7f9d779.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x17-13a6e2ecbc58f7e39f0d62e4caa7073e3bcd730913abaa136a7ef10c77e65c35.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x18-e4415d13ad5cc169087a55018397040c48c0df9b3a19572fe0dbf9430701fc1e.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x19-6f5ef2e2e0e04cc241a475314555d4a4766d7a3c982d6db228936352b8c48a80.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x20-1c03e52a39569c4a8487dee7eaeca5bb7152b3c79c55384ecf279cab9eeba17b.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/94f459964c9341031b1e4492f712066f/x21-4bc9dde652f4b8e5b134a7beab605c9f0a7eaabd4047eeacbbe466a050fae44d.png"
+      ]
+    },
+    {
+      "chapterId": "23087437-7bed-4660-9b36-2e6456bea42b",
+      "chapterNumber": 3,
+      "title": "Chapter 3",
+      "externalUrl": null,
+      "pages": [
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/791e6cbdcbdaffcc9efd8796441fba7d/x1-57854e3796ef4410adc7438fbabd67b57e3018f85763077da35fb948ac917906.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/791e6cbdcbdaffcc9efd8796441fba7d/x2-60f2c1bf3dc714cb75ab556a957a2db37a059c462990db35447589a2342cd545.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/791e6cbdcbdaffcc9efd8796441fba7d/x3-6e14e566cc8c1ff44de5c3b08e356756b86136e7459ad5e3311086f409342130.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/791e6cbdcbdaffcc9efd8796441fba7d/x4-81af28a99bc75138cc4c1709f8e47fd15c77367b476041a12f8b2222c2209a32.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/791e6cbdcbdaffcc9efd8796441fba7d/x5-ec01f3068e219d225f3e0f825b6279c5f35f271c2bcdf07959d351e04d5a84aa.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/791e6cbdcbdaffcc9efd8796441fba7d/x6-765f7ad0635d5689e64133ce7b48d56938674e1202ae192f50fe7112c2bb8728.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/791e6cbdcbdaffcc9efd8796441fba7d/x7-9b915389220fc31c3632721bf1b96e7b01fcd4430edc6bbfd27f81df6f6eecae.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/791e6cbdcbdaffcc9efd8796441fba7d/x8-f4197fa40516c21b8a2fdd7440fa247e0289df0b142109687a3f2de576f833a3.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/791e6cbdcbdaffcc9efd8796441fba7d/x9-a4e9a7b6dd7bf8d6be9e6b158caca6ebffd94779481f2ea23c572dcdbf4156cb.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/791e6cbdcbdaffcc9efd8796441fba7d/x10-0fe0d48c5bf2359fa4b147c5df4eac8eb359f4b32994d68244de35f09a97dac2.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/791e6cbdcbdaffcc9efd8796441fba7d/x11-e308d96bc822ff62dae994373c63fac972d2cf8b41d788603c595722a3be8a7e.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/791e6cbdcbdaffcc9efd8796441fba7d/x12-d3dcd5238eb25e348a492e599d8816b5c14e6f7a8a1ec6818c570295c8c69115.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/791e6cbdcbdaffcc9efd8796441fba7d/x13-2796b32abd04783b57885b3600444501f3749328cb2e2164eeed4c75c6f2130c.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/791e6cbdcbdaffcc9efd8796441fba7d/x14-fc74b083c71ba4aa058121fb4bf346b60810419601bb1dba0931807d5d23a0ae.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/791e6cbdcbdaffcc9efd8796441fba7d/x15-e7d680f26a5cbc7b4932d411456a4c65d44235a304836a832efb5e4a7c9919c4.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/791e6cbdcbdaffcc9efd8796441fba7d/x16-0b547448e1de3edbf9185c400e3a75657ade6d68ff81c433458b62d93e06bd98.jpg"
+      ]
+    },
+    {
+      "chapterId": "003210e2-6ead-4f17-8a07-746b55b24b3e",
+      "chapterNumber": 4,
+      "title": "Chapter 4",
+      "externalUrl": null,
+      "pages": [
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/c55317ca24a71bd45151555d58962d85/x1-f5d2b6c6a643b49816db75f71eafc63cd688fcd213c1b26c6c562f0e1cce9ac4.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/c55317ca24a71bd45151555d58962d85/x2-f22405449704f3b397b64e324870d17ef601450e0b4ff2131d9e568cb28e7899.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/c55317ca24a71bd45151555d58962d85/x3-8a085c2f6d1406c3962e802b7d5be8c4d0d9fe6575cf38d7b6bf30e3081551c5.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/c55317ca24a71bd45151555d58962d85/x4-5d3d19022a24b73608cd6c98015fb107a18ef714fbfe41a8cb88dd2d82a6a6db.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/c55317ca24a71bd45151555d58962d85/x5-38d9a085cc771de51e5cc6dedff0cf719734b773e592edb7cee9292b7db87d01.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/c55317ca24a71bd45151555d58962d85/x6-401d8364784f3bfe2497441f09bbd36cb2d6a8039d0c7f02460af5e9bfbe8a02.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/c55317ca24a71bd45151555d58962d85/x7-ecc441c330884c05f3f77ac98c46b55dee74297362855c1a4d756b1436a3504d.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/c55317ca24a71bd45151555d58962d85/x8-b2f44beb7b0609bebf82e6f5505b393e23c3512dae095b85b00dd9abde3c30bc.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/c55317ca24a71bd45151555d58962d85/x9-3a99888432da738092ec082f1511d659e14ed0ab8a5a1547110840203ff93bae.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/c55317ca24a71bd45151555d58962d85/x10-e4b2f55ffdc086989e33d923bd649c09857c588a18261e8a13ffc86e2c5ee849.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/c55317ca24a71bd45151555d58962d85/x11-0e01c03a3ac6d6c04e151ce8bb0bef8569c4693c2e9a52ba8b828a0a66e6aa23.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/c55317ca24a71bd45151555d58962d85/x12-e09da05e416ef655e5585b6acb0c0892ecd93dfdad36dd7d0afd6b35c8bfb262.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/c55317ca24a71bd45151555d58962d85/x13-77df27655cd49519a72185085bdf39f6e533b8f457bfdb1dcf65d4856d02d4db.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/c55317ca24a71bd45151555d58962d85/x14-d1a1004c8c7c563f12f2f7b4d21e68abcf9973f6e0459656d4cdce2a8075c8ed.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/c55317ca24a71bd45151555d58962d85/x15-a6a4995cc7ed6c9ff207702425241c235050883fd392d4af763e2bf5d0db131c.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/c55317ca24a71bd45151555d58962d85/x16-f310a02e34f2a091322a20cfea4a37042e4eed2c1f781a9b11da69fbe0f992b8.jpg"
+      ]
+    },
+    {
+      "chapterId": "228fee19-7c58-44e3-8a28-bd397345f91a",
+      "chapterNumber": 5,
+      "title": "Chapter 5",
+      "externalUrl": null,
+      "pages": [
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x1-2687196947f7db0b5105809beb86b25cd3b66f0ba38d7ab43c897529d2381fdb.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x2-5aa0aa698eea2542ebb2fbfe0d8eb8050e5a02dedab4db57bed641e3a34fa53a.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x3-24b20415f3eef9c087b1728e602bfb9c886ca8ab3c294a52f4f9f6f63d2e4e2b.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x4-921c6c969f2f95b7c8a3f3f9289ee76104b2ff793f88a3de12836d7002778efb.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x5-06d7a5443d7a1518401341f5dbd8e0cfb31463386c23431b199ca4e5ddb6687a.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x6-da89abcf5fb4460652057d7b36574c9ad5519f9adcad708a4f43f9da423a450d.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x7-e0bd9f04e83b3604b2ca3a4a9199437fe0bf8a433dbd69811325e7fbc18613b9.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x8-f350820b31ce49ad507c8207a3b1b95b1cc65071ea2a71f0255d7f9b66c62902.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x9-4826059e9af2317e9f7b24a457facf163ea909cc7f28663be323f26a9af750fc.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x10-d05abd2a0868a4e34cd80e0d055f239807d25daa517e514bc4b367d097963f4f.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x11-bd6456b601518a05495ab18e4d1ab679ffa24b19dc5bc33156defbbdf85f4f8c.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x12-efae3ebb50381b37c1c22b0b867c2fb09450f1f07bc1d782d661b8adf01cf2c0.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x13-0b6919e1a1a929e241da5688337e56c3297a65df19838d5d8cea6a9a45c1c625.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x14-9b420b9e18d88a622f47193265a3cac73f989bf715f33279b28c116092c06099.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x15-35ad400cea659c16ae3f268cf8ad30ec24f825841cd0824841195333530d855a.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x16-18c248429c2ae1c842b5ec9a4a9111c0a0a35a4a4e19c66f7c828c5680563eaf.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x17-bc756599543113bfe5cc8e2d9409427a8b837bc81ad3e67a97e6aeb7a47da23d.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x18-913c6f86820db0b077c36f47919a23c02cb13abd32dcfd1920e2da79db9e019e.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x19-f6d26b60ff2e078e61401c28e46f4fd9c93a45dfcdd65f3d59ea8f921a37c0d0.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x20-3766888d2c3f5699b995a520c4660cea60fb6232140cc228d037311985d4c9d8.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x21-314443318ddbea342791241652de79c46c90ae214377b923f4f73053f2811acf.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x22-d1b55c01183bdf9273c0129d887a622204576184d356f10078bafd5067426790.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x23-4edb2c2412d602a442089d0f1456b02decf9e184e6340f5a4382df49e80b802b.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/5798d9ba8e152b775a6dc259a909cb0c/x24-6263cbdf1c4a193da9d466f57eeb8a179c4290e22554e0b209e86b87ada8ddf8.jpg"
+      ]
+    },
+    {
+      "chapterId": "4ef7c865-97f1-46d5-95ff-fbdab9f8fd3b",
+      "chapterNumber": 6,
+      "title": "Chapter 6",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "db6b36a3-294f-47f6-b5c1-13ab26423c3f",
+      "chapterNumber": 7,
+      "title": "The Mysterious Sniper",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "46376ee8-f8c2-49e0-98a2-e592a2eacecf",
+      "chapterNumber": 8,
+      "title": "Wind Wolf Attacks",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "cf0cb002-4019-4021-8b08-033d0c9f5645",
+      "chapterNumber": 9,
+      "title": "Endless Danger",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "819e921c-08d3-4789-b0e9-c1994756a24c",
+      "chapterNumber": 10,
+      "title": "Chapter 10",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "2658c74d-bfff-47dd-a9ff-754af83f0e04",
+      "chapterNumber": 11,
+      "title": "First Meeting",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "95368f00-10b3-47b9-a534-c99b80e3e82f",
+      "chapterNumber": 12,
+      "title": "Master and Student Confirmed",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "b6697fb2-639c-407c-a8db-f5e21bf01bd2",
+      "chapterNumber": 13,
+      "title": "Chapter 13",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "820ee443-77c3-4bbd-99af-e5ceec8b74e9",
+      "chapterNumber": 14,
+      "title": "An Uninvited Guest",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "62eeca65-04b4-47d0-9a5e-f6a456c15351",
+      "chapterNumber": 15,
+      "title": "The Contract",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "acfe60b9-6c87-4002-87c0-8d0c76b70e32",
+      "chapterNumber": 16,
+      "title": "The Institute's Exam",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "c4d6e1bd-9969-46ce-b2a4-e7122e66301a",
+      "chapterNumber": 17,
+      "title": "A New Friend",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "39946fa9-7f0a-4213-ac80-f490f10332c6",
+      "chapterNumber": 18,
+      "title": "New Life",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "32c8da0d-adbc-4571-ab32-5739efdd6c1c",
+      "chapterNumber": 19,
+      "title": "Class Teaching",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "4739e894-faf8-43af-9e68-dee0063df4b7",
+      "chapterNumber": 20,
+      "title": "A Dispute",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "addb3431-eb49-447f-ad2b-814d57a87a58",
+      "chapterNumber": 21,
+      "title": "Training Before the Fight",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "d92a3963-0489-4689-9e7c-c0911137c6f6",
+      "chapterNumber": 22,
+      "title": "Before the Challenge",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "43d0059c-2019-4482-a549-a6cbd38e8518",
+      "chapterNumber": 23,
+      "title": "The Challenge Starts",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "65532399-d12b-446f-b6e0-ddca61ef5fd0",
+      "chapterNumber": 24,
+      "title": "A Difficult Battle",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "db2c1c34-b058-4ff8-b507-3399e0b62d83",
+      "chapterNumber": 25,
+      "title": "Linley's Rage!",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "8f46162a-9365-498d-bede-7c052b48f135",
+      "chapterNumber": 26,
+      "title": "The Myster of Dragon Blood",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "61bff034-0005-43f4-81d2-98a9732f7945",
+      "chapterNumber": 27,
+      "title": "The Son of Dragonblood",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "4441bad3-8402-45a2-98e3-958d86b3d971",
+      "chapterNumber": 28,
+      "title": "Appointed Challenge",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "bac0bf98-058a-4bb6-8d99-aadbce729ab6",
+      "chapterNumber": 29,
+      "title": "Rematch With Rand",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "543ba4dd-921c-4412-bdf5-fb80662ce5f0",
+      "chapterNumber": 30,
+      "title": "Match Outcome",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "14c8e9a9-4b09-4e68-a991-aebbda9fe55a",
+      "chapterNumber": 31,
+      "title": "The Mountain Range of Magical Beasts",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "39d146ec-5626-4153-8836-1c5e49558259",
+      "chapterNumber": 32,
+      "title": "Linley's Sculpture",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "7d07a7b8-f537-4cd1-b752-41146ec92c47",
+      "chapterNumber": 33,
+      "title": "A New Journey",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "e81881d9-a540-4cf7-a2be-5b14abf30b03",
+      "chapterNumber": 34,
+      "title": "Chapter 34",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "da677c79-1661-4780-bf39-c71ce61e2047",
+      "chapterNumber": 35,
+      "title": "Mystery Girl",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "dafe0734-d6e2-45c0-967e-a28c9567237b",
+      "chapterNumber": 36,
+      "title": "Improved Magic",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "11b42d19-d3f8-47f5-9574-5f920d546767",
+      "chapterNumber": 37,
+      "title": "Battle Against The Wind Wolves",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "f8d878c3-d92d-466e-aa89-7935bac6c924",
+      "chapterNumber": 38,
+      "title": "Evil Plot",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "dc579cf4-0f55-4d71-9c19-69a5a838653e",
+      "chapterNumber": 39,
+      "title": "Counter Attack",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "f894ed36-39e1-4b6c-8a71-626c7faef879",
+      "chapterNumber": 40,
+      "title": "Betrayed Again",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "f2a01280-524c-4ca1-a308-de03057249b3",
+      "chapterNumber": 41,
+      "title": "Dixie's Power",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "c2b22e0e-3784-45ee-90ab-33624649c545",
+      "chapterNumber": 42,
+      "title": "Evolve",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "3de06c0f-963f-4651-bddd-5866c27ff880",
+      "chapterNumber": 43,
+      "title": "Misty Canyon",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "59fab680-cd81-4f61-a9df-a234d60e5359",
+      "chapterNumber": 44,
+      "title": "Desperate Escape",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "71f0644f-e532-4328-a5ac-73ec003adc07",
+      "chapterNumber": 45,
+      "title": "First Encounter With Alice",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "87230a50-93ab-4ec4-9b0e-01e6e75bd3d0",
+      "chapterNumber": 46,
+      "title": "The Return Trip",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "44d62d77-3bf4-4535-a0db-7fca6d44f75a",
+      "chapterNumber": 47,
+      "title": "The Family Secret",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "27cc0d8c-f9de-4fab-ab2d-94d056517453",
+      "chapterNumber": 48,
+      "title": "Love",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "22860938-ef47-449a-9d72-83b0f8d3c13c",
+      "chapterNumber": 49,
+      "title": "Returning to the Mountain Range of Magical Beasts",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "55d2ede1-809d-4da1-8acd-cf05552c0e31",
+      "chapterNumber": 50,
+      "title": "Saint Level Beasts",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "51a540f5-2c07-412c-b835-d750d9fe9123",
+      "chapterNumber": 51,
+      "title": "Dragonblood",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "affe2bcd-a088-49aa-82f7-247ebba82e8f",
+      "chapterNumber": 52,
+      "title": "Dragonized",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "e6c32f63-a74c-4c6e-936a-1e968424a2f5",
+      "chapterNumber": 53,
+      "title": "Yu Lan Festival",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "81e18c81-818d-4d4c-81a6-4c68c0083ad4",
+      "chapterNumber": 54,
+      "title": "Sculpture Awakening Dream",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "66ebefa1-ef1d-4c55-a67b-b38b25334a8c",
+      "chapterNumber": 55,
+      "title": "Good Bye, Ernst Institute!",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "a6edffbd-686a-4c22-8387-07eb01f66216",
+      "chapterNumber": 56,
+      "title": "An Invitation of Light and Darkness",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "2c1ddc6b-8aa9-4946-98da-2ff8bbe5d7e2",
+      "chapterNumber": 57,
+      "title": "The Whereabouts of the Treasure Sword",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "b5d884cb-ad16-4cda-a445-357af26b34de",
+      "chapterNumber": 58,
+      "title": "Parting",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "f04b5d15-3f78-42af-8e26-cf1f06384ad1",
+      "chapterNumber": 59,
+      "title": "The Start of the Auction",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "1e01609a-6b86-41d8-91b8-7deb18a5606a",
+      "chapterNumber": 60,
+      "title": "Who Gets The Prize",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "baf3051e-292c-4c0a-b702-c676d1d898a3",
+      "chapterNumber": 61,
+      "title": "Fahter Hogg",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "9c7d9b7f-e234-4827-bb3f-1e43b90a003b",
+      "chapterNumber": 62,
+      "title": "Delia's Visit",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "eb0e9bb4-3eaa-4dfd-9699-99c6e07d9f35",
+      "chapterNumber": 63,
+      "title": "Promotion to Marquis",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "c00f4bb5-6363-42bb-acba-95fad32f51bd",
+      "chapterNumber": 64,
+      "title": "Magic Tomes",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "3c2d2cd2-0a99-4821-a2ea-cd29553e2ffd",
+      "chapterNumber": 65,
+      "title": "Assassinate",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "f092fea0-c67e-4274-878b-5fba8715d79e",
+      "chapterNumber": 66,
+      "title": "Chapter 66",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "37ff7dea-5b27-4c1c-9a5a-7b726877ca6e",
+      "chapterNumber": 67,
+      "title": "Alice's Engagement Party",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "5bed82a6-2432-4be3-a381-2c2ff73ca824",
+      "chapterNumber": 68,
+      "title": "Facing the Enemy",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "9f08bd7c-feb2-4050-a7a7-933f291253b3",
+      "chapterNumber": 69,
+      "title": "The Smuggling Scandal Exposed",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "07557813-9aed-4792-8d33-b23fe525b61c",
+      "chapterNumber": 70,
+      "title": "Alice's Plea",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "c78f164c-f9e6-4545-a118-69e0a35e1ebe",
+      "chapterNumber": 71,
+      "title": "Caesar's Visit",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "d0b0b2f0-8590-44be-8d1e-4527a93d2c60",
+      "chapterNumber": 72,
+      "title": "Assasination Plan",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "48aa7f44-a23b-4bec-be29-01115e6aeaaf",
+      "chapterNumber": 73,
+      "title": "A Sculpture for the King of Killers",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "03c6da5f-f0f1-4e5a-bc69-52b63edf14ad",
+      "chapterNumber": 74,
+      "title": "The Debs Family Trial",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "e9ffa6a6-ea21-49a6-8256-00644263eb7f",
+      "chapterNumber": 75,
+      "title": "Chapter 75",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "91310e65-1998-4f3c-89f7-f2585abcf5da",
+      "chapterNumber": 76,
+      "title": "Convenience and the King",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "e21e3c9c-d9ae-40da-a8a8-18bf6a9ae457",
+      "chapterNumber": 77,
+      "title": "All of the Ingredients",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "a6c4ea9d-5f6f-48ee-835f-7c81eb4b2ff4",
+      "chapterNumber": 78,
+      "title": "Faking Illness",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "a7a21642-a4f1-4ce4-904e-a422a3767288",
+      "chapterNumber": 79,
+      "title": "Confrontation",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "73e25600-122e-436f-9c65-96c15f85b4be",
+      "chapterNumber": 80,
+      "title": "Regicide",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "93e9cfa4-b28e-4dd8-8292-b87850365e87",
+      "chapterNumber": 81,
+      "title": "The Glacial Snow Lion",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "9e103ad0-f634-4a67-82cd-4844fd393ea8",
+      "chapterNumber": 82,
+      "title": "Linley Captured",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "dcf53321-6621-4142-8f2d-711ff3916d05",
+      "chapterNumber": 83,
+      "title": "The Corruption",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "195fb600-fe3f-42b7-b8ea-490d537a3d39",
+      "chapterNumber": 84,
+      "title": "Fen Lai Palace",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "1191dc45-c22e-4410-a603-2b9a5e432aa4",
+      "chapterNumber": 85,
+      "title": "Summoning the Sovereign of Light",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "173de36c-2432-4278-b15b-88af68549700",
+      "chapterNumber": 86,
+      "title": "Rescue",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "c7e4335d-38bf-4f2a-a41b-829a7a2ec595",
+      "chapterNumber": 87,
+      "title": "Attack of the Magical Beasts",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "4900e4dd-4dbb-44a9-9fff-308eee20287b",
+      "chapterNumber": 88,
+      "title": "Dylin, King of Beasts",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "84ff04d0-3944-4f81-a141-90233b36cf05",
+      "chapterNumber": 89,
+      "title": "Escape",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "63c9db0d-6682-4b8d-9783-9dd7bf74093b",
+      "chapterNumber": 90,
+      "title": "Kalan's Death",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "e3127951-b93e-4875-8aa6-826f6ee80c6b",
+      "chapterNumber": 91,
+      "title": "Return To Palace",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "b638d117-9f89-47fa-bd17-25053b6e1df4",
+      "chapterNumber": 92,
+      "title": "Clayde's Ring",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "5c7c7034-a619-4154-87c4-05a484692e84",
+      "chapterNumber": 93,
+      "title": "Obstacles",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "dbf60e5f-23ec-444a-93ad-b929db4241c8",
+      "chapterNumber": 94,
+      "title": "Returning to Wu Shan Village",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "a424ebb8-88ed-4854-a2f1-b788fb8b3f82",
+      "chapterNumber": 95,
+      "title": "The Bloodviolet and Heavy Sword",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "b1cb1804-397d-4d36-b24f-53e68feb7863",
+      "chapterNumber": 96,
+      "title": "Chapter 96",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "894b9002-0e83-41d6-8366-567cd62144ed",
+      "chapterNumber": 97,
+      "title": "Chapter 97",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "8bfaa888-a4ee-400e-be7d-ec9b8589c2c9",
+      "chapterNumber": 98,
+      "title": "Night Attack",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "da0c45ba-22e9-4bb9-b614-a58fcb0cf70e",
+      "chapterNumber": 99,
+      "title": "Adamantine Ore",
+      "externalUrl": null
+    },
+    {
+      "chapterId": "79a5097d-c455-4be6-b310-1ea5571be985",
+      "chapterNumber": 100,
+      "title": "Violet Flame Warrior",
+      "externalUrl": null
+    }
+  ],
+  "scrapedAt": "2026-08-02T06:59:19.580Z",
+  "enrichmentStatus": "fully_enriched"
+}

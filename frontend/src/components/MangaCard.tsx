@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { coverGradient, type Manga } from "@/lib/manga-data";
 
@@ -8,6 +11,8 @@ interface Props {
 }
 
 export function MangaCard({ manga, showChapter, className = "" }: Props) {
+  const [imgError, setImgError] = useState(false);
+
   return (
     <Link
       href={`/manga/${manga.slug}`}
@@ -18,12 +23,13 @@ export function MangaCard({ manga, showChapter, className = "" }: Props) {
         style={{ background: coverGradient(manga) }}
       >
         {/* Procedural cover fallback or Real Image */}
-        {manga.cover_url ? (
+        {manga.cover_url && !imgError ? (
           <img 
             src={manga.cover_url} 
             alt={manga.title} 
             className="absolute inset-0 h-full w-full object-cover" 
             loading="lazy" 
+            onError={() => setImgError(true)}
           />
         ) : (
           <div className="absolute inset-0 opacity-60 mix-blend-screen"

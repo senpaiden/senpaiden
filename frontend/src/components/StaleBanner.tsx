@@ -16,7 +16,7 @@ export function StaleBanner({ freshness }: StaleBannerProps) {
   return (
     <div 
       className={cn(
-        "fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-md",
+        "fixed top-16 md:top-20 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-md",
         "glass-panel bg-yellow-500/10 border-yellow-500/20 text-yellow-500",
         "flex items-start gap-3 rounded-2xl p-4 shadow-2xl animate-in slide-in-from-top-10 duration-500"
       )}

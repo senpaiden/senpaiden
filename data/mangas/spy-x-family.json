@@ -1,0 +1,54 @@
+{
+  "title": "Spy x Family",
+  "slug": "spy-x-family",
+  "mangaId": "6b958848-c885-4735-9201-12ee77abcb3c",
+  "coverUrl": "https://uploads.mangadex.org/covers/6b958848-c885-4735-9201-12ee77abcb3c/91a35e78-62b2-41fe-9869-ce051f2d1070.jpg.256.jpg",
+  "description": "The master spy codenamed <Twilight> has spent most of his life on undercover missions, all for the dream of a better world. Yet one day he receives a particularly difficult order from command. For his mission, he must form a temporary family and start a new life?!",
+  "status": "ongoing",
+  "totalChapters": 6,
+  "chapters": [
+    {
+      "chapterId": "e1bb87cb-dae2-4b53-837e-970945421de8",
+      "chapterNumber": 1,
+      "title": "Chapter 1",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1001834",
+      "pages": []
+    },
+    {
+      "chapterId": "ab796bce-84b4-4ea8-bf9a-d90c22c63bd0",
+      "chapterNumber": 2,
+      "title": "Chapter 2",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1001835",
+      "pages": []
+    },
+    {
+      "chapterId": "d772e1cd-d1a3-4b25-9aef-788306dbb838",
+      "chapterNumber": 3,
+      "title": "Chapter 3",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1001836",
+      "pages": []
+    },
+    {
+      "chapterId": "647715bc-697c-4d66-a0e7-195f5d5be043",
+      "chapterNumber": 134,
+      "title": "Chapter 134",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1029051",
+      "pages": []
+    },
+    {
+      "chapterId": "cf0f7799-047d-441f-854d-1172f8463e8a",
+      "chapterNumber": 135,
+      "title": "Chapter 135",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1029052",
+      "pages": []
+    },
+    {
+      "chapterId": "1ba8bd5a-85bf-4f59-905c-a0a67273e739",
+      "chapterNumber": 136,
+      "title": "Chapter 136",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1029347"
+    }
+  ],
+  "scrapedAt": "2026-08-02T06:57:34.241Z",
+  "enrichmentStatus": "external_redirects"
+}

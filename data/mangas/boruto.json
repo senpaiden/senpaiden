@@ -1,0 +1,30 @@
+{
+  "title": "Boruto",
+  "slug": "boruto",
+  "mangaId": "66ed626c-a40c-4fc8-b351-e1a400a9f99c",
+  "coverUrl": "https://uploads.mangadex.org/covers/66ed626c-a40c-4fc8-b351-e1a400a9f99c/3c2cc7dc-64ee-4208-8efe-b58aead41374.png.256.jpg",
+  "description": "Fan colored pages of Kawaki’s childhood collected in a mini chapter.",
+  "status": "ongoing",
+  "totalChapters": 1,
+  "chapters": [
+    {
+      "chapterId": "51b96655-7140-4807-915f-b29d4b8fcf90",
+      "chapterNumber": 1,
+      "title": "\"I am your father\".",
+      "externalUrl": null,
+      "pages": [
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/9ce778023960014ce4274a398077decb/k1-98c060d59cb809fced76aac6c04bf11153e54c2e37211731e12b1423c12f603a.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/9ce778023960014ce4274a398077decb/k2-d565599dab1bba8a43fe2c8a0e50c493d3d762d460248326f671e93ad582aae1.jpg",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/9ce778023960014ce4274a398077decb/k3-a5ed5d3e509b4e3afeec8d700f259d497359362d73b21c26e8142da30839c444.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/9ce778023960014ce4274a398077decb/k4-d9744ddb290b57f46be2a74a13560dd9ef7cad0b794fb616b68bd1672c630e7d.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/9ce778023960014ce4274a398077decb/k5-3f2effb2a206091b57e17edadc348ea5c2bb5af2f61a8e550f79e081ecf74d37.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/9ce778023960014ce4274a398077decb/k6-fec880ba61bb22831e87ea5908aba081a91e8ef6fc8a775d760fcf61ab74ac8b.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/9ce778023960014ce4274a398077decb/k7-9096866edbc7e98348f87631ed283c7e9d0b5c1622accf2c1ee715b0d9524f2e.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/9ce778023960014ce4274a398077decb/k8-f8d32a547a375b2bb09955dfb1c4c80f1154b8a74d6ea5b45bbc9c8e7980a8ad.png",
+        "https://cmdxd98sb0x3yprd.mangadex.network/data/9ce778023960014ce4274a398077decb/k9-4ffa69c3737560e3bb9fe4805827001602bfa78b7edc13cfdb3c61cf0c32ce40.png"
+      ]
+    }
+  ],
+  "scrapedAt": "2026-08-02T06:57:50.706Z",
+  "enrichmentStatus": "fully_enriched"
+}

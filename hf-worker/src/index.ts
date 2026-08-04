@@ -10,10 +10,20 @@ import 'dotenv/config';
 import dns from 'dns';
 import express from 'express';
 import { createClient } from '@supabase/supabase-js';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, HeadBucketCommand, CreateBucketCommand } from '@aws-sdk/client-s3';
 import sharp from 'sharp';
 import pLimit from 'p-limit';
 import WebSocket from 'ws';
+import { encode } from 'blurhash';
+import { Agent, setGlobalDispatcher } from 'undici';
+
+// Increase Node undici socket connection timeout from 10s default to 30s
+setGlobalDispatcher(new Agent({
+  connect: {
+    timeout: 30_000,
+  },
+  connections: 100
+}));
 
 // Force Node 20 DNS lookup to prefer IPv4 (fixes undici IPv6 timeout & ENOTFOUND)
 if (dns.setDefaultResultOrder) {
@@ -24,7 +34,7 @@ if (dns.setDefaultResultOrder) {
 const PORT = process.env.PORT || 7860;
 const MAX_SLICE_HEIGHT = 1500;
 const WEBP_QUALITY = 75;
-const TIMEOUT_MINUTES = 5;
+const TIMEOUT_MINUTES = 15; // 15-minute timeout for large chapters under heavy load
 
 // ── Supabase client (service role — full write access) ──────────────────────
 const supabase = createClient(
@@ -48,6 +58,22 @@ const r2 = new S3Client({
 
 const BUCKET_NAME = process.env.R2_BUCKET_NAME ?? 'manga-images';
 
+// ── Bucket Auto-Creation Check ────────────────────────────────────────────────
+async function ensureBucketExists() {
+  try {
+    await r2.send(new HeadBucketCommand({ Bucket: BUCKET_NAME }));
+    console.log(`[Worker] S3/R2 Bucket '${BUCKET_NAME}' verified.`);
+  } catch (err: any) {
+    console.log(`[Worker] Bucket '${BUCKET_NAME}' check: ${err?.message || err}. Attempting creation...`);
+    try {
+      await r2.send(new CreateBucketCommand({ Bucket: BUCKET_NAME }));
+      console.log(`[Worker] Bucket '${BUCKET_NAME}' created successfully.`);
+    } catch (createErr: any) {
+      console.warn(`[Worker] Bucket creation note:`, createErr);
+    }
+  }
+}
+
 // ── Health Check Server ───────────────────────────────────────────────────────
 const app = express();
 app.get('/', (req, res) => res.json({ status: 'ok', worker: 'senpai-den-hf' }));
@@ -59,18 +85,93 @@ interface SliceDimension {
   height: number;
 }
 
+interface SliceResult {
+  buffer: Buffer;
+  dimension: SliceDimension;
+  rawPixelData: { data: Buffer; info: { width: number; height: number } };
+}
+
 interface ProcessedPage {
   page_number: number;
   r2_keys: string[];
   slice_dimensions: SliceDimension[];
   blurhashes: string[];
 }
-import { encode } from 'blurhash';
+
+// ── Rate Limiting & Robust Fetching ───────────────────────────────────────────
+let lastMangaDexRequestTime = 0;
+const MANGADEX_MIN_INTERVAL_MS = 1200; // ~50 req/min max rate limit buffer
+
+async function waitMangaDexRateLimit() {
+  const now = Date.now();
+  const timeSinceLast = now - lastMangaDexRequestTime;
+  if (timeSinceLast < MANGADEX_MIN_INTERVAL_MS) {
+    const delay = MANGADEX_MIN_INTERVAL_MS - timeSinceLast;
+    lastMangaDexRequestTime = now + delay;
+    await new Promise(r => setTimeout(r, delay));
+  } else {
+    lastMangaDexRequestTime = now;
+  }
+}
+
+async function fetchWithRetry(url: string, retries = 5, isMangaDexApi = false): Promise<Response> {
+  const headers: Record<string, string> = {
+    'User-Agent': 'SenpaiDenWorker/1.0 (https://github.com/senpaiden)',
+    'Accept': 'application/json, image/*, */*'
+  };
+
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      if (isMangaDexApi) {
+        await waitMangaDexRateLimit();
+      }
+
+      // 30-second timeout per fetch request to avoid undici socket pool timeout
+      const res = await fetch(url, { headers, signal: AbortSignal.timeout(30000) });
+
+      if (res.status === 429) {
+        const retryAfterHeader = res.headers.get('Retry-After');
+        let waitMs = Math.pow(2, attempt) * 2000 + Math.random() * 1000;
+        if (retryAfterHeader) {
+          const parsedSec = parseInt(retryAfterHeader, 10);
+          if (!isNaN(parsedSec)) waitMs = (parsedSec + 1) * 1000;
+        }
+        console.warn(`[Worker] Rate limited (HTTP 429) fetching ${url}. Retrying in ${Math.round(waitMs)}ms... (Attempt ${attempt + 1}/${retries})`);
+        await new Promise(r => setTimeout(r, waitMs));
+        continue;
+      }
+
+      if (res.status >= 500) {
+        const waitMs = Math.pow(2, attempt) * 1000 + Math.random() * 500;
+        console.warn(`[Worker] Server error (HTTP ${res.status}) fetching ${url}. Retrying in ${Math.round(waitMs)}ms...`);
+        await new Promise(r => setTimeout(r, waitMs));
+        continue;
+      }
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} ${res.statusText}`);
+      }
+
+      return res;
+    } catch (err: any) {
+      if (attempt === retries - 1) throw err;
+      const waitMs = Math.pow(2, attempt) * 1000 + Math.random() * 500;
+      console.warn(`[Worker] Fetch error for ${url}: ${err.message || String(err)}. Retrying in ${Math.round(waitMs)}ms...`);
+      await new Promise(r => setTimeout(r, waitMs));
+    }
+  }
+  throw new Error(`Failed to fetch ${url} after ${retries} attempts`);
+}
+
+// Download image with exponential backoff
+async function downloadImage(url: string, retries = 3): Promise<Buffer> {
+  const res = await fetchWithRetry(url, retries, false);
+  return Buffer.from(await res.arrayBuffer());
+}
 
 // ── 1. Watchdog: Timeout Handler ──────────────────────────────────────────────
 async function runWatchdog() {
   try {
-    // Find chapters PROCESSING for > 5 minutes
     const cutoff = new Date(Date.now() - TIMEOUT_MINUTES * 60 * 1000).toISOString();
     
     const { data: timedOutChapters, error: fetchErr } = await supabase
@@ -85,13 +186,11 @@ async function runWatchdog() {
     for (const chapter of timedOutChapters) {
       console.warn(`[Watchdog] Chapter ${chapter.id} timed out. Marking FAILED.`);
       
-      // Mark FAILED
       await supabase
         .from('chapters')
         .update({ job_status: 'FAILED', updated_at: new Date().toISOString() })
         .eq('id', chapter.id);
         
-      // Insert DLQ
       await supabase.from('dead_letter_queue').insert({
         chapter_id: chapter.id,
         error_type: 'PROCESSING_TIMEOUT',
@@ -105,25 +204,10 @@ async function runWatchdog() {
 }
 setInterval(runWatchdog, 60 * 1000); // Run every 60s
 
-// ── 2. Image Processing Core ──────────────────────────────────────────────────
+// ── 2. Image Processing Core (Supercharged) ───────────────────────────────────
 
-// Download with exponential backoff
-async function downloadImage(url: string, retries = 3): Promise<Buffer> {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return Buffer.from(await res.arrayBuffer());
-    } catch (err) {
-      if (i === retries - 1) throw new Error(`Failed to download ${url} after ${retries} attempts: ${err}`);
-      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i))); // 1s, 2s, 4s
-    }
-  }
-  throw new Error('Unreachable');
-}
-
-// Slice image at 1500px boundaries and convert to WebP
-async function processImage(buffer: Buffer): Promise<{ buffers: Buffer[], dimensions: SliceDimension[] }> {
+// Slice image at 1500px boundaries and generate WebP + Blurhash thumbnail in parallel
+async function processImage(buffer: Buffer): Promise<SliceResult[]> {
   const image = sharp(buffer);
   const metadata = await image.metadata();
   
@@ -132,28 +216,44 @@ async function processImage(buffer: Buffer): Promise<{ buffers: Buffer[], dimens
   }
 
   const { width, height } = metadata;
-  const buffers: Buffer[] = [];
-  const dimensions: SliceDimension[] = [];
+  const results: SliceResult[] = [];
 
   let currentY = 0;
   while (currentY < height) {
     const sliceHeight = Math.min(MAX_SLICE_HEIGHT, height - currentY);
     
-    const sliceBuffer = await sharp(buffer)
-      .extract({ left: 0, top: currentY, width, height: sliceHeight })
-      .webp({ quality: WEBP_QUALITY })
-      .toBuffer();
+    const slicePipeline = sharp(buffer)
+      .extract({ left: 0, top: currentY, width, height: sliceHeight });
 
-    buffers.push(sliceBuffer);
-    dimensions.push({ width, height: sliceHeight });
-    
+    const [sliceBuffer, rawObj] = await Promise.all([
+      slicePipeline
+        .clone()
+        .webp({ quality: WEBP_QUALITY, effort: 3 })
+        .toBuffer(),
+      slicePipeline
+        .clone()
+        .resize(16, 16, { fit: 'inside' })
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true })
+    ]);
+
+    results.push({
+      buffer: sliceBuffer,
+      dimension: { width, height: sliceHeight },
+      rawPixelData: {
+        data: rawObj.data,
+        info: { width: rawObj.info.width, height: rawObj.info.height }
+      }
+    });
+
     currentY += sliceHeight;
   }
 
-  return { buffers, dimensions };
+  return results;
 }
 
-// Upload buffer to R2
+// Upload buffer to R2 / MinIO
 async function uploadToR2(key: string, buffer: Buffer): Promise<void> {
   await r2.send(new PutObjectCommand({
     Bucket: BUCKET_NAME,
@@ -167,7 +267,7 @@ async function uploadToR2(key: string, buffer: Buffer): Promise<void> {
 // ── 3. Main Poll Loop ─────────────────────────────────────────────────────────
 async function processNextJob() {
   try {
-    // 1. Claim a QUEUED job atomically via RPC (Bug P1-A Fix)
+    // 1. Claim a QUEUED job atomically via RPC
     const { data: qData, error: qErr } = await supabase
       .rpc('claim_next_chapter')
       .maybeSingle();
@@ -179,77 +279,101 @@ async function processNextJob() {
     const chapterId = qChapter.id;
     console.log(`[Worker] Claiming Chapter ${chapterId} (Ch. ${qChapter.chapter_number})`);
 
-    // Everything after this point operates on the locked chapter
     try {
       // 2. Fetch image URLs from Provider API
-      console.log(`[Worker] Fetching source images from: ${qChapter.source_url}`);
-      const sourceRes = await fetch(qChapter.source_url);
-      if (!sourceRes.ok) throw new Error(`Provider HTTP ${sourceRes.status} for images`);
-      
-      const sourceData = await sourceRes.json();
-      const imageUrls: string[] = sourceData.images ?? sourceData.data ?? sourceData.chapterImages?.map((i: any) => i.image ?? i) ?? [];
+      let fetchUrl = qChapter.source_url;
+      let isMangaDex = false;
+
+      if (fetchUrl.includes('mangadex.org/chapter/')) {
+        const chapterUuid = fetchUrl.split('/chapter/')[1]?.split('/')[0]?.split('?')[0];
+        fetchUrl = `https://api.mangadex.org/at-home/server/${chapterUuid}`;
+        isMangaDex = true;
+      }
+
+      console.log(`[Worker] Fetching source images from: ${fetchUrl}`);
+      const sourceRes = await fetchWithRetry(fetchUrl, 5, isMangaDex);
+      const textBody = await sourceRes.text();
+      let sourceData: any;
+      try {
+        sourceData = JSON.parse(textBody);
+      } catch (parseErr) {
+        throw new Error(`Invalid JSON response from provider API (${textBody.slice(0, 100)})`);
+      }
+
+      let imageUrls: string[] = [];
+
+      if (isMangaDex) {
+        const baseUrl = sourceData.baseUrl;
+        const hash = sourceData.chapter?.hash;
+        const files = sourceData.chapter?.data || [];
+        if (baseUrl && hash && files.length > 0) {
+          imageUrls = files.map((f: string) => `${baseUrl}/data/${hash}/${f}`);
+        }
+      } else {
+        imageUrls = sourceData.images ?? sourceData.data ?? sourceData.chapterImages?.map((i: any) => i.image ?? i) ?? [];
+      }
       
       if (imageUrls.length === 0) throw new Error('No images returned by provider endpoint');
 
-      // 3. Process pages in parallel (P2-B Fix)
+      // 3. Process pages in parallel
       const validUrls = imageUrls.filter(url => typeof url === 'string' && url.startsWith('http'));
       if (validUrls.length === 0) throw new Error('No valid image URLs found');
 
       console.log(`[Worker] Processing ${validUrls.length} pages in parallel...`);
-      const limit = pLimit(5); // Process max 5 pages concurrently
+      const limit = pLimit(4); // Process 4 pages concurrently per chapter to ensure smooth network stability
 
       const processedPages: ProcessedPage[] = await Promise.all(
         validUrls.map((url, idx) => limit(async () => {
           const pageNumber = idx + 1;
-          console.log(`[Worker] Processing page ${pageNumber}/${validUrls.length}...`);
           
           const rawBuffer = await downloadImage(url);
-          const { buffers, dimensions } = await processImage(rawBuffer);
+          const slices = await processImage(rawBuffer);
 
           const r2Keys: string[] = [];
           const blurhashes: string[] = [];
-          for (let sliceIdx = 0; sliceIdx < buffers.length; sliceIdx++) {
+
+          for (let sliceIdx = 0; sliceIdx < slices.length; sliceIdx++) {
             const key = `manga/${chapterId}/${pageNumber}_${sliceIdx}.webp`;
-            const sliceBuffer = buffers[sliceIdx]!;
-            await uploadToR2(key, sliceBuffer);
+            const slice = slices[sliceIdx]!;
+
+            await uploadToR2(key, slice.buffer);
             r2Keys.push(key);
 
-            // Compute Blurhash for the slice
-            const rawPixelData = await sharp(sliceBuffer)
-              .raw()
-              .ensureAlpha()
-              .resize(32, 32, { fit: 'inside' }) // resize for speed and hash quality
-              .toBuffer({ resolveWithObject: true });
-            
-            const bHash = encode(
-              new Uint8ClampedArray(rawPixelData.data), 
-              rawPixelData.info.width, 
-              rawPixelData.info.height, 
-              4, 
-              4
-            );
-            blurhashes.push(bHash);
+            // Fast Blurhash computation using 16x16 raw pixel buffer
+            try {
+              const bHash = encode(
+                new Uint8ClampedArray(slice.rawPixelData.data), 
+                slice.rawPixelData.info.width, 
+                slice.rawPixelData.info.height, 
+                3, 
+                3
+              );
+              blurhashes.push(bHash);
+            } catch (e) {
+              blurhashes.push('LEHV6nWB2yk8pyo0adR*.7kCMdnj');
+            }
           }
 
           return {
             page_number: pageNumber,
             r2_keys: r2Keys,
-            slice_dimensions: dimensions,
+            slice_dimensions: slices.map(s => s.dimension),
             blurhashes
           };
         }))
       );
 
-      // 4. Single Bulk Insert to Database (P2-C Fix)
-      console.log(`[Worker] Saving ${processedPages.length} pages to DB (bulk insert)...`);
-      const { error: insertErr } = await supabase.from('pages').insert(
+      // 4. Single Bulk Upsert to Database (Idempotent: prevents duplicate key violations on retried chapters)
+      console.log(`[Worker] Saving ${processedPages.length} pages to DB (bulk upsert)...`);
+      const { error: insertErr } = await supabase.from('pages').upsert(
         processedPages.map(page => ({
           chapter_id: chapterId,
           page_number: page.page_number,
           r2_keys: page.r2_keys,
           slice_dimensions: JSON.stringify(page.slice_dimensions),
           blurhash: JSON.stringify(page.blurhashes)
-        }))
+        })),
+        { onConflict: 'chapter_id,page_number' }
       );
       if (insertErr) throw insertErr;
 
@@ -265,7 +389,6 @@ async function processNextJob() {
     } catch (innerErr) {
       console.error(`[Worker] Job Failed for chapter ${chapterId}:`, innerErr);
       
-      // Cleanup: Mark FAILED and DLQ
       await supabase
         .from('chapters')
         .update({ job_status: 'FAILED', updated_at: new Date().toISOString() })
@@ -277,7 +400,7 @@ async function processNextJob() {
         error_detail: String(innerErr),
         max_retries: parseInt(process.env.DLQ_MAX_RETRIES ?? '3', 10),
       });
-      return true; // Return true even on error so loop continues immediately if there's a backlog
+      return true;
     }
 
   } catch (err: any) {
@@ -286,21 +409,48 @@ async function processNextJob() {
   }
 }
 
-// Ensure the loop runs sequentially and pauses between runs
-async function pollLoop() {
+async function requeueFailedJobs() {
+  try {
+    const { data, error } = await supabase
+      .from('chapters')
+      .update({ job_status: 'QUEUED', updated_at: new Date().toISOString() })
+      .eq('job_status', 'FAILED')
+      .select('id');
+
+    if (!error && data && data.length > 0) {
+      console.log(`[Worker] Automatically re-queued ${data.length} previously FAILED chapters.`);
+    }
+  } catch (e: any) {
+    console.warn(`[Worker] Re-queue check notice: ${e?.message || e}`);
+  }
+}
+
+// Multi-Worker Parallel Loop: Run worker threads
+const CONCURRENT_WORKERS = parseInt(process.env.WORKER_CONCURRENCY || '4', 10);
+
+async function startWorkerThread(workerId: number) {
+  console.log(`[Worker Thread ${workerId}] Started.`);
   while (true) {
     try {
       const didProcess = await processNextJob();
       if (!didProcess) {
-        // Wait 10 seconds before polling again if queue is empty (P2-D Fix)
-        await new Promise(r => setTimeout(r, 10000));
+        await new Promise(r => setTimeout(r, 3000));
       }
     } catch (err) {
-      console.error('[Worker] Fatal loop error:', err);
-      await new Promise(r => setTimeout(r, 10000));
+      console.error(`[Worker Thread ${workerId}] Fatal error:`, err);
+      await new Promise(r => setTimeout(r, 3000));
     }
   }
 }
 
-// Start loop
-setTimeout(pollLoop, 1000);
+// Launch engine
+setTimeout(async () => {
+  await ensureBucketExists();
+  await requeueFailedJobs();
+  console.log(`[Worker Engine] Launching ${CONCURRENT_WORKERS} parallel processing threads...`);
+  for (let i = 1; i <= CONCURRENT_WORKERS; i++) {
+    startWorkerThread(i);
+    await new Promise(r => setTimeout(r, 500)); // Stagger launch by 500ms to smooth out initial socket connections
+  }
+}, 1000);
+

@@ -1,0 +1,34 @@
+{
+  "title": "Jujutsu Kaisen",
+  "slug": "jujutsu-kaisen",
+  "mangaId": "c52b2ce3-7f95-469c-96b0-479524fb7a1a",
+  "coverUrl": "https://uploads.mangadex.org/covers/c52b2ce3-7f95-469c-96b0-479524fb7a1a/6d9134b2-21ea-4d02-ac2b-7c0d1c6a2aaa.jpg.256.jpg",
+  "description": "For some strange reason, Itadori Yuuji, despite his insane athleticism, would rather just hang out with the Occult Club. However, he soon finds out that the occult is as real as it gets when his fellow club members are attacked!\n\nMeanwhile, the mysterious Fushiguro Megumi is tracking down a special-grade cursed object, and his search leads him to Itadori…\n___\n**Official English Volumes:** [VIZ](https://www.viz.com/shonenjump/chapters/jujutsu-kaisen)",
+  "status": "completed",
+  "totalChapters": 3,
+  "chapters": [
+    {
+      "chapterId": "a1477730-c9e2-4b34-b9f9-d28d7de7b8e5",
+      "chapterNumber": 1,
+      "title": "RYOMEN SUKUNA",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1001279",
+      "pages": []
+    },
+    {
+      "chapterId": "a7297785-1fe6-4e7a-9e38-497c087fc660",
+      "chapterNumber": 2,
+      "title": "SECRET EXECUTION",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1001280",
+      "pages": []
+    },
+    {
+      "chapterId": "b46a9067-c81d-4f00-8313-81f3a15b0fa0",
+      "chapterNumber": 3,
+      "title": "FOR MYSELF",
+      "externalUrl": "https://mangaplus.shueisha.co.jp/viewer/1001281",
+      "pages": []
+    }
+  ],
+  "scrapedAt": "2026-08-02T06:56:58.626Z",
+  "enrichmentStatus": "external_redirects"
+}
