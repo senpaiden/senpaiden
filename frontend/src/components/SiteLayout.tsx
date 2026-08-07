@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import senpaiDenLogo from "@/assets/img/logo.png";
@@ -132,10 +132,20 @@ function HomeSkeletonLoader() {
   );
 }
 
+function ActiveLinkHandler({ setHasGenre, setHasSort }: { setHasGenre: (v: boolean) => void, setHasSort: (v: boolean) => void }) {
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    setHasGenre(searchParams.has("genre"));
+    setHasSort(searchParams.get("sort") === "updated");
+  }, [searchParams, setHasGenre, setHasSort]);
+  return null;
+}
+
 export function SiteLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const [hasGenre, setHasGenre] = useState(false);
+  const [hasSort, setHasSort] = useState(false);
   const [search, setSearch] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSiteLoading, setIsSiteLoading] = useState(true);
@@ -234,12 +244,9 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
       const isLatestLink = path.includes("sort=updated");
       const isSearchLink = path === "/discover";
 
-      const currentHasGenre = searchParams.has("genre");
-      const currentHasSort = searchParams.get("sort") === "updated";
-
-      if (isCategoriesLink && currentHasGenre) return true;
-      if (isLatestLink && currentHasSort) return true;
-      if (isSearchLink && !currentHasGenre && !currentHasSort) return true;
+      if (isCategoriesLink && hasGenre) return true;
+      if (isLatestLink && hasSort) return true;
+      if (isSearchLink && !hasGenre && !hasSort) return true;
       
       return false;
     }
@@ -259,6 +266,9 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen w-full flex font-exo bg-background text-foreground relative">
+      <Suspense fallback={null}>
+        <ActiveLinkHandler setHasGenre={setHasGenre} setHasSort={setHasSort} />
+      </Suspense>
       {/* Ambient glows */}
       <div className="fixed inset-0 pointer-events-none z-0 hidden md:block">
         <div className="absolute top-0 left-1/3 w-[700px] h-[500px] rounded-full opacity-[0.06]"
