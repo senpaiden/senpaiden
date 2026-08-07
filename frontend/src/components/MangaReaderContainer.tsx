@@ -26,7 +26,8 @@ import {
 import { ReaderImage, PageFitMode } from "./ReaderImage";
 import { StaleBanner } from "./StaleBanner";
 import { RecommendationsRow } from "./RecommendationsRow";
-import { saveHistoryDB } from "@/lib/indexed-db";
+import { saveHistoryLocal } from "@/lib/history-storage";
+import { awardMangaExp } from "@/lib/reader-progression";
 
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
 
@@ -49,6 +50,7 @@ interface ChapterMetadata {
 interface MangaReaderContainerProps {
   mangaId: string;
   mangaTitle: string;
+  mangaCoverUrl?: string;
   chapterNumber: string;
   chapters: ChapterMetadata[];
   slices: SliceData[];
@@ -72,6 +74,7 @@ type ReadingMode = "webtoon" | "single" | "double";
 export function MangaReaderContainer({
   mangaId,
   mangaTitle,
+  mangaCoverUrl,
   chapterNumber,
   chapters,
   slices,
@@ -91,6 +94,7 @@ export function MangaReaderContainer({
   const [activePagedIndex, setActivePagedIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [containerWidth, setContainerWidth] = useState(800); // Default max-width
+  const [expAward, setExpAward] = useState<{ amount: number; leveledUp?: boolean; rewardUnlocked?: boolean } | null>(null);
 
   const counterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -171,6 +175,12 @@ export function MangaReaderContainer({
         localStorage.setItem(`senpai_read_chapters_${mangaId}`, JSON.stringify(readArr));
       }
     } catch (e) {}
+
+    const award = awardMangaExp(mangaId);
+    if (award.awarded) {
+      setExpAward({ amount: award.expAwarded, leveledUp: award.leveledUp, rewardUnlocked: award.rewardUnlocked });
+      window.setTimeout(() => setExpAward(null), 4500);
+    }
   }, [mangaId, chapterNumber, currentChapterNum]);
 
   // Debounced progress saver reference to prevent scroll thrashing (Bug M1 Fix)
@@ -181,9 +191,10 @@ export function MangaReaderContainer({
     setCurrentSliceIndex(index);
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => {
-      saveHistoryDB({
+      saveHistoryLocal({
         mangaId,
         title: mangaTitle,
+        coverUrl: mangaCoverUrl,
         chapterNumber: parseFloat(chapterNumber),
         sliceIndex: index,
         timestamp: Date.now()
@@ -549,8 +560,8 @@ export function MangaReaderContainer({
             {virtualizer.getVirtualItems().map((virtualItem) => {
               const slice = slices[virtualItem.index];
               const imgUrl = getSliceUrl(r2BaseUrl, slice.key);
-              return (
-                <div 
+  return (
+    <div
                   key={virtualItem.key} 
                   data-index={virtualItem.index} 
                   ref={virtualizer.measureElement}
@@ -558,7 +569,13 @@ export function MangaReaderContainer({
                   style={{
                     transform: `translateY(${virtualItem.start}px)`,
                   }}
-                >
+    >
+      {expAward && (
+        <div role="status" className="fixed right-4 top-4 z-[70] flex max-w-xs items-center gap-3 rounded-2xl border border-yellow-300/30 bg-[#15120A]/95 px-4 py-3 text-white shadow-2xl shadow-yellow-500/10 backdrop-blur-xl animate-in slide-in-from-top-3 duration-300 motion-reduce:animate-none">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-yellow-300/15 text-yellow-300"><Trophy className="h-5 w-5" /></span>
+          <span><strong className="block text-sm">+{expAward.amount} EXP earned</strong><span className="text-xs text-zinc-400">{expAward.rewardUnlocked ? "Level 50! Pro Plus unlocked for 1 year." : expAward.leveledUp ? "Level up! Your reader rank increased." : "First read of this manga counted."}</span></span>
+        </div>
+      )}
                   <ReaderImage
                     src={imgUrl}
                     width={slice.width}
