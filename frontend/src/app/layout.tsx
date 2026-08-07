@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import "./globals.css";
 import { SiteLayout } from "@/components/SiteLayout";
 
@@ -16,11 +15,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className="antialiased min-h-screen flex flex-col">
-        <Suspense fallback={<div className="min-h-screen bg-[#0F1117]" />}>
-          <SiteLayout>
-            {children}
-          </SiteLayout>
-        </Suspense>
+        <SiteLayout>
+          {children}
+        </SiteLayout>
       </body>
     </html>
   );
