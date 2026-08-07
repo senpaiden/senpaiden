@@ -389,7 +389,7 @@ async function processNextJob() {
       if (validUrls.length === 0) throw new Error('No valid image URLs found');
 
       console.log(`[Worker] Processing ${validUrls.length} pages in parallel...`);
-      const limit = pLimit(8); // Process 8 pages concurrently per chapter for supercharged ingestion
+      const limit = pLimit(4); // Throttled page concurrency for stable memory & network utilization
 
       const processedPages: ProcessedPage[] = await Promise.all(
         validUrls.map((url, idx) => limit(async () => {
@@ -495,7 +495,7 @@ async function requeueFailedJobs() {
 }
 
 // Multi-Worker Parallel Loop: Run worker threads
-const CONCURRENT_WORKERS = parseInt(process.env.WORKER_CONCURRENCY || '4', 10);
+const CONCURRENT_WORKERS = parseInt(process.env.WORKER_CONCURRENCY || '2', 10);
 
 async function startWorkerThread(workerId: number) {
   console.log(`[Worker Thread ${workerId}] Started.`);

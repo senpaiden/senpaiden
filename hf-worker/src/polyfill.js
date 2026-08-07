@@ -7,3 +7,13 @@ if (typeof globalThis.File === 'undefined') {
     }
   };
 }
+
+if (typeof String.prototype.toWellFormed === 'undefined') {
+  String.prototype.toWellFormed = function () {
+    try {
+      return this.normalize();
+    } catch (e) {
+      return String(this);
+    }
+  };
+}
