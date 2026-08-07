@@ -270,7 +270,11 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
       {!isReader && (
       <nav className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center px-4 h-14 gap-2 bg-[#0F1117]/95 backdrop-blur-xl border-b border-red-500/10">
         
-        <div className="p-2 -ml-2 w-10"></div>
+        <Link href="/account" aria-label="Account" className="p-1 -ml-1 shrink-0 transition-opacity hover:opacity-80">
+          <div className="w-7 h-7 rounded-full overflow-hidden bg-zinc-800 border border-white/10">
+            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop&auto=format" alt="Account" className="w-full h-full object-cover" />
+          </div>
+        </Link>
 
         <Link href="/" className="flex items-center gap-2 mx-auto">
           <img src={senpaiDenLogo.src} alt="SenpaiDen Logo" className="h-7 w-auto object-contain" />
