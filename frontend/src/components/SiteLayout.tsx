@@ -3,10 +3,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import senpaiDenLogo from "@/assets/img/logo.png";
+import newChapterLogo from "@/assets/img/new chapter logo.png";
+import { getUnreadNotificationCount, NOTIFICATIONS_UPDATED_EVENT } from "@/lib/notifications";
+import { getLevel, getReaderProgression, PROGRESSION_UPDATED_EVENT } from "@/lib/reader-progression";
 import {
   Home, Compass, List, LayoutGrid, TrendingUp, RefreshCw,
   Bookmark, History, Users, Search, Bell, Flame, Upload,
-  ChevronDown, Crown, Menu, X, Shield,
+  ChevronRight, Crown, Menu, X, Shield, UserRound,
   Moon, Sun, Laptop
 } from "lucide-react";
 
@@ -56,26 +60,169 @@ function YoutubeIcon(props: any) {
   )
 }
 
+function HomeSkeletonLoader() {
+  const navRows = ["w-56", "w-36", "w-40", "w-48", "w-36", "w-36"];
+  const chipRows = ["w-20", "w-24", "w-24", "w-20", "w-24", "w-20", "w-28"];
+
+  return (
+    <div className="flex min-h-screen w-full overflow-hidden bg-[#0F1117] text-white" role="status" aria-label="Loading SenpaiDen">
+      <aside className="hidden w-[260px] shrink-0 border-r border-white/5 bg-[#0F1117] px-5 py-5 md:block">
+        <div className="mb-8 flex h-24 items-center justify-center border-b border-white/5 pb-5">
+          <img src={senpaiDenLogo.src} alt="SenpaiDen Logo" className="w-full max-w-[210px] object-contain opacity-95" />
+        </div>
+        <div className="space-y-4">
+          {navRows.map((widthClass, index) => (
+            <div key={index} className={`h-12 ${widthClass} animate-pulse rounded-2xl ${index === 0 ? "bg-primary" : "bg-white/[0.07]"}`} />
+          ))}
+        </div>
+        <div className="mt-10 flex justify-center">
+          <div className="h-72 w-56 animate-pulse rounded-full bg-white/[0.08]" />
+        </div>
+      </aside>
+
+      <section className="min-w-0 flex-1">
+        <div className="flex h-20 items-center gap-4 border-b border-white/5 px-5 md:px-10">
+          <div className="h-12 flex-1 max-w-[360px] animate-pulse rounded-2xl bg-white/[0.08]" />
+          <div className="hidden h-10 w-28 animate-pulse rounded-xl bg-[#FFD700]/20 md:block" />
+          <div className="hidden h-10 w-10 animate-pulse rounded-full bg-white/[0.08] md:block" />
+          <div className="hidden items-center gap-3 md:flex">
+            <div className="h-8 w-20 animate-pulse rounded-lg bg-white/[0.08]" />
+            <div className="h-12 w-12 animate-pulse rounded-full bg-white/[0.12]" />
+          </div>
+        </div>
+
+        <main className="px-5 py-8 md:px-10 md:py-14">
+          <div className="grid max-w-4xl gap-8 md:grid-cols-[280px_minmax(0,1fr)] md:items-center">
+            <div className="aspect-[3/4.4] w-full max-w-[280px] animate-pulse rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.16] via-white/[0.07] to-white/[0.02]" />
+            <div className="space-y-6">
+              <div className="flex gap-3">
+                <div className="h-4 w-24 animate-pulse rounded bg-white/[0.16]" />
+                <div className="h-4 w-32 animate-pulse rounded bg-white/[0.08]" />
+              </div>
+              <div className="space-y-4">
+                <div className="h-16 w-full max-w-[360px] animate-pulse rounded-xl bg-white/[0.12]" />
+                <div className="h-16 w-full max-w-[300px] animate-pulse rounded-xl bg-white/[0.10]" />
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <div className="h-14 w-48 animate-pulse rounded-2xl bg-white/[0.12] shadow-[0_24px_55px_rgba(124,58,237,0.22)]" />
+                <div className="h-14 w-36 animate-pulse rounded-2xl border border-emerald-400/20 bg-emerald-400/10" />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-14 border-t border-white/5 pt-8">
+            <div className="flex gap-3 overflow-hidden">
+              {chipRows.map((widthClass, index) => (
+                <div key={index} className={`h-10 shrink-0 ${widthClass} animate-pulse rounded-full border border-white/8 bg-white/[0.07]`} />
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-10">
+            <div className="mb-5 h-8 w-56 animate-pulse rounded-lg bg-white/[0.12]" />
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="h-56 animate-pulse rounded-2xl border border-white/5 bg-white/[0.06]" />
+              ))}
+            </div>
+          </div>
+        </main>
+      </section>
+    </div>
+  );
+}
+
 export function SiteLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSiteLoading, setIsSiteLoading] = useState(true);
+  const [showIntroVideo, setShowIntroVideo] = useState(false);
+  const [accountName, setAccountName] = useState("Senpai");
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [readerLevel, setReaderLevel] = useState(1);
 
   const isReader = pathname.match(/^\/manga\/[^/]+\/[^/]+(\/.*)?$/);
 
   useEffect(() => {
-    const hasSeenIntro = localStorage.getItem("hasSeenIntro");
-    if (hasSeenIntro) {
-      setIsSiteLoading(false);
-    } else {
-      const timer = setTimeout(() => {
+    const introStorageKey = "senpaiden_has_seen_intro_video_v1";
+    const hasSeenIntro = localStorage.getItem(introStorageKey) === "true";
+    const minimumLoaderTime = hasSeenIntro ? 450 : 1800;
+    const startedAt = Date.now();
+    let done = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    setShowIntroVideo(!hasSeenIntro);
+
+    const finishLoading = () => {
+      if (done) return;
+
+      const elapsed = Date.now() - startedAt;
+      const waitTime = Math.max(minimumLoaderTime - elapsed, 0);
+
+      timer = setTimeout(() => {
+        done = true;
+        localStorage.setItem(introStorageKey, "true");
         setIsSiteLoading(false);
-        localStorage.setItem("hasSeenIntro", "true");
-      }, 300); // Fast 300ms transition
-      return () => clearTimeout(timer);
+      }, waitTime);
+    };
+
+    if (document.readyState === "complete") {
+      finishLoading();
+    } else {
+      window.addEventListener("load", finishLoading, { once: true });
+      const fallbackTimer = setTimeout(finishLoading, 4500);
+      return () => {
+        done = true;
+        window.removeEventListener("load", finishLoading);
+        clearTimeout(fallbackTimer);
+        if (timer) clearTimeout(timer);
+      };
     }
+
+    return () => {
+      done = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    const syncProgression = () => setReaderLevel(getLevel(getReaderProgression().totalExp));
+    syncProgression();
+    window.addEventListener(PROGRESSION_UPDATED_EVENT, syncProgression);
+    window.addEventListener("storage", syncProgression);
+    return () => {
+      window.removeEventListener(PROGRESSION_UPDATED_EVENT, syncProgression);
+      window.removeEventListener("storage", syncProgression);
+    };
+  }, []);
+
+  useEffect(() => {
+    const syncNotifications = () => setUnreadNotifications(getUnreadNotificationCount());
+    syncNotifications();
+    window.addEventListener(NOTIFICATIONS_UPDATED_EVENT, syncNotifications);
+    window.addEventListener("storage", syncNotifications);
+    return () => {
+      window.removeEventListener(NOTIFICATIONS_UPDATED_EVENT, syncNotifications);
+      window.removeEventListener("storage", syncNotifications);
+    };
+  }, []);
+
+  useEffect(() => {
+    const syncAccountName = () => {
+      try {
+        const saved = localStorage.getItem("senpai_account");
+        const account = saved ? JSON.parse(saved) : null;
+        setAccountName(account?.displayName?.trim() || "Senpai");
+      } catch {
+        setAccountName("Senpai");
+      }
+    };
+
+    syncAccountName();
+    window.addEventListener("senpai-account-updated", syncAccountName);
+    return () => window.removeEventListener("senpai-account-updated", syncAccountName);
   }, []);
 
   const isActive = (path: string) => {
@@ -103,13 +250,20 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
 
       {/* LOADING SCREEN */}
       <div className={`fixed inset-0 z-[100] bg-[#0F1117] transition-opacity duration-500 flex items-center justify-center ${isSiteLoading ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
-        <video 
-          src="/loading-page.mp4" 
-          autoPlay 
-          playsInline 
-          loop 
-          className="w-full h-full object-cover"
-        />
+        {showIntroVideo ? (
+          <video
+            src="/loading-page.mp4"
+            autoPlay
+            muted
+            playsInline
+            loop
+            preload="auto"
+            aria-label="SenpaiDen loading intro"
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <HomeSkeletonLoader />
+        )}
       </div>
 
       {/* MOBILE TOP NAV (Visible only on small screens) */}
@@ -121,7 +275,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
         </button>
 
         <Link href="/" className="flex items-center gap-2 mx-auto">
-          <img src="/logo.png" alt="SenpaiDen Logo" className="h-7 w-auto object-contain" />
+          <img src={senpaiDenLogo.src} alt="SenpaiDen Logo" className="h-7 w-auto object-contain" />
         </Link>
         
         <Link href="/search" className="p-2 -mr-2 text-muted-foreground">
@@ -135,11 +289,11 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-[260px] flex-col z-50 bg-[#0F1117]/95 backdrop-blur-xl border-r border-white/5 overflow-y-auto no-scrollbar pb-6">
         {/* LOGO */}
         <Link href="/" className="flex items-center justify-center gap-3 px-4 py-4 shrink-0 border-b border-white/5">
-          <img src="/logo.png" alt="SenpaiDen Logo" className="w-full max-w-[200px] h-auto object-contain drop-shadow-[0_0_8px_rgba(255,46,46,0.3)]" />
+          <img src={senpaiDenLogo.src} alt="SenpaiDen Logo" className="w-full max-w-[200px] h-auto object-contain drop-shadow-[0_0_8px_rgba(255,46,46,0.3)]" />
         </Link>
 
         {/* MENU ITEMS */}
-        <div className="flex-1 flex flex-col gap-1 px-4 mt-2">
+        <div className="flex-1 flex flex-col gap-1 px-4">
           {SIDEBAR_ITEMS.map((item, i) => {
             const Icon = item.icon;
             const reallyActive = isActive(item.path);
@@ -161,7 +315,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
 
         {/* NEW CHAPTER LOGO */}
         <div className="mt-8 px-4 relative mb-2 flex-shrink-0 flex justify-center">
-          <img src="/new-chapter-logo.png" alt="New Chapter" className="w-full scale-110 h-auto object-contain drop-shadow-[0_0_15px_rgba(255,46,46,0.15)]" />
+          <img src={newChapterLogo.src} alt="New Chapter" className="w-full scale-110 h-auto object-contain drop-shadow-[0_0_15px_rgba(255,46,46,0.15)]" />
         </div>
 
         {/* FOOTER */}
@@ -213,6 +367,18 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
                    <span className={`font-semibold ${isActive(item.path) ? "text-primary" : "text-foreground"}`}>{item.label}</span>
                 </Link>
              ))}
+             <div className="mx-4 my-2 h-px bg-white/5" />
+             {[
+               { icon: Crown, label: "Premium", path: "/premium" },
+               { icon: Bell, label: "Notifications", path: "/notifications" },
+               { icon: UserRound, label: "Account", path: "/account" },
+             ].map((item) => (
+               <Link key={item.path} href={item.path} onClick={() => setMobileMenuOpen(false)} className="flex min-h-12 items-center gap-4 px-6 py-3 text-zinc-300 transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/60">
+                 <item.icon size={20} className={isActive(item.path) ? "text-primary" : "text-muted-foreground"} />
+                 <span className={`font-semibold ${isActive(item.path) ? "text-primary" : "text-foreground"}`}>{item.label}</span>
+                 {item.path === "/notifications" && unreadNotifications > 0 && <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-primary px-1.5 text-[10px] font-black text-white">{unreadNotifications > 9 ? "9+" : unreadNotifications}</span>}
+               </Link>
+             ))}
           </div>
         </div>
       )}
@@ -233,22 +399,22 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
           </form>
 
           <div className="flex items-center gap-4 ml-auto">
-            <button className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all bg-[#FFD700]/10 border border-[#FFD700]/20 text-[#FFD700] hover:bg-[#FFD700]/20">
+            <Link href="/premium" className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all bg-[#FFD700]/10 border border-[#FFD700]/20 text-[#FFD700] hover:bg-[#FFD700]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD700]/60">
               <Crown size={14} /> Premium
-            </button>
-            <button className="relative w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/5 text-zinc-400 hover:text-white transition-colors">
+            </Link>
+            <Link href="/notifications" aria-label={`Open notifications${unreadNotifications ? `, ${unreadNotifications} unread` : ""}`} className="relative w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/5 text-zinc-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60">
               <Bell size={18} />
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-primary border-2 border-[#0F1117]" />
-            </button>
-            <Link href="/library" className="flex items-center gap-2 pl-2 cursor-pointer group">
+              {unreadNotifications > 0 && <span className="absolute right-0.5 top-0.5 grid min-h-4 min-w-4 place-items-center rounded-full border-2 border-[#0F1117] bg-primary px-0.5 text-[8px] font-black leading-none text-white">{unreadNotifications > 9 ? "9+" : unreadNotifications}</span>}
+            </Link>
+            <Link href="/account" aria-label="Open account" className="flex items-center gap-2 pl-2 cursor-pointer group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60">
               <div className="flex flex-col items-end">
-                <span className="text-[12px] font-bold text-white group-hover:text-primary transition-colors">Senpai</span>
-                <span className="text-[10px] text-zinc-500">Lv. 26</span>
+                <span className="max-w-24 truncate text-[12px] font-bold text-white group-hover:text-primary transition-colors">{accountName}</span>
+                <span className="text-[10px] text-zinc-500">Lv. {readerLevel}</span>
               </div>
               <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-800 border-2 border-white/10 group-hover:border-primary transition-colors">
                 <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop&auto=format" alt="User" className="w-full h-full object-cover" />
               </div>
-              <ChevronDown size={14} className="text-zinc-500 ml-1" />
+              <ChevronRight size={14} className="text-zinc-500 ml-1 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
         </header>

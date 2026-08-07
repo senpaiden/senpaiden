@@ -54,6 +54,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
       <MangaReaderContainer
         mangaId={resolvedParams.id}
         mangaTitle={manga.title || "Manga Reader"}
+        mangaCoverUrl={manga.cover_url}
         chapterNumber={resolvedParams.chapter}
         chapters={chapters || []}
         slices={allSlices}
