@@ -16,10 +16,12 @@ export default function HistoryPage() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const loadHistory = () => {
+  const loadHistory = async () => {
     try {
-      const items: HistoryItem[] = [];
+      const pendingItems: Array<HistoryItem & { needsMetadata: boolean }> = [];
       const keys = Object.keys(localStorage);
+      const libraryStr = localStorage.getItem("senpai_library");
+      const library: Manga[] = libraryStr ? JSON.parse(libraryStr) : [];
 
       // Find all senpai_progress_* keys
       for (const key of keys) {
@@ -31,13 +33,8 @@ export default function HistoryPage() {
           const progress = JSON.parse(rawProgress);
           const chapterNum = parseFloat(progress.chapterNumber || "1");
 
-          // Try to look up manga metadata from senpai_library or mock fallback
-          const libraryStr = localStorage.getItem("senpai_library");
-          let mangaMeta: Manga | null = null;
-          if (libraryStr) {
-            const library: Manga[] = JSON.parse(libraryStr);
-            mangaMeta = library.find((m) => m.slug === mangaId) || null;
-          }
+          // Prefer saved library metadata, then the metadata mirrored by the reader.
+          let mangaMeta: Manga | null = library.find((m) => m.slug === mangaId) || null;
 
           if (!mangaMeta) {
             mangaMeta = {
@@ -49,20 +46,51 @@ export default function HistoryPage() {
               status: "Ongoing",
               coverHue: 250,
               coverHue2: 300,
+              cover_url: progress.coverUrl,
               latestChapter: chapterNum,
             };
           }
 
-          items.push({
+          pendingItems.push({
             manga: {
               ...mangaMeta,
               latestChapter: chapterNum,
             },
             lastChapter: chapterNum,
             lastReadTime: progress.timestamp || Date.now(),
+            needsMetadata: !mangaMeta.cover_url || mangaMeta.title.startsWith("Manga ("),
           });
         }
       }
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+      const items: HistoryItem[] = await Promise.all(
+        pendingItems.map(async ({ needsMetadata, ...item }) => {
+          if (!needsMetadata) return item;
+
+          try {
+            const response = await fetch(`${apiUrl}/api/manga/${item.manga.slug}`);
+            if (!response.ok) return item;
+
+            const metadata = await response.json();
+            return {
+              ...item,
+              manga: {
+                ...item.manga,
+                title: metadata.title || item.manga.title,
+                altTitle: metadata.alt_title || item.manga.altTitle,
+                description: metadata.description || item.manga.description,
+                genres: Array.isArray(metadata.genres) ? metadata.genres : item.manga.genres,
+                status: metadata.status || item.manga.status,
+                cover_url: metadata.cover_url || item.manga.cover_url,
+                author: metadata.author || item.manga.author,
+              },
+            };
+          } catch {
+            return item;
+          }
+        })
+      );
 
       // Sort by most recently read
       items.sort((a, b) => (b.lastReadTime || 0) - (a.lastReadTime || 0));
@@ -74,7 +102,7 @@ export default function HistoryPage() {
   };
 
   useEffect(() => {
-    loadHistory();
+    void loadHistory();
   }, []);
 
   const clearHistory = () => {

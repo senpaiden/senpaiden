@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Play, X } from "lucide-react";
-import { getLatestHistoryDB, type HistoryRecord } from "@/lib/indexed-db";
+import { getLatestHistoryLocal, type HistoryRecord } from "@/lib/history-storage";
 
 export function ContinueReadingBubble() {
   const [latest, setLatest] = useState<HistoryRecord | null>(null);
@@ -11,7 +11,7 @@ export function ContinueReadingBubble() {
 
   useEffect(() => {
     async function loadLatestProgress() {
-      const record = await getLatestHistoryDB();
+      const record = await getLatestHistoryLocal();
       if (record && record.mangaId && record.chapterNumber) {
         setLatest(record);
       }
