@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import senpaiDenLogo from "@/assets/img/logo.png";
 import newChapterLogo from "@/assets/img/new chapter logo.png";
 import { getUnreadNotificationCount, NOTIFICATIONS_UPDATED_EVENT } from "@/lib/notifications";
@@ -134,6 +134,7 @@ function HomeSkeletonLoader() {
 
 export function SiteLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -227,7 +228,25 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
 
   const isActive = (path: string) => {
     if (path === "/" && pathname === "/") return true;
-    if (path !== "/" && pathname.startsWith(path)) return true;
+    
+    if (pathname === "/discover") {
+      const isCategoriesLink = path.includes("genre=");
+      const isLatestLink = path.includes("sort=updated");
+      const isSearchLink = path === "/discover";
+
+      const currentHasGenre = searchParams.has("genre");
+      const currentHasSort = searchParams.get("sort") === "updated";
+
+      if (isCategoriesLink && currentHasGenre) return true;
+      if (isLatestLink && currentHasSort) return true;
+      if (isSearchLink && !currentHasGenre && !currentHasSort) return true;
+      
+      return false;
+    }
+
+    const basePath = path.split('?')[0];
+    if (basePath !== "/" && pathname.startsWith(basePath)) return true;
+    
     return false;
   };
 
