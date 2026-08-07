@@ -6,12 +6,14 @@
 // 3. 10s Poll Loop: Claims QUEUED jobs, downloads, slices, uploads to R2
 // ============================================================
 
+import './polyfill.js';
 import 'dotenv/config';
 import dns from 'dns';
 import express from 'express';
 import { createClient } from '@supabase/supabase-js';
 import { S3Client, PutObjectCommand, HeadBucketCommand, CreateBucketCommand } from '@aws-sdk/client-s3';
 import sharp from 'sharp';
+sharp.concurrency(0); // Auto-detect & use all available CPU cores for max slicing speed
 import pLimit from 'p-limit';
 import WebSocket from 'ws';
 import { encode } from 'blurhash';
@@ -39,10 +41,10 @@ function getNextDispatcher() {
   return agent;
 }
 
-// Increase Node undici socket connection timeout from 10s default to 30s
+// Increase Node undici socket connection timeout from 10s default to 60s
 setGlobalDispatcher(new Agent({
   connect: {
-    timeout: 30_000,
+    timeout: 60_000,
   },
   connections: 100
 }));
@@ -59,9 +61,12 @@ const WEBP_QUALITY = 75;
 const TIMEOUT_MINUTES = 15; // 15-minute timeout for large chapters under heavy load
 
 // ── Supabase client (service role — full write access) ──────────────────────
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://lsdnqbfiytyonvmzurxj.supabase.co';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZG5xYmZpeXR5b252bXp1cnhqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDg2NTMwNSwiZXhwIjoyMTAwNDQxMzA1fQ.hHV8Iq8mr7edka6SLSa1qRHq_AG6cf5C3tywKNaHfd8';
+
 const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!,
+  SUPABASE_URL,
+  SUPABASE_SERVICE_KEY,
   {
     auth: { persistSession: false },
     realtime: { transport: WebSocket as any } // Fix for Node 20 WebSocket support
@@ -70,11 +75,11 @@ const supabase = createClient(
 
 const r2 = new S3Client({
   region: 'auto',
-  endpoint: process.env.R2_ENDPOINT || `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  endpoint: process.env.R2_ENDPOINT || `https://${process.env.R2_ACCOUNT_ID || 'dummy'}.r2.cloudflarestorage.com`,
   forcePathStyle: !!process.env.R2_ENDPOINT, // Required for MinIO
   credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+    accessKeyId: process.env.R2_ACCESS_KEY_ID || 'dummy_access_key',
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || 'dummy_secret_key',
   },
 });
 
@@ -82,6 +87,15 @@ const BUCKET_NAME = process.env.R2_BUCKET_NAME ?? 'manga-images';
 
 // ── Bucket Auto-Creation Check ────────────────────────────────────────────────
 async function ensureBucketExists() {
+  if (process.env.USE_SUPABASE_STORAGE === 'true' || !process.env.R2_ENDPOINT) {
+    try {
+      await supabase.storage.createBucket(BUCKET_NAME, { public: true });
+      console.log(`[Worker] Supabase Storage Bucket '${BUCKET_NAME}' verified.`);
+    } catch (e) {
+      console.log(`[Worker] Supabase Storage Bucket '${BUCKET_NAME}' ready.`);
+    }
+    return;
+  }
   try {
     await r2.send(new HeadBucketCommand({ Bucket: BUCKET_NAME }));
     console.log(`[Worker] S3/R2 Bucket '${BUCKET_NAME}' verified.`);
@@ -99,7 +113,13 @@ async function ensureBucketExists() {
 // ── Health Check Server ───────────────────────────────────────────────────────
 const app = express();
 app.get('/', (req, res) => res.json({ status: 'ok', worker: 'senpai-den-hf' }));
-app.listen(PORT, () => console.log(`[Worker] Health check listening on port ${PORT}`));
+app.listen(PORT, () => console.log(`[Worker] Health check listening on port ${PORT}`)).on('error', (err: any) => {
+  if (err.code === 'EADDRINUSE') {
+    console.log(`[Worker] Health check port ${PORT} busy. Proceeding in secondary worker mode.`);
+  } else {
+    console.error('[Worker] Express server error:', err);
+  }
+});
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface SliceDimension {
@@ -149,12 +169,12 @@ async function fetchWithRetry(url: string, retries = 5, isMangaDexApi = false): 
       }
 
       const dispatcher = getNextDispatcher();
-      const fetchOpts: any = { headers, signal: AbortSignal.timeout(30000) };
+      const fetchOpts: any = { headers, signal: AbortSignal.timeout(60000) };
       if (dispatcher) {
         fetchOpts.dispatcher = dispatcher;
       }
 
-      // 30-second timeout per fetch request to avoid undici socket pool timeout
+      // 60-second timeout per fetch request to accommodate large PNG downloads
       const res = await fetch(url, fetchOpts);
 
       if (res.status === 429) {
@@ -281,8 +301,20 @@ async function processImage(buffer: Buffer): Promise<SliceResult[]> {
   return results;
 }
 
-// Upload buffer to R2 / MinIO
+// Upload buffer to Supabase Storage or R2 / MinIO
 async function uploadToR2(key: string, buffer: Buffer): Promise<void> {
+  if (process.env.USE_SUPABASE_STORAGE === 'true' || !process.env.R2_ENDPOINT) {
+    const { error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(key, buffer, {
+        contentType: 'image/webp',
+        cacheControl: '31536000',
+        upsert: true,
+      });
+    if (error) throw error;
+    return;
+  }
+
   await r2.send(new PutObjectCommand({
     Bucket: BUCKET_NAME,
     Key: key,
@@ -357,7 +389,7 @@ async function processNextJob() {
       if (validUrls.length === 0) throw new Error('No valid image URLs found');
 
       console.log(`[Worker] Processing ${validUrls.length} pages in parallel...`);
-      const limit = pLimit(6); // Process 6 pages concurrently per chapter for optimal socket & memory balance
+      const limit = pLimit(8); // Process 8 pages concurrently per chapter for supercharged ingestion
 
       const processedPages: ProcessedPage[] = await Promise.all(
         validUrls.map((url, idx) => limit(async () => {
