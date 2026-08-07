@@ -268,19 +268,26 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
 
       {/* MOBILE TOP NAV (Visible only on small screens) */}
       {!isReader && (
-      <nav className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center px-4 h-14 gap-2 bg-[#0F1117]/95 backdrop-blur-xl border-b border-red-500/10">
+      <nav className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-14 gap-2 bg-[#0F1117]/95 backdrop-blur-xl border-b border-red-500/10">
         
-        <button className="p-2 -ml-2 text-muted-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
+        <Link href="/" className="flex items-center gap-2 -ml-1">
+          <img src={senpaiDenLogo.src} alt="SenpaiDen Logo" className="h-8 w-auto object-contain" />
+        </Link>
 
-        <Link href="/" className="flex items-center gap-2 mx-auto">
-          <img src={senpaiDenLogo.src} alt="SenpaiDen Logo" className="h-7 w-auto object-contain" />
-        </Link>
-        
-        <Link href="/search" className="p-2 -mr-2 text-muted-foreground">
-          <Search size={20} />
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/search" className="text-muted-foreground hover:text-white transition-colors">
+            <Search size={20} />
+          </Link>
+
+          <Link href="/account" aria-label="Account" className="flex items-center gap-2 shrink-0 transition-opacity hover:opacity-80 -mr-1">
+            <div className="flex items-center justify-center bg-white/5 border border-white/10 rounded-full px-2 py-0.5 text-[10px] font-bold text-zinc-300">
+              Lv. {readerLevel}
+            </div>
+            <div className="w-7 h-7 rounded-full overflow-hidden bg-zinc-800 border border-white/10">
+              <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop&auto=format" alt="Account" className="w-full h-full object-cover" />
+            </div>
+          </Link>
+        </div>
       </nav>
       )}
 
@@ -344,13 +351,14 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
         {SIDEBAR_ITEMS.slice(0, 5).map((item, i) => {
            const Icon = item.icon;
            const reallyActive = isActive(item.path);
+           const shortLabel = item.label === "Latest Releases" ? "Latest" : item.label;
            return (
-              <Link key={i} href={item.path} className="flex flex-col items-center justify-center w-12 h-12 gap-1 relative">
+              <Link key={i} href={item.path} className="flex flex-col items-center justify-center min-w-[48px] h-12 gap-1 relative">
                 <Icon size={20} style={{ color: reallyActive ? "#FF2E2E" : "#8892a4" }} />
                 {reallyActive && (
                   <span className="absolute -top-1 w-1 h-1 rounded-full bg-primary shadow-[0_0_8px_#FF2E2E]" />
                 )}
-                <span className="text-[9px] font-semibold" style={{ color: reallyActive ? "#FF2E2E" : "#8892a4" }}>{item.label}</span>
+                <span className="text-[9px] font-semibold text-center whitespace-nowrap" style={{ color: reallyActive ? "#FF2E2E" : "#8892a4" }}>{shortLabel}</span>
               </Link>
            )
         })}
