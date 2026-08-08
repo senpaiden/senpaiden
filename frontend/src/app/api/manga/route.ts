@@ -1,23 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { getSupabase } from '@/lib/supabase';
 
 export async function GET(req: NextRequest) {
   try {
+    const supabase = getSupabase();
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Supabase environment variables (SUPABASE_URL, SUPABASE_ANON_KEY) are not set in environment settings.' },
+        { status: 500 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const q = searchParams.get('q');
     const genre = searchParams.get('genre');
     const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = 24;
+    const limit = parseInt(searchParams.get('limit') || '24', 10);
     const offset = (page - 1) * limit;
 
     let query = supabase
       .from('manga')
-      .select('id, title, cover_url, status, genres, description, latest_chapter_number, updated_at', { count: 'exact' })
+      .select('id, title, alt_title, cover_url, status, genres, description, latest_chapter_number, updated_at', { count: 'exact' })
       .order('updated_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -25,7 +28,7 @@ export async function GET(req: NextRequest) {
       query = query.ilike('title', `%${q}%`);
     }
 
-    if (genre && genre.trim() !== '') {
+    if (genre && genre.trim() !== '' && genre !== 'All') {
       query = query.contains('genres', [genre]);
     }
 
@@ -34,6 +37,6 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ data: data || [], total: count || 0, page, limit });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err?.message || 'Internal Server Error' }, { status: 500 });
   }
 }
