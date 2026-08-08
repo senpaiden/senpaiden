@@ -26,7 +26,7 @@ export function PersonalizedFeedRow() {
         if (!res.ok) return;
 
         const json = await res.json();
-        const catalog: CatalogItem[] = json.data || [];
+        const catalog: CatalogItem[] = json.catalog || json.data || [];
         if (catalog.length === 0) return;
 
         // 1. Get user interaction history from localStorage
