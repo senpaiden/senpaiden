@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Filter, X, Check, Minus } from "lucide-react";
 import { getApiUrl } from "@/lib/api";
 
 interface Genre {
