@@ -49,10 +49,14 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
       } catch (e) {}
         
       r2Keys.forEach((key, idx) => {
+        let cleanKey = key;
+        if (cleanKey.includes('.mangadex.network/data/')) {
+          cleanKey = cleanKey.replace(/https?:\/\/[^\/]+\.mangadex\.network\/data\//, 'https://uploads.mangadex.org/data/');
+        }
         const dim = (Array.isArray(dims) && dims[idx]) ? dims[idx] : { width: 800, height: 1200 };
         const bHash = Array.isArray(bHashes) ? bHashes[idx] : (typeof bHashes === 'string' ? bHashes : undefined);
         allSlices.push({
-          key,
+          key: cleanKey,
           width: dim.width || 800,
           height: dim.height || 1200,
           blurhash: bHash

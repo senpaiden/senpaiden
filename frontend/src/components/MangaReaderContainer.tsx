@@ -62,12 +62,17 @@ interface MangaReaderContainerProps {
 }
 
 const getSliceUrl = (baseUrl: string, key: string) => {
-  if (key.startsWith('http://') || key.startsWith('https://')) {
-    return key;
+  let url = key;
+  if (!key.startsWith('http://') && !key.startsWith('https://')) {
+    const cleanBase = baseUrl.replace(/\/$/, '');
+    const cleanKey = key.replace(/^\//, '');
+    url = `${cleanBase}/${cleanKey}`;
   }
-  const cleanBase = baseUrl.replace(/\/$/, '');
-  const cleanKey = key.replace(/^\//, '');
-  return `${cleanBase}/${cleanKey}`;
+  // Replace volatile/expired MangaDex @home CDN nodes with persistent uploads server
+  if (url.includes('.mangadex.network/data/')) {
+    url = url.replace(/https?:\/\/[^\/]+\.mangadex\.network\/data\//, 'https://uploads.mangadex.org/data/');
+  }
+  return url;
 };
 
 type ReadingMode = "webtoon" | "single" | "double";
