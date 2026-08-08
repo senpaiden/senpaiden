@@ -12,7 +12,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const { data: mangas } = await supabase
       .from('manga')
-      .select('id, title, alt_title, cover_url, status, genres, description, latest_chapter_number')
+      .select('id, title, cover_url, status, genres, description')
       .neq('id', id)
       .limit(6);
 

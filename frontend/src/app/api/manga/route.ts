@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
     let query = supabase
       .from('manga')
-      .select('id, title, alt_title, cover_url, status, genres, description, latest_chapter_number, updated_at', { count: 'exact' })
+      .select('id, title, cover_url, status, genres, description, updated_at', { count: 'exact' })
       .order('updated_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
