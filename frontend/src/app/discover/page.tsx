@@ -3,6 +3,8 @@ import { MangaCard } from "@/components/MangaCard";
 import { AdvancedFilterPanel } from "@/components/AdvancedFilterPanel";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+import { getApiUrl } from "@/lib/api";
+
 export const revalidate = 60; // Edge Cache
 
 export const metadata = {
@@ -18,13 +20,13 @@ export default async function Discover({ searchParams }: { searchParams: Promise
   const excluded = resolvedParams.excluded;
   const sort = resolvedParams.sort;
   const limit = 24;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+  const baseUrl = getApiUrl();
   
   let mangas: any[] = [];
   let totalCount = 0;
 
   try {
-    let url = new URL(`${apiUrl}/api/manga`);
+    let url = new URL("/api/manga", baseUrl);
     url.searchParams.set("page", pageNum.toString());
     url.searchParams.set("limit", limit.toString());
     

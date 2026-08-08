@@ -6,11 +6,13 @@ import { PersonalizedFeedRow } from "@/components/PersonalizedFeedRow";
 import { ContinueReadingBubble } from "@/components/ContinueReadingBubble";
 import { Play, ChevronRight } from "lucide-react";
 
-// Server Component fetching live data from Cloudflare Worker
+import { getApiUrl } from "@/lib/api";
+
+// Server Component fetching live data from Cloudflare Worker / Next API
 export const revalidate = 60; // Edge Cache for 60 seconds
 
 export default async function Home() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+  const apiUrl = getApiUrl();
   
   let mangas: any[] = [];
   try {

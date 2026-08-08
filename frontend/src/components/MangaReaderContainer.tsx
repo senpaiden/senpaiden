@@ -28,6 +28,7 @@ import { StaleBanner } from "./StaleBanner";
 import { RecommendationsRow } from "./RecommendationsRow";
 import { saveHistoryLocal } from "@/lib/history-storage";
 import { awardMangaExp } from "@/lib/reader-progression";
+import { getApiUrl } from "@/lib/api";
 
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
 
@@ -225,7 +226,7 @@ export function MangaReaderContainer({
 
   const prefetchNextChapter = async (nextChNum: number) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+      const apiUrl = getApiUrl();
       const url = `${apiUrl}/api/manga/${mangaId}/chapter/${nextChNum}`;
       
       const res = await fetch(url);

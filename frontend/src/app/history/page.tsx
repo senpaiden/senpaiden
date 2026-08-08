@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 
 import { MangaCard } from "@/components/MangaCard";
 import { History as HistoryIcon, Trash2 } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 import type { Manga } from "@/lib/manga-data";
 
 interface HistoryItem {
@@ -63,7 +64,7 @@ export default function HistoryPage() {
         }
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+      const apiUrl = getApiUrl();
       const items: HistoryItem[] = await Promise.all(
         pendingItems.map(async ({ needsMetadata, ...item }) => {
           if (!needsMetadata) return item;

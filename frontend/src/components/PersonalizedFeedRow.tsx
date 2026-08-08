@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { MangaCard } from "@/components/MangaCard";
 import { Zap } from "lucide-react";
-import type { Manga } from "@/lib/manga-data";
+import { getApiUrl } from "@/lib/api";
 
 interface CatalogItem {
   slug: string;
@@ -21,7 +21,7 @@ export function PersonalizedFeedRow() {
   useEffect(() => {
     async function computePersonalizedFeed() {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+        const apiUrl = getApiUrl();
         const res = await fetch(`${apiUrl}/api/catalog-vectors`);
         if (!res.ok) return;
 

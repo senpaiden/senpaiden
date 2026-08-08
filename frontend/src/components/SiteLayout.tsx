@@ -150,6 +150,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSiteLoading, setIsSiteLoading] = useState(true);
   const [showIntroVideo, setShowIntroVideo] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [accountName, setAccountName] = useState("Senpai");
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [readerLevel, setReaderLevel] = useState(1);
@@ -157,6 +158,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
   const isReader = pathname.match(/^\/manga\/[^/]+\/[^/]+(\/.*)?$/);
 
   useEffect(() => {
+    setMounted(true);
     const introStorageKey = "senpaiden_has_seen_intro_video_v1";
     const hasSeenIntro = localStorage.getItem(introStorageKey) === "true";
     const minimumLoaderTime = hasSeenIntro ? 450 : 1800;
@@ -278,8 +280,8 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* LOADING SCREEN */}
-      <div className={`fixed inset-0 z-[100] bg-[#0F1117] transition-opacity duration-500 flex items-center justify-center ${isSiteLoading ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
-        {showIntroVideo ? (
+      <div className={`fixed inset-0 z-[100] bg-[#0F1117] transition-opacity duration-500 flex items-center justify-center ${isSiteLoading ? "opacity-100" : "opacity-0 pointer-events-none"}`} suppressHydrationWarning>
+        {mounted && showIntroVideo ? (
           <video
             src="/loading-page.mp4"
             autoPlay

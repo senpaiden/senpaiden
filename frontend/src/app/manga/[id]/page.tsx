@@ -1,11 +1,13 @@
 import { notFound } from "next/navigation";
 import { MangaDetailClient } from "./MangaDetailClient";
 
+import { getApiUrl } from "@/lib/api";
+
 export const revalidate = 60; // Edge Cache
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+  const apiUrl = getApiUrl();
   
   try {
     const res = await fetch(`${apiUrl}/api/manga/${resolvedParams.id}`);
@@ -22,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function MangaDetail({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+  const apiUrl = getApiUrl();
   
   let manga: any = null;
   let chapters: any[] = [];

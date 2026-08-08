@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { MangaCard } from "@/components/MangaCard";
 import { Sparkles, Compass } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 import type { Manga } from "@/lib/manga-data";
 
 interface RecommendationsRowProps {
@@ -19,7 +20,7 @@ export function RecommendationsRow({ mangaId, type, title }: RecommendationsRowP
     async function loadRecommendations() {
       setIsLoading(true);
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+        const apiUrl = getApiUrl();
         const endpoint = type === "semantic"
           ? `${apiUrl}/api/manga/${mangaId}/recommendations`
           : `${apiUrl}/api/manga/${mangaId}/co-binged`;

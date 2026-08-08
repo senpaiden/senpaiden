@@ -1,6 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { MangaReaderContainer } from "@/components/MangaReaderContainer";
 
+import { getApiUrl } from "@/lib/api";
+
 // Cache immutable chapters forever. Stale chapters are cached for 60s at the edge.
 export const revalidate = 31536000; 
 
@@ -8,7 +10,7 @@ export const revalidate = 31536000;
 
 export default async function ReaderPage({ params }: { params: Promise<{ id: string, chapter: string }> }) {
   const resolvedParams = await params;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+  const apiUrl = getApiUrl();
   
   try {
     // P3-C Fix: Single compound fetch instead of waterfall
