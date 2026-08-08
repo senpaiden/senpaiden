@@ -112,6 +112,7 @@ export function ReaderImage({ src, width, height, priority = false, blurhash, co
           width={width}
           height={height}
           loading={priority ? "eager" : "lazy"}
+          referrerPolicy="no-referrer"
           className={cn(
             getFitImageClass(),
             "transition-opacity duration-300 relative z-10",

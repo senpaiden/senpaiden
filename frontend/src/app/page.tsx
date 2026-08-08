@@ -63,7 +63,7 @@ export default async function Home() {
             className="hidden aspect-[2/3] w-56 shrink-0 rounded-2xl border border-white/10 shadow-2xl md:block bg-[#16161F] overflow-hidden relative"
           >
             {featured.cover_url && (
-              <img src={featured.cover_url} alt={featured.title} className="absolute inset-0 h-full w-full object-cover" />
+              <img src={featured.cover_url} alt={featured.title} referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
             )}
           </div>
           <div className="min-w-0 flex-1">

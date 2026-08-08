@@ -65,7 +65,7 @@ export function MangaDetailClient({ manga, chapters, related }: { manga: any; ch
     <div className="text-foreground font-exo pb-16 md:pb-8">
       {/* Banner */}
       <div className="relative h-52 overflow-hidden">
-        <img src={manga.cover_url} alt={manga.title} className="w-full h-full object-cover opacity-30" />
+        <img src={manga.cover_url} alt={manga.title} referrerPolicy="no-referrer" className="w-full h-full object-cover opacity-30" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0F1117]/80 to-[#0F1117]" />
         
         {/* Breadcrumb */}
@@ -83,7 +83,7 @@ export function MangaDetailClient({ manga, chapters, related }: { manga: any; ch
         <div className="flex flex-col md:flex-row gap-6">
           {/* Cover */}
           <div className="flex-shrink-0 mx-auto md:mx-0 rounded-2xl overflow-hidden shadow-2xl w-40 md:w-[180px] h-56 md:h-[250px] border-2 border-primary/40">
-            <img src={manga.cover_url} alt={manga.title} className="w-full h-full object-cover" />
+            <img src={manga.cover_url} alt={manga.title} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
           </div>
 
           {/* Info */}

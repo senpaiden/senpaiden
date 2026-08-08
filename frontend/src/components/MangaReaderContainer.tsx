@@ -653,6 +653,7 @@ export function MangaReaderContainer({
               key={`preload-${slice.key}`} 
               src={getSliceUrl(r2BaseUrl, slice.key)} 
               decoding="async"
+              referrerPolicy="no-referrer"
               alt="" 
             />
           ))}

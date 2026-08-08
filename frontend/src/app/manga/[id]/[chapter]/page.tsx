@@ -32,20 +32,30 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
 
     // Re-flatten the slices into a single array for rendering
     const allSlices: { key: string, width: number, height: number, blurhash?: string }[] = [];
-    pages?.forEach((page: { r2_keys: string[]; slice_dimensions: string | Record<string, unknown>[]; blurhash?: string }) => {
-      const r2Keys = page.r2_keys;
-      const dims = typeof page.slice_dimensions === 'string' 
-        ? JSON.parse(page.slice_dimensions) 
-        : page.slice_dimensions;
+    pages?.forEach((page: { r2_keys: string[]; slice_dimensions?: any; blurhash?: any }) => {
+      const r2Keys = page.r2_keys || [];
+      let dims: any[] = [];
+      try {
+        dims = typeof page.slice_dimensions === 'string' 
+          ? JSON.parse(page.slice_dimensions) 
+          : (Array.isArray(page.slice_dimensions) ? page.slice_dimensions : []);
+      } catch (e) {}
         
-      const bHashes = page.blurhash ? (typeof page.blurhash === 'string' ? JSON.parse(page.blurhash) : page.blurhash) : [];
+      let bHashes: any = page.blurhash;
+      try {
+        if (typeof page.blurhash === 'string' && page.blurhash.startsWith('[')) {
+          bHashes = JSON.parse(page.blurhash);
+        }
+      } catch (e) {}
         
       r2Keys.forEach((key, idx) => {
+        const dim = (Array.isArray(dims) && dims[idx]) ? dims[idx] : { width: 800, height: 1200 };
+        const bHash = Array.isArray(bHashes) ? bHashes[idx] : (typeof bHashes === 'string' ? bHashes : undefined);
         allSlices.push({
           key,
-          width: (dims[idx] as any).width,
-          height: (dims[idx] as any).height,
-          blurhash: bHashes[idx]
+          width: dim.width || 800,
+          height: dim.height || 1200,
+          blurhash: bHash
         });
       });
     });
