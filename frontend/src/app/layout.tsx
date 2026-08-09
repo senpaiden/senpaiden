@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SiteLayout } from "@/components/SiteLayout";
+import { CookieConsent } from "@/components/CookieConsent";
+import { MonetizationProvider } from "@/components/MonetizationProvider";
 
 export const metadata: Metadata = {
   title: "Senpai Den - Premium Manga Reader",
@@ -18,6 +20,8 @@ export default function RootLayout({
         <SiteLayout>
           {children}
         </SiteLayout>
+        <CookieConsent />
+        <MonetizationProvider />
       </body>
     </html>
   );

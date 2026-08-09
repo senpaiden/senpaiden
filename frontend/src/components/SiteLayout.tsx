@@ -4,9 +4,11 @@ import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import senpaiDenLogo from "@/assets/img/logo.png";
-import newChapterLogo from "@/assets/img/new chapter logo.png";
+import newChapterLogo from "@/assets/img/new-chapter-logo.png";
 import { getUnreadNotificationCount, NOTIFICATIONS_UPDATED_EVENT } from "@/lib/notifications";
 import { getLevel, getReaderProgression, PROGRESSION_UPDATED_EVENT } from "@/lib/reader-progression";
+import { AUTH_UPDATED_EVENT, getStoredAccount, isSignedIn } from "@/lib/auth-storage";
+import { OPEN_CONSENT_EVENT } from "@/lib/consent";
 import {
   Home, Compass, List, LayoutGrid, TrendingUp, RefreshCw,
   Bookmark, History, Users, Search, Bell, Flame, Upload,
@@ -16,7 +18,6 @@ import {
 
 const SIDEBAR_ITEMS = [
   { icon: Home, label: "Home", path: "/" },
-  { icon: Search, label: "Search", path: "/discover" },
   { icon: LayoutGrid, label: "Categories", path: "/discover?genre=Action" },
   { icon: RefreshCw, label: "Latest Releases", path: "/discover?sort=updated" },
   { icon: Bookmark, label: "Library", path: "/library" },
@@ -132,12 +133,21 @@ function HomeSkeletonLoader() {
   );
 }
 
-function ActiveLinkHandler({ setHasGenre, setHasSort }: { setHasGenre: (v: boolean) => void, setHasSort: (v: boolean) => void }) {
+function ActiveLinkHandler({
+  setHasGenre,
+  setHasSort,
+  setSearch,
+}: {
+  setHasGenre: (v: boolean) => void;
+  setHasSort: (v: boolean) => void;
+  setSearch: (v: string) => void;
+}) {
   const searchParams = useSearchParams();
   useEffect(() => {
     setHasGenre(searchParams.has("genre"));
     setHasSort(searchParams.get("sort") === "updated");
-  }, [searchParams, setHasGenre, setHasSort]);
+    setSearch(searchParams.get("q") || "");
+  }, [searchParams, setHasGenre, setHasSort, setSearch]);
   return null;
 }
 
@@ -151,6 +161,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
   const [isSiteLoading, setIsSiteLoading] = useState(true);
   const [showIntroVideo, setShowIntroVideo] = useState(false);
   const [accountName, setAccountName] = useState("Senpai");
+  const [signedIn, setSignedIn] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [readerLevel, setReaderLevel] = useState(1);
 
@@ -222,19 +233,36 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const syncAccountName = () => {
-      try {
-        const saved = localStorage.getItem("senpai_account");
-        const account = saved ? JSON.parse(saved) : null;
-        setAccountName(account?.displayName?.trim() || "Senpai");
-      } catch {
-        setAccountName("Senpai");
-      }
+      const active = isSignedIn();
+      const account = active ? getStoredAccount() : null;
+      setSignedIn(active);
+      setAccountName(account?.displayName?.trim() || "Senpai");
     };
 
     syncAccountName();
     window.addEventListener("senpai-account-updated", syncAccountName);
-    return () => window.removeEventListener("senpai-account-updated", syncAccountName);
+    window.addEventListener(AUTH_UPDATED_EVENT, syncAccountName);
+    window.addEventListener("storage", syncAccountName);
+    return () => { window.removeEventListener("senpai-account-updated", syncAccountName); window.removeEventListener(AUTH_UPDATED_EVENT, syncAccountName); window.removeEventListener("storage", syncAccountName); };
   }, []);
+
+  useEffect(() => {
+    if (isReader) return;
+
+    const nextQuery = search.trim();
+    const timer = setTimeout(() => {
+      if (!nextQuery && pathname !== "/") return;
+
+      const targetUrl = nextQuery ? `/?q=${encodeURIComponent(nextQuery)}` : "/";
+      const currentUrl = `${pathname}${typeof window !== "undefined" ? window.location.search : ""}`;
+
+      if (currentUrl !== targetUrl) {
+        router.replace(targetUrl, { scroll: false });
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [isReader, pathname, router, search]);
 
   const isActive = (path: string) => {
     if (path === "/" && pathname === "/") return true;
@@ -260,14 +288,14 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (search.trim()) {
-      router.push(`/search?q=${encodeURIComponent(search)}`);
+      router.replace(`/?q=${encodeURIComponent(search.trim())}`, { scroll: false });
     }
   };
 
   return (
     <div className="min-h-screen w-full flex font-exo bg-background text-foreground relative">
       <Suspense fallback={null}>
-        <ActiveLinkHandler setHasGenre={setHasGenre} setHasSort={setHasSort} />
+        <ActiveLinkHandler setHasGenre={setHasGenre} setHasSort={setHasSort} setSearch={setSearch} />
       </Suspense>
       {/* Ambient glows */}
       <div className="fixed inset-0 pointer-events-none z-0 hidden md:block">
@@ -299,22 +327,20 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
       {!isReader && (
       <nav className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-14 gap-2 bg-[#0F1117]/95 backdrop-blur-xl border-b border-red-500/10">
         
-        <Link href="/" className="flex items-center gap-2 -ml-1">
+        <a href="/" className="flex items-center gap-2 -ml-1">
           <img src={senpaiDenLogo.src} alt="SenpaiDen Logo" className="h-8 w-auto object-contain" />
-        </Link>
+        </a>
 
         <div className="flex items-center gap-4">
-          <Link href="/search" className="text-muted-foreground hover:text-white transition-colors">
-            <Search size={20} />
-          </Link>
-
-          <Link href="/account" aria-label="Account" className="flex items-center gap-2 shrink-0 transition-opacity hover:opacity-80 -mr-1">
+          <Link href={signedIn ? "/account" : "/login"} aria-label={signedIn ? "Account" : "Log in"} className="flex items-center gap-2 shrink-0 transition-opacity hover:opacity-80 -mr-1">
+            {signedIn ? <>
             <div className="flex items-center justify-center bg-white/5 border border-white/10 rounded-full px-2 py-0.5 text-[10px] font-bold text-zinc-300">
               Lv. {readerLevel}
             </div>
             <div className="w-7 h-7 rounded-full overflow-hidden bg-zinc-800 border border-white/10">
               <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop&auto=format" alt="Account" className="w-full h-full object-cover" />
             </div>
+            </> : <span className="rounded-xl bg-primary px-3 py-2 text-xs font-black text-white">Log in</span>}
           </Link>
         </div>
       </nav>
@@ -324,9 +350,9 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
       {!isReader && (
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-[260px] flex-col z-50 bg-[#0F1117]/95 backdrop-blur-xl border-r border-white/5 overflow-y-auto no-scrollbar pb-6">
         {/* LOGO */}
-        <Link href="/" className="flex items-center justify-center gap-3 px-4 py-4 shrink-0 border-b border-white/5">
+        <a href="/" className="flex items-center justify-center gap-3 px-4 py-4 shrink-0 border-b border-white/5">
           <img src={senpaiDenLogo.src} alt="SenpaiDen Logo" className="w-full max-w-[200px] h-auto object-contain drop-shadow-[0_0_8px_rgba(255,46,46,0.3)]" />
-        </Link>
+        </a>
 
         {/* MENU ITEMS */}
         <div className="flex-1 flex flex-col gap-1 px-4">
@@ -334,15 +360,17 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
             const Icon = item.icon;
             const reallyActive = isActive(item.path);
 
-            return (
+            const content = <><Icon size={18} className={reallyActive ? "text-white" : "text-zinc-400"} /><span className="text-[13px] font-bold font-noto tracking-wide">{item.label}</span></>;
+            const navClass = "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200";
+            const navStyle = { background: reallyActive ? "#FF2E2E" : "transparent", color: reallyActive ? "white" : "#A1A1AA" };
+
+            return item.path === "/" ? (
+              <a key={i} href="/" className={navClass} style={navStyle}>{content}</a>
+            ) : (
               <Link key={i} href={item.path}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200"
-                style={{
-                  background: reallyActive ? "#FF2E2E" : "transparent",
-                  color: reallyActive ? "white" : "#A1A1AA" // zinc-400
-                }}>
-                <Icon size={18} className={reallyActive ? "text-white" : "text-zinc-400"} />
-                <span className="text-[13px] font-bold font-noto tracking-wide">{item.label}</span>
+                className={navClass}
+                style={navStyle}>
+                {content}
               </Link>
             );
           })}
@@ -443,7 +471,8 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
               <Bell size={18} />
               {unreadNotifications > 0 && <span className="absolute right-0.5 top-0.5 grid min-h-4 min-w-4 place-items-center rounded-full border-2 border-[#0F1117] bg-primary px-0.5 text-[8px] font-black leading-none text-white">{unreadNotifications > 9 ? "9+" : unreadNotifications}</span>}
             </Link>
-            <Link href="/account" aria-label="Open account" className="flex items-center gap-2 pl-2 cursor-pointer group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60">
+            <Link href={signedIn ? "/account" : "/login"} aria-label={signedIn ? "Open account" : "Log in"} className="flex items-center gap-2 pl-2 cursor-pointer group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60">
+              {signedIn ? <>
               <div className="flex flex-col items-end">
                 <span className="max-w-24 truncate text-[12px] font-bold text-white group-hover:text-primary transition-colors">{accountName}</span>
                 <span className="text-[10px] text-zinc-500">Lv. {readerLevel}</span>
@@ -452,6 +481,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
                 <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop&auto=format" alt="User" className="w-full h-full object-cover" />
               </div>
               <ChevronRight size={14} className="text-zinc-500 ml-1 transition-transform group-hover:translate-x-0.5" />
+              </> : <span className="inline-flex min-h-10 items-center rounded-xl bg-primary px-4 text-xs font-black text-white transition hover:bg-red-500">Log in</span>}
             </Link>
           </div>
         </header>
@@ -460,6 +490,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
         {/* PAGE CONTENT */}
         <main className={`flex-1 overflow-x-hidden ${!isReader ? "pt-14 md:pt-0 pb-16 md:pb-0" : ""} w-full`}>
           {children}
+          {!isReader && <footer className="mx-4 mt-10 border-t border-white/5 px-2 py-8 md:mx-8 md:flex md:items-center md:justify-between"><p className="text-xs text-zinc-600">© 2026 SenpaiDen. Reader-first manga discovery.</p><nav aria-label="Legal and company links" className="mt-4 flex flex-wrap gap-x-5 gap-y-3 md:mt-0">{[{ label: "About", href: "/about" }, { label: "Partners", href: "/partners" }, { label: "Contact", href: "/contact" }, { label: "Privacy", href: "/privacy" }, { label: "Cookies", href: "/cookies" }, { label: "Affiliate disclosure", href: "/affiliate-disclosure" }, { label: "Terms", href: "/terms" }, { label: "Copyright", href: "/copyright" }].map((item) => <Link key={item.href} href={item.href} className="min-h-11 py-3 text-xs font-bold text-zinc-500 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60">{item.label}</Link>)}<button onClick={() => window.dispatchEvent(new Event(OPEN_CONSENT_EVENT))} className="min-h-11 py-3 text-xs font-bold text-zinc-500 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60">Privacy choices</button></nav></footer>}
         </main>
       </div>
 
