@@ -344,7 +344,20 @@ async function processNextJob() {
       let fetchUrl = qChapter.source_url;
       let isMangaDex = false;
 
-      if (fetchUrl.includes('mangaplus.shueisha.co.jp') || fetchUrl.includes('mangadex.org/title/')) {
+      const UNSUPPORTED_DOMAINS = [
+        'mangaplus.shueisha.co.jp',
+        'kodansha.us',
+        'viz.com',
+        'tapas.io',
+        'webnovel.com',
+        'tappytoon.com',
+        'pocketcomics.com',
+        'bilibilicomics.com',
+        'j-novel.club',
+        'mangadex.org/title/'
+      ];
+
+      if (UNSUPPORTED_DOMAINS.some(domain => fetchUrl.includes(domain))) {
         throw new Error(`External licensed provider unsupported: ${fetchUrl}`);
       }
 
@@ -354,32 +367,48 @@ async function processNextJob() {
         isMangaDex = true;
       }
 
-      console.log(`[Worker] Fetching source images from: ${fetchUrl}`);
-      const sourceRes = await fetchWithRetry(fetchUrl, 5, isMangaDex);
-      const textBody = await sourceRes.text();
-
-      if (textBody.trim().startsWith('<')) {
-        throw new Error(`Provider returned HTML page instead of API JSON (${fetchUrl})`);
-      }
-
-      let sourceData: any;
-      try {
-        sourceData = JSON.parse(textBody);
-      } catch (parseErr) {
-        throw new Error(`Invalid JSON response from provider API (${textBody.slice(0, 100)})`);
-      }
-
       let imageUrls: string[] = [];
 
-      if (isMangaDex) {
-        const baseUrl = sourceData.baseUrl;
-        const hash = sourceData.chapter?.hash;
-        const files = sourceData.chapter?.data || [];
-        if (baseUrl && hash && files.length > 0) {
-          imageUrls = files.map((f: string) => `${baseUrl}/data/${hash}/${f}`);
+      if (fetchUrl.includes('mangapill.com')) {
+        console.log(`[Worker] Fetching MangaPill HTML page: ${fetchUrl}`);
+        const htmlRes = await fetchWithRetry(fetchUrl, 5, false, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Referer': 'https://mangapill.com/'
+          }
+        });
+        const htmlText = await htmlRes.text();
+        const matches = [...htmlText.matchAll(/data-src="([^"]+)"/g)];
+        imageUrls = matches.map(m => m[1]);
+        if (imageUrls.length === 0) {
+          throw new Error(`No images found on MangaPill page (${fetchUrl})`);
         }
       } else {
-        imageUrls = sourceData.images ?? sourceData.data ?? sourceData.chapterImages?.map((i: any) => i.image ?? i) ?? [];
+        const sourceRes = await fetchWithRetry(fetchUrl, 5, isMangaDex);
+        const textBody = await sourceRes.text();
+
+        if (textBody.trim().startsWith('<')) {
+          throw new Error(`Provider returned HTML page instead of API JSON (${fetchUrl})`);
+        }
+
+        let sourceData: any;
+        try {
+          sourceData = JSON.parse(textBody);
+        } catch (parseErr) {
+          throw new Error(`Invalid JSON response from provider API (${textBody.slice(0, 100)})`);
+        }
+
+        if (isMangaDex) {
+          const baseUrl = sourceData.baseUrl;
+          const hash = sourceData.chapter?.hash;
+          const files = sourceData.chapter?.data || [];
+          if (baseUrl && hash && files.length > 0) {
+            imageUrls = files.map((f: string) => `${baseUrl}/data/${hash}/${f}`);
+          }
+        } else {
+          const rawImgs = sourceData?.images ?? sourceData?.data ?? sourceData?.chapterImages?.map((i: any) => i.image ?? i);
+          imageUrls = Array.isArray(rawImgs) ? rawImgs : [];
+        }
       }
       
       if (imageUrls.length === 0) throw new Error('No images returned by provider endpoint');
