@@ -156,10 +156,12 @@ async function waitMangaDexRateLimit() {
   }
 }
 
-async function fetchWithRetry(url: string, retries = 5, isMangaDexApi = false): Promise<any> {
+async function fetchWithRetry(url: string, retries = 5, isMangaDexApi = false, customOpts: any = {}): Promise<any> {
   const headers: Record<string, string> = {
-    'User-Agent': 'SenpaiDenWorker/1.0 (https://github.com/senpaiden)',
-    'Accept': 'application/json, image/*, */*'
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+    ...(url.includes('readdetectiveconan.com') || url.includes('mangapill.com') ? { 'Referer': 'https://mangapill.com/' } : {}),
+    ...(customOpts.headers || {})
   };
 
   for (let attempt = 0; attempt < retries; attempt++) {
@@ -169,7 +171,7 @@ async function fetchWithRetry(url: string, retries = 5, isMangaDexApi = false): 
       }
 
       const dispatcher = getNextDispatcher();
-      const fetchOpts: any = { headers, signal: AbortSignal.timeout(60000) };
+      const fetchOpts: any = { ...customOpts, headers, signal: AbortSignal.timeout(60000) };
       if (dispatcher) {
         fetchOpts.dispatcher = dispatcher;
       }
@@ -213,7 +215,12 @@ async function fetchWithRetry(url: string, retries = 5, isMangaDexApi = false): 
 
 // Download image with exponential backoff
 async function downloadImage(url: string, retries = 3): Promise<Buffer> {
-  const res = await fetchWithRetry(url, retries, false);
+  const res = await fetchWithRetry(url, retries, false, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      'Referer': url.includes('readdetectiveconan.com') || url.includes('mangapill.com') ? 'https://mangapill.com/' : 'https://mangadex.org/'
+    }
+  });
   return Buffer.from(await res.arrayBuffer());
 }
 
