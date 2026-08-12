@@ -263,7 +263,7 @@ setInterval(runWatchdog, 60 * 1000); // Run every 60s
 
 // Slice image at 1500px boundaries and generate WebP + Blurhash thumbnail in parallel
 async function processImage(buffer: Buffer): Promise<SliceResult[]> {
-  const image = sharp(buffer);
+  const image = sharp(buffer, { failOn: 'none' });
   const metadata = await image.metadata();
   
   if (!metadata.width || !metadata.height) {
@@ -277,7 +277,7 @@ async function processImage(buffer: Buffer): Promise<SliceResult[]> {
   while (currentY < height) {
     const sliceHeight = Math.min(MAX_SLICE_HEIGHT, height - currentY);
     
-    const slicePipeline = sharp(buffer)
+    const slicePipeline = sharp(buffer, { failOn: 'none' })
       .extract({ left: 0, top: currentY, width, height: sliceHeight });
 
     const [sliceBuffer, rawObj] = await Promise.all([
