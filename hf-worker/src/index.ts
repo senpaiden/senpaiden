@@ -261,7 +261,7 @@ setInterval(runWatchdog, 60 * 1000); // Run every 60s
 
 // ── 2. Image Processing Core (Supercharged) ───────────────────────────────────
 
-// Slice image at 1500px boundaries and generate WebP + Blurhash thumbnail in parallel
+// Slice image at 1500px boundaries for webtoons (height > 2500px); preserve standard manga pages intact
 async function processImage(buffer: Buffer): Promise<SliceResult[]> {
   const image = sharp(buffer, { failOn: 'none' });
   const metadata = await image.metadata();
@@ -272,6 +272,34 @@ async function processImage(buffer: Buffer): Promise<SliceResult[]> {
 
   const { width, height } = metadata;
   const results: SliceResult[] = [];
+
+  // Standard manga pages (height <= 2500px) should NEVER be sliced into stubs
+  if (height <= 2500) {
+    const slicePipeline = sharp(buffer, { failOn: 'none' });
+    const [sliceBuffer, rawObj] = await Promise.all([
+      slicePipeline
+        .clone()
+        .webp({ quality: WEBP_QUALITY, effort: 3 })
+        .toBuffer(),
+      slicePipeline
+        .clone()
+        .resize(16, 16, { fit: 'inside' })
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true })
+    ]);
+
+    results.push({
+      buffer: sliceBuffer,
+      dimension: { width, height },
+      rawPixelData: {
+        data: rawObj.data,
+        info: { width: rawObj.info.width, height: rawObj.info.height }
+      }
+    });
+
+    return results;
+  }
 
   let currentY = 0;
   while (currentY < height) {
