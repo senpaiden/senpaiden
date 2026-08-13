@@ -32,7 +32,9 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
 
     // Re-flatten the slices into a single array for rendering
     const allSlices: { key: string, width: number, height: number, blurhash?: string }[] = [];
-    pages?.forEach((page: { r2_keys: string[]; slice_dimensions?: any; blurhash?: any }) => {
+    const pageGroups: { pageNumber: number; slices: { key: string; width: number; height: number; blurhash?: string }[] }[] = [];
+
+    pages?.forEach((page: { page_number?: number; r2_keys: string[]; slice_dimensions?: any; blurhash?: any }, pageIdx: number) => {
       const r2Keys = page.r2_keys || [];
       let dims: any[] = [];
       try {
@@ -48,6 +50,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
         }
       } catch (e) {}
         
+      const pSlices: { key: string; width: number; height: number; blurhash?: string }[] = [];
       r2Keys.forEach((key, idx) => {
         let cleanKey = key;
         if (cleanKey.includes('.mangadex.network/data/')) {
@@ -55,12 +58,19 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
         }
         const dim = (Array.isArray(dims) && dims[idx]) ? dims[idx] : { width: 800, height: 1200 };
         const bHash = Array.isArray(bHashes) ? bHashes[idx] : (typeof bHashes === 'string' ? bHashes : undefined);
-        allSlices.push({
+        const item = {
           key: cleanKey,
           width: dim.width || 800,
           height: dim.height || 1200,
           blurhash: bHash
-        });
+        };
+        allSlices.push(item);
+        pSlices.push(item);
+      });
+
+      pageGroups.push({
+        pageNumber: page.page_number || (pageIdx + 1),
+        slices: pSlices
       });
     });
 
@@ -74,6 +84,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
         chapterNumber={resolvedParams.chapter}
         chapters={chapters || []}
         slices={allSlices}
+        pageGroups={pageGroups}
         freshness={freshness ?? undefined}
         r2BaseUrl={r2BaseUrl}
         availableLanguages={available_languages || ["en", "es", "fr"]}
