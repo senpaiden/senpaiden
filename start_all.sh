@@ -8,9 +8,9 @@
 set -e
 
 echo ""
-echo "🚀 ==========================================================="
-echo "🚀 STARTING ALL SENPAI DEN PROJECT SERVICES"
-echo "🚀 ==========================================================="
+echo " ==========================================================="
+echo " STARTING ALL SENPAI DEN PROJECT SERVICES"
+echo " ==========================================================="
 echo ""
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,6 +20,13 @@ echo "⚙️ Starting Mock Provider Server on port 4001..."
 PORT=4001 node "$ROOT_DIR/mock-providers/server.js" &
 MOCK_PID=$!
 echo "  ✓ Mock Provider started (PID $MOCK_PID)"
+
+# 1.5. Start Cloudflare API Worker
+echo "☁️ Starting Cloudflare Worker (API) on port 8787..."
+cd "$ROOT_DIR/cloudflare-worker"
+npm run dev &
+WORKER_PID=$!
+echo "  ✓ Cloudflare Worker started (PID $WORKER_PID)"
 
 # 2. Check & build frontend static assets
 echo "📦 Verifying frontend build state..."
@@ -32,3 +39,6 @@ echo "🎉 Frontend: http://localhost:3000"
 echo "🎉 Mock API:  http://localhost:4001"
 echo "🎉 ==========================================================="
 echo ""
+
+echo "🚀 Starting Frontend Next.js Server..."
+npm run dev
