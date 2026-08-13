@@ -44,7 +44,7 @@ export async function GET(
       return NextResponse.json({ error: 'Chapter not found' }, { status: 404 });
     }
 
-    if (chapter.job_status === 'QUEUED' || chapter.job_status === 'PROCESSING') {
+    if (chapter.job_status !== 'READY' && chapter.job_status !== 'COMPLETED') {
       return NextResponse.json(
         { error: 'Chapter is currently being processed', job_status: chapter.job_status },
         { status: 400 }
