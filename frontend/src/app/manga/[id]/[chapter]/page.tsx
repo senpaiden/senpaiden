@@ -64,7 +64,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
       });
     });
 
-    const r2BaseUrl = process.env.NEXT_PUBLIC_R2_URL || 'http://localhost:9000/manga-images';
+    const r2BaseUrl = process.env.NEXT_PUBLIC_R2_URL || 'https://lsdnqbfiytyonvmzurxj.supabase.co/storage/v1/object/public/manga-images';
 
     return (
       <MangaReaderContainer

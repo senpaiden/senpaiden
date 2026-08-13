@@ -210,7 +210,7 @@ router.get('/api/manga/:mangaId/chapter/:chapterNum', async (req, env) => {
   if (!chapter) chapter = candidates.find(c => c.language === 'en');
   if (!chapter) chapter = candidates[0];
 
-  if (chapter.job_status !== 'READY') return error(400, `Chapter not ready: ${chapter.job_status}`);
+  if (chapter.job_status !== 'READY' && chapter.job_status !== 'COMPLETED') return error(400, `Chapter not ready: ${chapter.job_status}`);
 
   const pagesResult = await supabase.from('pages')
     .select('page_number, r2_keys, slice_dimensions, blurhash')
@@ -258,7 +258,7 @@ router.get('/api/chapter/:id', async (req, env) => {
     .single();
 
   if (chapterErr || !chapter) return error(404, 'Chapter not found');
-  if (chapter.job_status !== 'READY' && chapter.job_status !== 'STALE_RETRY') {
+  if (chapter.job_status !== 'READY' && chapter.job_status !== 'COMPLETED' && chapter.job_status !== 'STALE_RETRY') {
     return error(400, `Chapter is not ready. Status: ${chapter.job_status}`);
   }
 
