@@ -5,6 +5,8 @@ import { AdSlot } from "@/components/AdSlot";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getLocalCatalogue, type CatalogueManga } from "@/lib/local-catalogue";
 
+import { getApiUrl } from "@/lib/api";
+
 export const revalidate = 60; // Edge Cache
 
 export const metadata = {
@@ -20,13 +22,14 @@ export default async function Discover({ searchParams }: { searchParams: Promise
   const excluded = resolvedParams.excluded;
   const sort = resolvedParams.sort;
   const limit = 24;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+  const baseUrl = getApiUrl();
   
   let mangas: CatalogueManga[] = [];
   let totalCount = 0;
 
   try {
     const url = new URL(`${apiUrl}/api/manga`);
+    let url = new URL("/api/manga", baseUrl);
     url.searchParams.set("page", pageNum.toString());
     url.searchParams.set("limit", limit.toString());
     

@@ -16,7 +16,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="antialiased min-h-screen flex flex-col">
+      <head>
+        <meta name="referrer" content="no-referrer" />
+      </head>
+      <body className="antialiased min-h-screen flex flex-col" suppressHydrationWarning>
         <SiteLayout>
           {children}
         </SiteLayout>

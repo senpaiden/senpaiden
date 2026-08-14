@@ -6,12 +6,14 @@
 // 3. 10s Poll Loop: Claims QUEUED jobs, downloads, slices, uploads to R2
 // ============================================================
 
+import './polyfill.js';
 import 'dotenv/config';
 import dns from 'dns';
 import express from 'express';
 import { createClient } from '@supabase/supabase-js';
 import { S3Client, PutObjectCommand, HeadBucketCommand, CreateBucketCommand } from '@aws-sdk/client-s3';
 import sharp from 'sharp';
+sharp.concurrency(0); // Auto-detect & use all available CPU cores for max slicing speed
 import pLimit from 'p-limit';
 import WebSocket from 'ws';
 import { encode } from 'blurhash';
@@ -39,10 +41,10 @@ function getNextDispatcher() {
   return agent;
 }
 
-// Increase Node undici socket connection timeout from 10s default to 30s
+// Increase Node undici socket connection timeout from 10s default to 60s
 setGlobalDispatcher(new Agent({
   connect: {
-    timeout: 30_000,
+    timeout: 60_000,
   },
   connections: 100
 }));
@@ -59,9 +61,12 @@ const WEBP_QUALITY = 75;
 const TIMEOUT_MINUTES = 15; // 15-minute timeout for large chapters under heavy load
 
 // ── Supabase client (service role — full write access) ──────────────────────
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://lsdnqbfiytyonvmzurxj.supabase.co';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxzZG5xYmZpeXR5b252bXp1cnhqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDg2NTMwNSwiZXhwIjoyMTAwNDQxMzA1fQ.hHV8Iq8mr7edka6SLSa1qRHq_AG6cf5C3tywKNaHfd8';
+
 const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!,
+  SUPABASE_URL,
+  SUPABASE_SERVICE_KEY,
   {
     auth: { persistSession: false },
     realtime: { transport: WebSocket as any } // Fix for Node 20 WebSocket support
@@ -70,11 +75,11 @@ const supabase = createClient(
 
 const r2 = new S3Client({
   region: 'auto',
-  endpoint: process.env.R2_ENDPOINT || `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  endpoint: process.env.R2_ENDPOINT || `https://${process.env.R2_ACCOUNT_ID || 'dummy'}.r2.cloudflarestorage.com`,
   forcePathStyle: !!process.env.R2_ENDPOINT, // Required for MinIO
   credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+    accessKeyId: process.env.R2_ACCESS_KEY_ID || 'dummy_access_key',
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || 'dummy_secret_key',
   },
 });
 
@@ -82,6 +87,15 @@ const BUCKET_NAME = process.env.R2_BUCKET_NAME ?? 'manga-images';
 
 // ── Bucket Auto-Creation Check ────────────────────────────────────────────────
 async function ensureBucketExists() {
+  if (process.env.USE_SUPABASE_STORAGE === 'true' || !process.env.R2_ENDPOINT) {
+    try {
+      await supabase.storage.createBucket(BUCKET_NAME, { public: true });
+      console.log(`[Worker] Supabase Storage Bucket '${BUCKET_NAME}' verified.`);
+    } catch (e) {
+      console.log(`[Worker] Supabase Storage Bucket '${BUCKET_NAME}' ready.`);
+    }
+    return;
+  }
   try {
     await r2.send(new HeadBucketCommand({ Bucket: BUCKET_NAME }));
     console.log(`[Worker] S3/R2 Bucket '${BUCKET_NAME}' verified.`);
@@ -99,7 +113,13 @@ async function ensureBucketExists() {
 // ── Health Check Server ───────────────────────────────────────────────────────
 const app = express();
 app.get('/', (req, res) => res.json({ status: 'ok', worker: 'senpai-den-hf' }));
-app.listen(PORT, () => console.log(`[Worker] Health check listening on port ${PORT}`));
+app.listen(PORT, () => console.log(`[Worker] Health check listening on port ${PORT}`)).on('error', (err: any) => {
+  if (err.code === 'EADDRINUSE') {
+    console.log(`[Worker] Health check port ${PORT} busy. Proceeding in secondary worker mode.`);
+  } else {
+    console.error('[Worker] Express server error:', err);
+  }
+});
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface SliceDimension {
@@ -136,10 +156,12 @@ async function waitMangaDexRateLimit() {
   }
 }
 
-async function fetchWithRetry(url: string, retries = 5, isMangaDexApi = false): Promise<any> {
+async function fetchWithRetry(url: string, retries = 5, isMangaDexApi = false, customOpts: any = {}): Promise<any> {
   const headers: Record<string, string> = {
-    'User-Agent': 'SenpaiDenWorker/1.0 (https://github.com/senpaiden)',
-    'Accept': 'application/json, image/*, */*'
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+    ...(url.includes('readdetectiveconan.com') || url.includes('mangapill.com') ? { 'Referer': 'https://mangapill.com/' } : {}),
+    ...(customOpts.headers || {})
   };
 
   for (let attempt = 0; attempt < retries; attempt++) {
@@ -149,12 +171,12 @@ async function fetchWithRetry(url: string, retries = 5, isMangaDexApi = false): 
       }
 
       const dispatcher = getNextDispatcher();
-      const fetchOpts: any = { headers, signal: AbortSignal.timeout(30000) };
+      const fetchOpts: any = { ...customOpts, headers, signal: AbortSignal.timeout(60000) };
       if (dispatcher) {
         fetchOpts.dispatcher = dispatcher;
       }
 
-      // 30-second timeout per fetch request to avoid undici socket pool timeout
+      // 60-second timeout per fetch request to accommodate large PNG downloads
       const res = await fetch(url, fetchOpts);
 
       if (res.status === 429) {
@@ -193,7 +215,12 @@ async function fetchWithRetry(url: string, retries = 5, isMangaDexApi = false): 
 
 // Download image with exponential backoff
 async function downloadImage(url: string, retries = 3): Promise<Buffer> {
-  const res = await fetchWithRetry(url, retries, false);
+  const res = await fetchWithRetry(url, retries, false, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+      'Referer': url.includes('readdetectiveconan.com') || url.includes('mangapill.com') ? 'https://mangapill.com/' : 'https://mangadex.org/'
+    }
+  });
   return Buffer.from(await res.arrayBuffer());
 }
 
@@ -234,9 +261,9 @@ setInterval(runWatchdog, 60 * 1000); // Run every 60s
 
 // ── 2. Image Processing Core (Supercharged) ───────────────────────────────────
 
-// Slice image at 1500px boundaries and generate WebP + Blurhash thumbnail in parallel
+// Slice image at 1500px boundaries for webtoons (height > 2500px); preserve standard manga pages intact
 async function processImage(buffer: Buffer): Promise<SliceResult[]> {
-  const image = sharp(buffer);
+  const image = sharp(buffer, { failOn: 'none' });
   const metadata = await image.metadata();
   
   if (!metadata.width || !metadata.height) {
@@ -246,11 +273,39 @@ async function processImage(buffer: Buffer): Promise<SliceResult[]> {
   const { width, height } = metadata;
   const results: SliceResult[] = [];
 
+  // Standard manga pages (height <= 2500px) should NEVER be sliced into stubs
+  if (height <= 2500) {
+    const slicePipeline = sharp(buffer, { failOn: 'none' });
+    const [sliceBuffer, rawObj] = await Promise.all([
+      slicePipeline
+        .clone()
+        .webp({ quality: WEBP_QUALITY, effort: 3 })
+        .toBuffer(),
+      slicePipeline
+        .clone()
+        .resize(16, 16, { fit: 'inside' })
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true })
+    ]);
+
+    results.push({
+      buffer: sliceBuffer,
+      dimension: { width, height },
+      rawPixelData: {
+        data: rawObj.data,
+        info: { width: rawObj.info.width, height: rawObj.info.height }
+      }
+    });
+
+    return results;
+  }
+
   let currentY = 0;
   while (currentY < height) {
     const sliceHeight = Math.min(MAX_SLICE_HEIGHT, height - currentY);
     
-    const slicePipeline = sharp(buffer)
+    const slicePipeline = sharp(buffer, { failOn: 'none' })
       .extract({ left: 0, top: currentY, width, height: sliceHeight });
 
     const [sliceBuffer, rawObj] = await Promise.all([
@@ -281,8 +336,20 @@ async function processImage(buffer: Buffer): Promise<SliceResult[]> {
   return results;
 }
 
-// Upload buffer to R2 / MinIO
+// Upload buffer to Supabase Storage or R2 / MinIO
 async function uploadToR2(key: string, buffer: Buffer): Promise<void> {
+  if (process.env.USE_SUPABASE_STORAGE === 'true' || !process.env.R2_ENDPOINT) {
+    const { error } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(key, buffer, {
+        contentType: 'image/webp',
+        cacheControl: '31536000',
+        upsert: true,
+      });
+    if (error) throw error;
+    return;
+  }
+
   await r2.send(new PutObjectCommand({
     Bucket: BUCKET_NAME,
     Key: key,
@@ -312,7 +379,20 @@ async function processNextJob() {
       let fetchUrl = qChapter.source_url;
       let isMangaDex = false;
 
-      if (fetchUrl.includes('mangaplus.shueisha.co.jp') || fetchUrl.includes('mangadex.org/title/')) {
+      const UNSUPPORTED_DOMAINS = [
+        'mangaplus.shueisha.co.jp',
+        'kodansha.us',
+        'viz.com',
+        'tapas.io',
+        'webnovel.com',
+        'tappytoon.com',
+        'pocketcomics.com',
+        'bilibilicomics.com',
+        'j-novel.club',
+        'mangadex.org/title/'
+      ];
+
+      if (UNSUPPORTED_DOMAINS.some(domain => fetchUrl.includes(domain))) {
         throw new Error(`External licensed provider unsupported: ${fetchUrl}`);
       }
 
@@ -322,32 +402,48 @@ async function processNextJob() {
         isMangaDex = true;
       }
 
-      console.log(`[Worker] Fetching source images from: ${fetchUrl}`);
-      const sourceRes = await fetchWithRetry(fetchUrl, 5, isMangaDex);
-      const textBody = await sourceRes.text();
-
-      if (textBody.trim().startsWith('<')) {
-        throw new Error(`Provider returned HTML page instead of API JSON (${fetchUrl})`);
-      }
-
-      let sourceData: any;
-      try {
-        sourceData = JSON.parse(textBody);
-      } catch (parseErr) {
-        throw new Error(`Invalid JSON response from provider API (${textBody.slice(0, 100)})`);
-      }
-
       let imageUrls: string[] = [];
 
-      if (isMangaDex) {
-        const baseUrl = sourceData.baseUrl;
-        const hash = sourceData.chapter?.hash;
-        const files = sourceData.chapter?.data || [];
-        if (baseUrl && hash && files.length > 0) {
-          imageUrls = files.map((f: string) => `${baseUrl}/data/${hash}/${f}`);
+      if (fetchUrl.includes('mangapill.com')) {
+        console.log(`[Worker] Fetching MangaPill HTML page: ${fetchUrl}`);
+        const htmlRes = await fetchWithRetry(fetchUrl, 5, false, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Referer': 'https://mangapill.com/'
+          }
+        });
+        const htmlText = await htmlRes.text();
+        const matches = [...htmlText.matchAll(/data-src="([^"]+)"/g)];
+        imageUrls = matches.map(m => m[1]);
+        if (imageUrls.length === 0) {
+          throw new Error(`No images found on MangaPill page (${fetchUrl})`);
         }
       } else {
-        imageUrls = sourceData.images ?? sourceData.data ?? sourceData.chapterImages?.map((i: any) => i.image ?? i) ?? [];
+        const sourceRes = await fetchWithRetry(fetchUrl, 5, isMangaDex);
+        const textBody = await sourceRes.text();
+
+        if (textBody.trim().startsWith('<')) {
+          throw new Error(`Provider returned HTML page instead of API JSON (${fetchUrl})`);
+        }
+
+        let sourceData: any;
+        try {
+          sourceData = JSON.parse(textBody);
+        } catch (parseErr) {
+          throw new Error(`Invalid JSON response from provider API (${textBody.slice(0, 100)})`);
+        }
+
+        if (isMangaDex) {
+          const baseUrl = sourceData.baseUrl;
+          const hash = sourceData.chapter?.hash;
+          const files = sourceData.chapter?.data || [];
+          if (baseUrl && hash && files.length > 0) {
+            imageUrls = files.map((f: string) => `${baseUrl}/data/${hash}/${f}`);
+          }
+        } else {
+          const rawImgs = sourceData?.images ?? sourceData?.data ?? sourceData?.chapterImages?.map((i: any) => i.image ?? i);
+          imageUrls = Array.isArray(rawImgs) ? rawImgs : [];
+        }
       }
       
       if (imageUrls.length === 0) throw new Error('No images returned by provider endpoint');
@@ -357,7 +453,7 @@ async function processNextJob() {
       if (validUrls.length === 0) throw new Error('No valid image URLs found');
 
       console.log(`[Worker] Processing ${validUrls.length} pages in parallel...`);
-      const limit = pLimit(6); // Process 6 pages concurrently per chapter for optimal socket & memory balance
+      const limit = pLimit(4); // Throttled page concurrency for stable memory & network utilization
 
       const processedPages: ProcessedPage[] = await Promise.all(
         validUrls.map((url, idx) => limit(async () => {
@@ -463,7 +559,7 @@ async function requeueFailedJobs() {
 }
 
 // Multi-Worker Parallel Loop: Run worker threads
-const CONCURRENT_WORKERS = parseInt(process.env.WORKER_CONCURRENCY || '4', 10);
+const CONCURRENT_WORKERS = parseInt(process.env.WORKER_CONCURRENCY || '2', 10);
 
 async function startWorkerThread(workerId: number) {
   console.log(`[Worker Thread ${workerId}] Started.`);

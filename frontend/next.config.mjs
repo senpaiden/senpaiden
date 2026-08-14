@@ -28,7 +28,7 @@ const nextConfig = {
   },
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787',
-    NEXT_PUBLIC_R2_URL: process.env.NEXT_PUBLIC_R2_URL || 'http://localhost:9000/manga-images',
+    NEXT_PUBLIC_R2_URL: process.env.NEXT_PUBLIC_R2_URL || 'https://lsdnqbfiytyonvmzurxj.supabase.co/storage/v1/object/public/manga-images',
   }
 };
 

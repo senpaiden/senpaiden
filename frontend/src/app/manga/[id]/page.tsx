@@ -3,11 +3,13 @@ import { MangaDetailClient } from "./MangaDetailClient";
 import { AdSlot } from "@/components/AdSlot";
 import { getLocalCatalogue, type CatalogueManga } from "@/lib/local-catalogue";
 
+import { getApiUrl } from "@/lib/api";
+
 export const revalidate = 60; // Edge Cache
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+  const apiUrl = getApiUrl();
   
   try {
     const res = await fetch(`${apiUrl}/api/manga/${resolvedParams.id}`, { signal: AbortSignal.timeout(2500), next: { revalidate: 60 } });
@@ -24,7 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function MangaDetail({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+  const apiUrl = getApiUrl();
   
   let manga: CatalogueManga | null = null;
   let chapters: Record<string, unknown>[] = [];

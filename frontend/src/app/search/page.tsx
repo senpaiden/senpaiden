@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 
 import { MangaCard } from "@/components/MangaCard";
 import { Search as SearchIcon, X, Loader2, Frown } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 import type { Manga } from "@/lib/manga-data";
 
 export default function SearchPage() {
@@ -25,7 +26,7 @@ export default function SearchPage() {
     setHasSearched(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/manga?q=${encodeURIComponent(searchTerm.trim())}`);
       
       if (res.ok) {
