@@ -21,12 +21,13 @@ export function AdvancedFilterPanel() {
 
   useEffect(() => {
     // Fetch dynamic genres from API
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787'}/api/genres`, { signal: AbortSignal.timeout(2500) })
     fetch(`${getApiUrl()}/api/genres`)
       .then(res => res.json())
       .then(data => {
         if (data.genres) setGenres(data.genres);
       })
-      .catch(e => console.error("Failed to load genres:", e));
+      .catch(() => setGenres([]));
   }, []);
 
   // Sync initial state from URL query params

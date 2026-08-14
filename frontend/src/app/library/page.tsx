@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { MangaCard } from "@/components/MangaCard";
 import { Bookmark, Trash2 } from "lucide-react";
 import type { Manga } from "@/lib/manga-data";
+import { AdSlot } from "@/components/AdSlot";
 
 export default function LibraryPage() {
   const [library, setLibrary] = useState<Manga[]>([]);
@@ -18,7 +19,7 @@ export default function LibraryPage() {
       } else {
         setLibrary([]);
       }
-    } catch (e) {
+    } catch {
       setLibrary([]);
     }
     setIsLoaded(true);
@@ -90,6 +91,7 @@ export default function LibraryPage() {
             ))}
           </div>
         )}
+        {isLoaded && <div className="mt-10 border-t border-white/5 pt-8"><AdSlot placement="library-bottom" /></div>}
       </div>
     </div>
   );

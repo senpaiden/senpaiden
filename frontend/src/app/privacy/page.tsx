@@ -1,0 +1,12 @@
+import { ShieldCheck } from "lucide-react";
+import { LegalPage } from "@/components/LegalPage";
+export const metadata = { title: "Privacy Policy — SenpaiDen", description: "How SenpaiDen collects, uses and protects information." };
+export default function PrivacyPage() { return <LegalPage eyebrow="Your data" title="Privacy policy" icon={ShieldCheck} intro="This policy explains what information SenpaiDen handles, why it is used and the choices available to you." sections={[
+  { title: "Information we handle", bullets: ["Account information such as display name and verified email address.", "Reading activity, library items, preferences, progress and referral activity.", "Technical information such as device, browser, approximate location, logs and security signals.", "Payment confirmation and plan status; complete payment-card details are handled by the payment provider."] },
+  { title: "How information is used", bullets: ["Provide accounts, reading tools, recommendations and support.", "Protect the service from fraud, abuse and unauthorized access.", "Measure reliability and improve the reader experience.", "Comply with applicable legal obligations and enforce our terms."] },
+  { title: "Cookies and advertising", paragraphs: ["SenpaiDen may use necessary storage for sessions and preferences. If advertising or analytics requiring consent is enabled, eligible visitors will receive appropriate choices before non-essential technologies are used."] },
+  { title: "Service providers", paragraphs: ["We may use hosting, authentication, storage, payment, analytics and email providers to operate the service. They receive only the information reasonably required for their role."] },
+  { title: "Retention and security", paragraphs: ["Information is retained only as long as reasonably necessary for the purposes described here. No system is perfectly secure, but access controls, verification and operational safeguards are used to reduce risk."] },
+  { title: "Your choices", bullets: ["Request access, correction or deletion of eligible account information.", "Manage communication and cookie choices where offered.", "Contact us with a privacy request using the email listed on the Contact page."] },
+  { title: "Children", paragraphs: ["SenpaiDen is not directed to children who cannot legally consent to data processing in their jurisdiction. A parent or guardian should contact us if they believe a child submitted personal information."] },
+]} />; }

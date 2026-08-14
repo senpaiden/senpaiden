@@ -4,29 +4,47 @@ import { AddToLibraryButton } from "@/components/AddToLibraryButton";
 import { HomeLibraryRow } from "@/components/HomeLibraryRow";
 import { PersonalizedFeedRow } from "@/components/PersonalizedFeedRow";
 import { ContinueReadingBubble } from "@/components/ContinueReadingBubble";
-import { Play, ChevronRight } from "lucide-react";
+import { AdSlot } from "@/components/AdSlot";
+import { Frown, Play, ChevronRight } from "lucide-react";
+import { getLocalCatalogue, type CatalogueManga } from "@/lib/local-catalogue";
 
 import { getApiUrl } from "@/lib/api";
 
 // Server Component fetching live data from Cloudflare Worker / Next API
 export const revalidate = 60; // Edge Cache for 60 seconds
 
+export default async function Home({ searchParams }: { searchParams?: Promise<{ q?: string }> }) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+  const resolvedSearchParams = await searchParams;
+  const searchQuery = resolvedSearchParams?.q?.trim() || "";
 export default async function Home() {
   const apiUrl = getApiUrl();
   
-  let mangas: any[] = [];
+  let mangas: CatalogueManga[] = [];
   try {
-    const res = await fetch(`${apiUrl}/api/manga?page=1&limit=20`);
+    const endpoint = searchQuery
+      ? `${apiUrl}/api/manga?q=${encodeURIComponent(searchQuery)}`
+      : `${apiUrl}/api/manga?page=1&limit=20`;
+    const res = await fetch(endpoint, {
+      // Navigation must never wait on a slow optional catalogue service.
+      signal: AbortSignal.timeout(2500),
+      next: { revalidate: 60 },
+    });
     if (res.ok) {
       const data = await res.json();
-      mangas = data.data || [];
+      mangas = (data.data || []) as CatalogueManga[];
     }
-  } catch (e) {
-    console.error("Failed to fetch mangas:", e);
+  } catch {
+    // Render the built-in fallback state. An expected timeout must not trigger
+    // Next.js' development error overlay and block otherwise valid routing.
+  }
+  if (!mangas.length) {
+    const local = await getLocalCatalogue();
+    mangas = (searchQuery ? local.filter((manga) => manga.title.toLowerCase().includes(searchQuery.toLowerCase())) : local).slice(0, 20);
   }
 
   // Map API data to the UI format temporarily if it's missing fields
-  const uiMangas = mangas.map((m: any) => ({
+  const uiMangas = mangas.map((m) => ({
     slug: m.id,
     title: m.title,
     altTitle: m.alt_title || "",
@@ -44,7 +62,46 @@ export default async function Home() {
   };
   const trending = uiMangas.slice(0, 8);
   const updated = uiMangas.slice(8, 16);
-  const resume: any[] = []; // History not implemented in DB yet
+  if (searchQuery) {
+    return (
+      <div className="pb-28 md:pb-8">
+        <section className="mx-auto max-w-7xl px-4 pt-6 md:px-8 md:pt-10">
+          <div className="mb-6 flex flex-col gap-2">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#8B5CF6]">Search</p>
+            <h1 className="text-3xl font-black leading-tight md:text-4xl">Results for &quot;{searchQuery}&quot;</h1>
+            <p className="text-sm text-[#A1A1AA]">
+              Search is running on the home page, so there is no separate page jump.
+            </p>
+          </div>
+
+          {uiMangas.length > 0 ? (
+            <>
+              <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#A1A1AA]">
+                Found {uiMangas.length} manga
+              </p>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
+                {uiMangas.map((manga) => (
+                  <MangaCard key={manga.slug} manga={manga} showChapter />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="mt-20 flex flex-col items-center justify-center text-center">
+              <div className="grid h-20 w-20 place-items-center rounded-full bg-white/5 text-[#A1A1AA]">
+                <Frown className="h-8 w-8" />
+              </div>
+              <h2 className="mt-4 text-lg font-bold text-white">No results found</h2>
+              <p className="mt-2 max-w-sm text-sm text-[#A1A1AA]">
+                No manga found matching &quot;{searchQuery}&quot;. Try another keyword from the search bar above.
+              </p>
+            </div>
+          )}
+        </section>
+
+        <ContinueReadingBubble />
+      </div>
+    );
+  }
 
   return (
     <div className="pb-28 md:pb-8">
@@ -63,6 +120,8 @@ export default async function Home() {
             className="hidden aspect-[2/3] w-56 shrink-0 rounded-2xl border border-white/10 shadow-2xl md:block bg-[#16161F] overflow-hidden relative"
           >
             {featured.cover_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={featured.cover_url} alt={featured.title} className="absolute inset-0 h-full w-full object-cover" />
               <img src={featured.cover_url} alt={featured.title} referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
             )}
           </div>
@@ -121,6 +180,8 @@ export default async function Home() {
 
       {/* Tier 3 Personalization: Recommended For You */}
       <PersonalizedFeedRow />
+
+      <div className="mx-auto mt-8 max-w-7xl px-4 md:px-8"><AdSlot placement="home-feed" /></div>
 
       {/* Trending */}
       <section className="mx-auto max-w-7xl px-4 md:px-8">

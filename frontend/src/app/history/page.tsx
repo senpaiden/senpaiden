@@ -6,6 +6,7 @@ import { MangaCard } from "@/components/MangaCard";
 import { History as HistoryIcon, Trash2 } from "lucide-react";
 import { getApiUrl } from "@/lib/api";
 import type { Manga } from "@/lib/manga-data";
+import { AdSlot } from "@/components/AdSlot";
 
 interface HistoryItem {
   manga: Manga;
@@ -96,7 +97,7 @@ export default function HistoryPage() {
       // Sort by most recently read
       items.sort((a, b) => (b.lastReadTime || 0) - (a.lastReadTime || 0));
       setHistory(items);
-    } catch (e) {
+    } catch {
       setHistory([]);
     }
     setIsLoaded(true);
@@ -161,6 +162,7 @@ export default function HistoryPage() {
             ))}
           </div>
         )}
+        {isLoaded && <div className="mt-10 border-t border-white/5 pt-8"><AdSlot placement="history-bottom" /></div>}
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let mangaRoutes: MetadataRoute.Sitemap = [];
 
   try {
-    const res = await fetch(`${apiUrl}/api/manga?limit=100`);
+    const res = await fetch(`${apiUrl}/api/manga?limit=100`, { signal: AbortSignal.timeout(2500), next: { revalidate: 3600 } });
     if (res.ok) {
       const { data } = await res.json();
       mangaRoutes = (data || []).map((manga: any) => ({
@@ -50,6 +50,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.5,
     },
+    ...['about', 'contact', 'privacy', 'cookies', 'terms', 'copyright', 'partners', 'affiliate-disclosure'].map((path) => ({
+      url: `https://senpaiden.com/${path}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.4,
+    })),
   ];
 
   return [...staticRoutes, ...mangaRoutes];
