@@ -1,36 +1,34 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Settings, 
-  ScrollText, 
-  BookOpen, 
+import { ReaderImage } from "@/components/ReaderImage";
+import { RecommendationsRow } from "@/components/RecommendationsRow";
+import { StaleBanner } from "@/components/StaleBanner";
+import { saveHistoryLocal } from "@/lib/history-storage";
+import { awardMangaExp } from "@/lib/reader-progression";
+import { fetchApi } from "@/lib/api-client";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
+import {
+  ChevronLeft,
+  ChevronRight,
+  BookOpen,
   Columns,
-  List, 
+  ScrollText,
+  Maximize,
   Maximize2,
   Minimize2,
   ArrowLeftRight,
   ArrowUpDown,
-  Maximize,
+  Globe,
+  List,
   Trophy,
   Sparkles,
   X,
-  PartyPopper,
-  Globe,
-  Users
 } from "lucide-react";
-import { ReaderImage, PageFitMode } from "./ReaderImage";
-import { StaleBanner } from "./StaleBanner";
-import { RecommendationsRow } from "./RecommendationsRow";
-import { saveHistoryLocal } from "@/lib/history-storage";
-import { awardMangaExp } from "@/lib/reader-progression";
-import { getApiUrl } from "@/lib/api";
 
-import { useWindowVirtualizer } from '@tanstack/react-virtual';
+type PageFitMode = "fit-width" | "fit-height" | "original";
 
 interface SliceData {
   key: string;
@@ -118,7 +116,6 @@ export function MangaReaderContainer({
 
   const counterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
 
   // Calculate scaled heights for virtual windowing
   useEffect(() => {
@@ -189,12 +186,12 @@ export function MangaReaderContainer({
     // Record chapter in read list
     try {
       const readStr = localStorage.getItem(`senpai_read_chapters_${mangaId}`);
-      let readArr: number[] = readStr ? JSON.parse(readStr) : [];
+      const readArr: number[] = readStr ? JSON.parse(readStr) : [];
       if (!readArr.includes(currentChapterNum)) {
         readArr.push(currentChapterNum);
         localStorage.setItem(`senpai_read_chapters_${mangaId}`, JSON.stringify(readArr));
       }
-    } catch (e) {}
+    } catch {}
 
     const award = awardMangaExp(mangaId);
     if (award.awarded) {
@@ -245,14 +242,9 @@ export function MangaReaderContainer({
 
   const prefetchNextChapter = async (nextChNum: number) => {
     try {
-      const apiUrl = getApiUrl();
-      const url = `${apiUrl}/api/manga/${mangaId}/chapter/${nextChNum}`;
+      const data = await fetchApi<{ pages?: any[] }>(`/api/manga/${mangaId}/chapter/${nextChNum}`);
       
-      const res = await fetch(url);
-      if (!res.ok) return;
-      const data = await res.json();
-      
-      if (data.pages && data.pages.length > 0) {
+      if (data?.pages && data.pages.length > 0) {
         const prefetchKeys: string[] = [];
         for (const page of data.pages) {
           if (page.r2_keys) prefetchKeys.push(...page.r2_keys);
@@ -267,7 +259,7 @@ export function MangaReaderContainer({
           document.head.appendChild(link);
         });
       }
-    } catch (e) {
+    } catch {
       // Fail silently, prefetching is a progressive enhancement
     }
   };
@@ -404,8 +396,16 @@ export function MangaReaderContainer({
   // Cross-browser Fullscreen toggle
   const toggleFullscreen = () => {
     try {
-      const doc = document as any;
-      const docEl = document.documentElement as any;
+      const doc = document as Document & {
+        webkitFullscreenElement?: Element;
+        msFullscreenElement?: Element;
+        webkitExitFullscreen?: () => Promise<void>;
+        msExitFullscreen?: () => Promise<void>;
+      };
+      const docEl = document.documentElement as HTMLElement & {
+        webkitRequestFullscreen?: () => Promise<void>;
+        msRequestFullscreen?: () => Promise<void>;
+      };
 
       if (!doc.fullscreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
         if (docEl.requestFullscreen) {
@@ -426,7 +426,7 @@ export function MangaReaderContainer({
         }
         setIsFullscreen(false);
       }
-    } catch (e) {
+    } catch {
       console.warn("Fullscreen API not available on this device.");
     }
   };

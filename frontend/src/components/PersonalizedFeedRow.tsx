@@ -1,10 +1,10 @@
 "use client";
 
+import { fetchApi } from "@/lib/api-client";
 import { useState, useEffect } from "react";
 import { MangaCard } from "@/components/MangaCard";
 import { type Manga } from "@/lib/manga-data";
 import { Zap } from "lucide-react";
-import { getApiUrl } from "@/lib/api";
 
 interface CatalogItem {
   slug: string;
@@ -22,13 +22,12 @@ export function PersonalizedFeedRow() {
   useEffect(() => {
     async function computePersonalizedFeed() {
       try {
-        const apiUrl = getApiUrl();
-        const res = await fetch(`${apiUrl}/api/catalog-vectors`);
-        if (!res.ok) return;
-
-        const json = await res.json();
-        const catalog: CatalogItem[] = json.catalog || json.data || [];
-        if (catalog.length === 0) return;
+        const json = await fetchApi<{ catalog?: CatalogItem[]; data?: CatalogItem[] }>("/api/catalog-vectors");
+        const catalog: CatalogItem[] = json?.catalog || json?.data || [];
+        if (catalog.length === 0) {
+          setIsLoaded(true);
+          return;
+        }
 
         // 1. Get user interaction history from localStorage
         const libraryStr = localStorage.getItem("senpai_library");
@@ -122,7 +121,7 @@ export function PersonalizedFeedRow() {
         }));
 
         setRecommendations(mapped);
-      } catch (e) {
+      } catch {
         setRecommendations([]);
       } finally {
         setIsLoaded(true);

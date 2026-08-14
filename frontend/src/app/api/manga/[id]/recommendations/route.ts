@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/supabase';
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = getSupabase();
     if (!supabase) {
@@ -16,8 +16,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       .neq('id', id)
       .limit(6);
 
-    return NextResponse.json({ data: mangas || [] });
-  } catch (err: any) {
+    return NextResponse.json(
+      { data: mangas || [] },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+        },
+      }
+    );
+  } catch {
     return NextResponse.json({ data: [] });
   }
 }

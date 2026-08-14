@@ -6,8 +6,15 @@ import useSWR from "swr";
 import { Loader2, AlertTriangle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { fetchApi } from "@/lib/api-client";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+interface StatusResponse {
+  job_status?: string;
+  elapsed_seconds?: number;
+  content_freshness?: string;
+}
+
+const fetcher = (url: string) => fetchApi<StatusResponse>(url);
 
 export default function ProcessingPage({ params }: { params: Promise<{ id: string, chapter: string }> }) {
   const resolvedParams = use(params);
@@ -16,22 +23,19 @@ export default function ProcessingPage({ params }: { params: Promise<{ id: strin
   
   // 1. Fetch chapter ID on mount (since this is a client component, we do a quick fetch)
   useEffect(() => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
-    fetch(`${apiUrl}/api/manga/${resolvedParams.id}`)
-      .then(res => res.json())
+    fetchApi<{ chapters?: { chapter_number: number; id: string }[] }>(`/api/manga/${resolvedParams.id}`)
       .then(manga => {
-        const c = manga.chapters?.find((ch: { chapter_number: number; id: string }) => ch.chapter_number.toString() === resolvedParams.chapter);
+        const c = manga?.chapters?.find(ch => ch.chapter_number.toString() === resolvedParams.chapter);
         if (c) setChapterId(c.id);
       })
       .catch(() => {});
   }, [resolvedParams.id, resolvedParams.chapter]);
 
-  // 2. Poll the status endpoint every 5 seconds
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+  // 2. Poll the status endpoint every 8 seconds
   const { data: statusData, error } = useSWR(
-    chapterId ? `${apiUrl}/api/chapter/${chapterId}/status` : null,
+    chapterId ? `/api/chapter/${chapterId}/status` : null,
     fetcher,
-    { refreshInterval: 5000 }
+    { refreshInterval: 8000, revalidateOnFocus: false }
   );
 
   // 3. Handle state transitions

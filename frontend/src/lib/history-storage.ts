@@ -12,7 +12,7 @@ export function saveHistoryLocal(record: HistoryRecord): void {
     if (typeof window !== "undefined") {
       localStorage.setItem(`senpai_progress_${record.mangaId}`, JSON.stringify(record));
     }
-  } catch (e) {
+  } catch {
     // Ignore errors for private browsing or quota limits
   }
 }
@@ -31,11 +31,11 @@ export function getLatestHistoryLocal(): HistoryRecord | null {
           if (!latest || item.timestamp > latest.timestamp) {
             latest = item;
           }
-        } catch (err) {}
+        } catch {}
       }
     }
     return latest;
-  } catch (e) {
+  } catch {
     return null;
   }
 }

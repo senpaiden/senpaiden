@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { fetchApi } from "@/lib/api-client";
 
 import { MangaCard } from "@/components/MangaCard";
 import { History as HistoryIcon, Trash2 } from "lucide-react";
@@ -66,33 +67,44 @@ export default function HistoryPage() {
       }
 
       const apiUrl = getApiUrl();
-      const items: HistoryItem[] = await Promise.all(
-        pendingItems.map(async ({ needsMetadata, ...item }) => {
-          if (!needsMetadata) return item;
+      const needsLookupIds = pendingItems.filter((i) => i.needsMetadata).map((i) => i.manga.slug);
 
-          try {
-            const response = await fetch(`${apiUrl}/api/manga/${item.manga.slug}`);
-            if (!response.ok) return item;
-
-            const metadata = await response.json();
-            return {
-              ...item,
-              manga: {
-                ...item.manga,
-                title: metadata.title || item.manga.title,
-                altTitle: metadata.alt_title || item.manga.altTitle,
-                description: metadata.description || item.manga.description,
-                genres: Array.isArray(metadata.genres) ? metadata.genres : item.manga.genres,
-                status: metadata.status || item.manga.status,
-                cover_url: metadata.cover_url || item.manga.cover_url,
-                author: metadata.author || item.manga.author,
-              },
-            };
-          } catch {
-            return item;
+      const metadataMap = new Map<string, any>();
+      if (needsLookupIds.length > 0) {
+        try {
+          const batchJson = await fetchApi<{ data?: any[] }>("/api/manga/batch", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ids: needsLookupIds }),
+          });
+          if (batchJson) {
+            
+            (batchJson.data || []).forEach((m: any) => {
+              metadataMap.set(m.id, m);
+            });
           }
-        })
-      );
+        } catch {}
+      }
+
+      const items: HistoryItem[] = pendingItems.map(({ needsMetadata: _nm, ...item }) => {
+        const metadata = metadataMap.get(item.manga.slug);
+        if (metadata) {
+          return {
+            ...item,
+            manga: {
+              ...item.manga,
+              title: metadata.title || item.manga.title,
+              altTitle: metadata.alt_title || item.manga.altTitle,
+              description: metadata.description || item.manga.description,
+              genres: Array.isArray(metadata.genres) ? metadata.genres : item.manga.genres,
+              status: metadata.status || item.manga.status,
+              cover_url: metadata.cover_url || item.manga.cover_url,
+              author: metadata.author || item.manga.author,
+            },
+          };
+        }
+        return item;
+      });
 
       // Sort by most recently read
       items.sort((a, b) => (b.lastReadTime || 0) - (a.lastReadTime || 0));

@@ -28,11 +28,19 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       .eq('manga_id', id)
       .order('chapter_number', { ascending: true });
 
-    return NextResponse.json({
-      ...manga,
-      chapters: chapters || [],
-    });
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      {
+        ...manga,
+        chapters: chapters || [],
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        },
+      }
+    );
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Internal Server Error';
+    return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }

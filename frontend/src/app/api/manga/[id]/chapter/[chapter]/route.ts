@@ -59,7 +59,7 @@ export async function GET(
       .order('page_number', { ascending: true });
 
     const available_languages = Array.from(
-      new Set((chapters || []).map((c: any) => c.language).filter(Boolean))
+      new Set((chapters || []).map((c) => (c as { language?: string }).language).filter(Boolean))
     );
 
     return NextResponse.json({
@@ -69,7 +69,8 @@ export async function GET(
       pages: pages || [],
       available_languages: available_languages.length > 0 ? available_languages : ['en'],
     });
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message || 'Internal Server Error' }, { status: 500 });
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Internal Server Error';
+    return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }

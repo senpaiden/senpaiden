@@ -1,24 +1,19 @@
 import { notFound, redirect } from "next/navigation";
 import { MangaReaderContainer } from "@/components/MangaReaderContainer";
-
+import { fetchApi } from "@/lib/api-client";
 import { getApiUrl } from "@/lib/api";
 
-// Cache immutable chapters forever. Stale chapters are cached for 60s at the edge.
 export const revalidate = 31536000; 
-
-// Removed getChapterPages function as it is superseded by the compound fetch route.
 
 export default async function ReaderPage({ params }: { params: Promise<{ id: string, chapter: string }> }) {
   const resolvedParams = await params;
   const apiUrl = getApiUrl();
   
   try {
-    // P3-C Fix: Single compound fetch instead of waterfall
     const compoundRes = await fetch(`${apiUrl}/api/manga/${resolvedParams.id}/chapter/${resolvedParams.chapter}`);
     
     if (!compoundRes.ok) {
       if (compoundRes.status === 400) {
-        // Not ready, redirect to processing
         redirect(`/manga/${resolvedParams.id}/${resolvedParams.chapter}/processing`);
       }
       notFound();
@@ -27,28 +22,33 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
     const { manga, chapter, chapters, pages, available_languages } = await compoundRes.json();
     const freshness = compoundRes.headers.get('x-content-freshness') as "fresh" | "stale" | "archived" | null;
     
-    // Trigger read increment asynchronously
-    fetch(`${apiUrl}/api/chapter/${chapter.id}/read`, { method: 'POST' }).catch(() => {});
-
-    // Re-flatten the slices into a single array for rendering
+    fetchApi(`/api/chapter/${chapter.id}/read`, { method: 'POST' }).catch(() => {});
+    
     const allSlices: { key: string, width: number, height: number, blurhash?: string }[] = [];
     const pageGroups: { pageNumber: number; slices: { key: string; width: number; height: number; blurhash?: string }[] }[] = [];
 
-    pages?.forEach((page: { page_number?: number; r2_keys: string[]; slice_dimensions?: any; blurhash?: any }, pageIdx: number) => {
+    interface RawPage {
+      page_number?: number;
+      r2_keys: string[];
+      slice_dimensions?: unknown;
+      blurhash?: unknown;
+    }
+
+    pages?.forEach((page: RawPage, pageIdx: number) => {
       const r2Keys = page.r2_keys || [];
-      let dims: any[] = [];
+      let dims: { width?: number; height?: number }[] = [];
       try {
         dims = typeof page.slice_dimensions === 'string' 
           ? JSON.parse(page.slice_dimensions) 
           : (Array.isArray(page.slice_dimensions) ? page.slice_dimensions : []);
-      } catch (e) {}
+      } catch {}
         
-      let bHashes: any = page.blurhash;
+      let bHashes: unknown = page.blurhash;
       try {
         if (typeof page.blurhash === 'string' && page.blurhash.startsWith('[')) {
           bHashes = JSON.parse(page.blurhash);
         }
-      } catch (e) {}
+      } catch {}
         
       const pSlices: { key: string; width: number; height: number; blurhash?: string }[] = [];
       r2Keys.forEach((key, idx) => {
@@ -92,6 +92,9 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
       />
     );
   } catch (e) {
+    if ((e as { digest?: string })?.digest?.startsWith("NEXT_REDIRECT")) {
+      throw e;
+    }
     notFound();
   }
 }

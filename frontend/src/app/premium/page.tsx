@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fetchApi } from "@/lib/api-client";
 import { AlertCircle, Check, Crown, Download, LoaderCircle, Sparkles, Zap } from "lucide-react";
 import { PREMIUM_PLANS, type PremiumPlanId } from "@/lib/premium-plans";
 
@@ -65,17 +66,16 @@ export default function PremiumPage() {
     setMessage("");
     setIsPaying(true);
     try {
-      const [scriptLoaded, orderResponse] = await Promise.all([
+      const [scriptLoaded, order] = await Promise.all([
         loadRazorpayCheckout(),
-        fetch("/api/razorpay/order", {
+        fetchApi<any>("/api/razorpay/order", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ planId: selectedPlan }),
         }),
       ]);
-      const order = await orderResponse.json();
       if (!scriptLoaded || !window.Razorpay) throw new Error("Payment window could not load.");
-      if (!orderResponse.ok) throw new Error(order.error || "Unable to start payment.");
+      if (!order) throw new Error("Unable to start payment.");
 
       const checkout = new window.Razorpay({
         key: order.keyId,
@@ -88,7 +88,7 @@ export default function PremiumPage() {
         retry: { enabled: true },
         modal: { ondismiss: () => setIsPaying(false) },
         handler: async (response: RazorpaySuccess) => {
-          const verifyResponse = await fetch("/api/razorpay/verify", {
+          const verification = await fetchApi<any>("/api/razorpay/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -99,9 +99,8 @@ export default function PremiumPage() {
               planId: order.planId,
             }),
           });
-          const verification = await verifyResponse.json();
-          if (!verifyResponse.ok || !verification.verified) {
-            setMessage(verification.error || "Payment verification failed.");
+          if (!verification || !verification.verified) {
+            setMessage(verification?.error || "Payment verification failed.");
             setIsPaying(false);
             return;
           }

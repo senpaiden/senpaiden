@@ -1,9 +1,9 @@
 "use client";
 
+import { fetchApi } from "@/lib/api-client";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Filter, X, Check, Minus } from "lucide-react";
-import { getApiUrl } from "@/lib/api";
 
 interface Genre {
   name: string;
@@ -21,11 +21,9 @@ export function AdvancedFilterPanel() {
 
   useEffect(() => {
     // Fetch dynamic genres from API
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787'}/api/genres`, { signal: AbortSignal.timeout(2500) })
-    fetch(`${getApiUrl()}/api/genres`)
-      .then(res => res.json())
+    fetchApi<{ genres?: Genre[] }>("/api/genres")
       .then(data => {
-        if (data.genres) setGenres(data.genres);
+        if (data?.genres) setGenres(data.genres);
       })
       .catch(() => setGenres([]));
   }, []);

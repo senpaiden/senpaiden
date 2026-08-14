@@ -1,5 +1,6 @@
 "use client";
 
+import { fetchApi } from "@/lib/api-client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, KeyRound, Mail, Shield, UserRound } from "lucide-react";
@@ -33,16 +34,22 @@ export default function LoginPage() {
         if (mode === "signup" && getRegisteredAccounts().some((account) => account.email.toLowerCase() === normalizedEmail)) {
           throw new Error("An account with this email already exists. Sign in instead.");
         }
-        const response = await fetch("/api/auth/request-otp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: normalizedEmail, mode }) });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || "Could not send the verification code.");
+        const result = await fetchApi<{ error?: string }>(
+          "/api/auth/request-otp",
+          { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: normalizedEmail, mode }) }
+        );
+        if (!result) throw new Error("Could not send the verification code.");
+        if (result.error) throw new Error(result.error);
         setStep("otp");
         return;
       }
 
-      const response = await fetch("/api/auth/verify-otp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: normalizedEmail, token: otp }) });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Verification failed.");
+      const result = await fetchApi<{ error?: string }>(
+        "/api/auth/verify-otp",
+        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: normalizedEmail, token: otp }) }
+      );
+      if (!result) throw new Error("Verification failed.");
+      if (result.error) throw new Error(result.error);
 
       if (mode === "signup") {
         registerAccount({ displayName: displayName.trim(), email: normalizedEmail, bio: "Ready to find my next favorite manga.", referralCode: createReferralCode(), pendingReferralCode: inviteCode.trim().toUpperCase() });

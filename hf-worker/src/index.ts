@@ -74,9 +74,9 @@ const supabase = createClient(
 );
 
 const r2 = new S3Client({
-  region: 'auto',
+  region: process.env.R2_REGION || 'auto',
   endpoint: process.env.R2_ENDPOINT || `https://${process.env.R2_ACCOUNT_ID || 'dummy'}.r2.cloudflarestorage.com`,
-  forcePathStyle: !!process.env.R2_ENDPOINT, // Required for MinIO
+  forcePathStyle: !!process.env.R2_ENDPOINT,
   credentials: {
     accessKeyId: process.env.R2_ACCESS_KEY_ID || 'dummy_access_key',
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || 'dummy_secret_key',
@@ -563,15 +563,26 @@ const CONCURRENT_WORKERS = parseInt(process.env.WORKER_CONCURRENCY || '2', 10);
 
 async function startWorkerThread(workerId: number) {
   console.log(`[Worker Thread ${workerId}] Started.`);
+  let emptyCount = 0;
+
   while (true) {
     try {
       const didProcess = await processNextJob();
-      if (!didProcess) {
-        await new Promise(r => setTimeout(r, 3000));
+      if (didProcess) {
+        emptyCount = 0;
+        // Processed a job successfully, check immediately for next job
+        await new Promise(r => setTimeout(r, 200));
+      } else {
+        emptyCount++;
+        // Exponential backoff with jitter: 5s -> 7.5s -> 11s -> 17s -> 25s -> max 30s (+ 0-2s jitter)
+        const baseDelay = Math.min(5000 * Math.pow(1.5, Math.min(emptyCount - 1, 5)), 30000);
+        const jitter = Math.random() * 2000;
+        const sleepMs = Math.round(baseDelay + jitter);
+        await new Promise(r => setTimeout(r, sleepMs));
       }
     } catch (err) {
       console.error(`[Worker Thread ${workerId}] Fatal error:`, err);
-      await new Promise(r => setTimeout(r, 3000));
+      await new Promise(r => setTimeout(r, 10000));
     }
   }
 }

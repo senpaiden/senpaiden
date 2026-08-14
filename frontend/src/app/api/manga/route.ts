@@ -35,8 +35,16 @@ export async function GET(req: NextRequest) {
     const { data, count, error } = await query;
     if (error) throw error;
 
-    return NextResponse.json({ data: data || [], total: count || 0, page, limit });
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { data: data || [], total: count || 0, page, limit },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        },
+      }
+    );
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Internal Server Error';
+    return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }

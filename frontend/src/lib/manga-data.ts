@@ -1,5 +1,13 @@
 export type ChapterStatus = "ready" | "processing" | "failed" | "retrying";
 
+export interface MangaChapter {
+  id: string;
+  chapter_number: number;
+  title?: string;
+  language?: string;
+  status?: ChapterStatus;
+}
+
 export interface Manga {
   slug: string;
   title: string;
@@ -15,7 +23,7 @@ export interface Manga {
   tag?: string;
   latestChapter?: number;
   progress?: { chapter: number; page: number; percent: number };
-  chapters?: any[];
+  chapters?: MangaChapter[];
 }
 
 export function coverGradient(m: Manga) {
