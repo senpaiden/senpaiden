@@ -56,7 +56,7 @@ This document establishes a rigorous, phase-by-phase testing strategy for the **
 
 #### [NEW] [test_phase2_scraper.ts](file:///home/unshakensoul/senpai_den/scripts/test/test_phase2_scraper.ts)
 
-**Target Component:** Scraper Engine, Provider Adapter Layer (`BaseAdapter`, `FireFlyAdapter`, `MangaHookAdapter`, `ProviderOrchestrator`).
+**Target Component:** Scraper Engine, Provider Adapter Layer (`BaseAdapter`, `MangaPillAdapter`, `MangaDexAdapter`, `ProviderOrchestrator`).
 
 **Test Items:**
 1. **BaseAdapter Infrastructure & Rate Limiting:**
@@ -64,8 +64,8 @@ This document establishes a rigorous, phase-by-phase testing strategy for the **
    - **User-Agent Rotation:** Inspect outgoing request headers to confirm rotation across 5 standard browser fingerprints.
    - **100 req/run Cap:** Simulate discovery of 120 chapter items; verify scraper halts fetching after hitting 100 requests.
 2. **Dual-Provider Failover Orchestration:**
-   - **Primary Success:** Verify `FireFlyAdapter` discovers manga and queues chapters into Supabase with status `QUEUED`.
-   - **Primary Failure -> Secondary Fallback:** Simulate `FireFlyAdapter` HTTP 500 error; verify `ProviderOrchestrator` seamlessly fails over to `MangaHookAdapter`.
+   - **Primary Success:** Verify `MangaPillAdapter` discovers manga and queues chapters into Supabase with status `QUEUED`.
+   - **Primary Failure -> Secondary Fallback:** Simulate `MangaPillAdapter` HTTP 500 error; verify `ProviderOrchestrator` seamlessly fails over to `MangaDexAdapter`.
    - **Dual-Provider Blackout:** Simulate both providers returning 500/404; verify error logged to `error_log` and `dead_letter_queue` record created with `error_type = 'PROVIDER_BLACKOUT'`.
 3. **Idempotency & Duplicate Protection:**
    - Re-run scraper on existing manga/chapters; verify previously processed or queued chapters are skipped (`0 new queued`).

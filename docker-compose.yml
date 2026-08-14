@@ -1,13 +1,6 @@
 version: "3.8"
 
 services:
-  mock-providers:
-    build: ./mock-providers
-    ports:
-      - "4000:4000"
-    environment:
-      - PORT=4000
-
   minio:
     image: minio/minio
     ports:

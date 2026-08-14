@@ -102,8 +102,8 @@ QUEUED → FAILED → DLQ → QUEUED       (admin retry)
 **What:** All manga data source integrations are implemented behind a common `MangaProvider` interface. Switching or adding providers requires zero architecture changes.
 
 **Providers (v1.0):**
-- `FireFlyAdapter` — Primary provider
-- `MangaHookAdapter` — Secondary provider / failover
+- `MangaPillAdapter` — Primary provider
+- `MangaDexAdapter` — Secondary provider / failover
 
 **User Story:** As the platform operator, when one scraping API breaks, I can deploy a new adapter without touching the job queue, worker, or frontend.
 
@@ -111,7 +111,7 @@ QUEUED → FAILED → DLQ → QUEUED       (admin retry)
 - [ ] Both adapters implement `MangaProvider` interface (`fetchLatestManga`, `fetchChapterPages`)
 - [ ] `BaseAdapter` enforces 2 req/s throttling and UA rotation across all providers
 - [ ] Adapter errors are caught and logged to Supabase `error_log` table
-- [ ] Provider failover is automatic: if FireFly fails, MangaHook is tried before DLQ
+- [ ] Provider failover is automatic: if MangaPill fails, MangaDex is tried before DLQ
 
 ### 4.4 Feature: Stale Content Serving with Degraded UX Banner (P0 — Critical)
 **What:** When both providers are unreachable, previously-processed chapters continue serving from R2 cache. A banner informs users of potential staleness.

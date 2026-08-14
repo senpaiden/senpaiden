@@ -3,8 +3,8 @@ import * as dotenv from 'dotenv';
 import path from 'path';
 import WebSocket from 'ws';
 
-import { FireFlyAdapter } from '../../github-action/src/providers/FireFlyAdapter';
-import { MangaHookAdapter } from '../../github-action/src/providers/MangaHookAdapter';
+import { MangaPillAdapter } from '../../github-action/src/providers/MangaPillAdapter';
+import { MangaDexAdapter } from '../../github-action/src/providers/MangaDexAdapter';
 import { ProviderOrchestrator } from '../../github-action/src/providers/ProviderOrchestrator';
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -18,16 +18,16 @@ async function runPhase2ScraperTests() {
   let passed = 0;
   let total = 0;
 
-  // Test 1: FireFlyAdapter Fetching
+  // Test 1: MangaPillAdapter Fetching
   total++;
   try {
-    const firefly = new FireFlyAdapter();
-    const mangaList = await firefly.fetchLatestManga(1);
+    const mangapill = new MangaPillAdapter();
+    const mangaList = await mangapill.fetchLatestManga(1);
     if (Array.isArray(mangaList) && mangaList.length > 0) {
-      console.log(`✔ Test 1 Passed: FireFlyAdapter fetched ${mangaList.length} manga entries.`);
+      console.log(`✔ Test 1 Passed: MangaPillAdapter fetched ${mangaList.length} manga entries.`);
       passed++;
     } else {
-      console.error('❌ Test 1 Failed: FireFlyAdapter returned empty or invalid manga list.');
+      console.error('❌ Test 1 Failed: MangaPillAdapter returned empty or invalid manga list.');
     }
   } catch (err: any) {
     console.error('❌ Test 1 Failed:', err.message);
@@ -36,11 +36,11 @@ async function runPhase2ScraperTests() {
   // Test 2: Throttling Verification (2 req/s -> ~500ms spacing between requests)
   total++;
   try {
-    const firefly = new FireFlyAdapter();
+    const mangapill = new MangaPillAdapter();
     const start = Date.now();
     await Promise.all([
-      firefly.fetchLatestManga(1),
-      firefly.fetchLatestManga(1)
+      mangapill.fetchLatestManga(1),
+      mangapill.fetchLatestManga(1)
     ]);
     const elapsed = Date.now() - start;
     if (elapsed >= 450) {

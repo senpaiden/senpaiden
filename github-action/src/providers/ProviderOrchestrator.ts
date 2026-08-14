@@ -1,82 +1,53 @@
 // ============================================================
-// ProviderOrchestrator — Failover logic (Phase 2)
-// Strategy: FireFly first → MangaHook on failure → DLQ on both failure
-// Architecture Decision: AD-001 (stale serving on dual-provider blackout)
+// ProviderOrchestrator — Primary & Fallback Ingestion Orchestrator
+// Strategy: MangaPill first → MangaDex on failure → DLQ on both failure
 // ============================================================
 
-import { FireFlyAdapter } from './FireFlyAdapter.js';
-import { MangaHookAdapter } from './MangaHookAdapter.js';
 import type { MangaProvider, MangaDiscovery, ChapterDiscovery } from './MangaProvider.js';
-
-export type OrchestratorResult<T> =
-  | { success: true; data: T; provider: string }
-  | { success: false; error: string; providerBlackout: boolean };
+import { MangaPillAdapter } from './MangaPillAdapter.js';
+import { MangaDexAdapter } from './MangaDexAdapter.js';
 
 export class ProviderOrchestrator {
   private providers: MangaProvider[];
 
-  constructor() {
-    this.providers = [new FireFlyAdapter(), new MangaHookAdapter()];
+  constructor(customProviders?: MangaProvider[]) {
+    this.providers = customProviders ?? [new MangaPillAdapter(), new MangaDexAdapter()];
   }
 
-  /**
-   * Attempts fetchLatestManga across all providers in order.
-   * Returns first success. If all fail, returns providerBlackout: true.
-   */
-  async fetchLatestManga(page: number): Promise<OrchestratorResult<MangaDiscovery[]>> {
-    const errors: string[] = [];
-
+  async discoverLatestManga(page: number = 1): Promise<MangaDiscovery[]> {
     for (const provider of this.providers) {
       try {
-        const data = await provider.fetchLatestManga(page);
-        return { success: true, data, provider: provider.providerName };
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        errors.push(`[${provider.providerName}] ${msg}`);
-        console.warn(`[Orchestrator] ${provider.providerName} fetchLatestManga failed, trying next...`);
+        console.log(`[Orchestrator] Fetching latest manga via ${provider.providerName}...`);
+        const results = await provider.fetchLatestManga(page);
+        if (results.length > 0) return results;
+      } catch (err: any) {
+        console.warn(`[Orchestrator] Provider '${provider.providerName}' failed latest fetch: ${err.message}`);
       }
     }
-
-    return { success: false, error: errors.join(' | '), providerBlackout: true };
+    throw new Error('[Orchestrator] All providers failed to fetch latest manga');
   }
 
-  /**
-   * Attempts fetchChapterList across all providers in order.
-   */
-  async fetchChapterList(mangaId: string): Promise<OrchestratorResult<ChapterDiscovery[]>> {
-    const errors: string[] = [];
-
+  async discoverChapters(mangaId: string): Promise<ChapterDiscovery[]> {
     for (const provider of this.providers) {
       try {
-        const data = await provider.fetchChapterList(mangaId);
-        return { success: true, data, provider: provider.providerName };
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        errors.push(`[${provider.providerName}] ${msg}`);
-        console.warn(`[Orchestrator] ${provider.providerName} fetchChapterList failed for ${mangaId}, trying next...`);
+        const chapters = await provider.fetchChapterList(mangaId);
+        if (chapters.length > 0) return chapters;
+      } catch (err: any) {
+        console.warn(`[Orchestrator] Provider '${provider.providerName}' failed chapter list for ${mangaId}: ${err.message}`);
       }
     }
-
-    return { success: false, error: errors.join(' | '), providerBlackout: true };
+    throw new Error(`[Orchestrator] All providers failed to fetch chapters for ${mangaId}`);
   }
 
-  /**
-   * Attempts fetchChapterPages across all providers in order.
-   */
-  async fetchChapterPages(chapterId: string): Promise<OrchestratorResult<string[]>> {
-    const errors: string[] = [];
-
+  async discoverPages(chapterId: string): Promise<string[]> {
     for (const provider of this.providers) {
       try {
-        const data = await provider.fetchChapterPages(chapterId);
-        return { success: true, data, provider: provider.providerName };
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        errors.push(`[${provider.providerName}] ${msg}`);
-        console.warn(`[Orchestrator] ${provider.providerName} fetchChapterPages failed for ${chapterId}, trying next...`);
+        const pages = await provider.fetchChapterPages(chapterId);
+        if (pages.length > 0) return pages;
+      } catch (err: any) {
+        console.warn(`[Orchestrator] Provider '${provider.providerName}' failed chapter pages for ${chapterId}: ${err.message}`);
       }
     }
-
-    return { success: false, error: errors.join(' | '), providerBlackout: true };
+    throw new Error(`[Orchestrator] All providers failed to fetch pages for chapter ${chapterId}`);
   }
 }
