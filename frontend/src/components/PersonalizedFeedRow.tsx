@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { MangaCard } from "@/components/MangaCard";
+import { type Manga } from "@/lib/manga-data";
 import { Zap } from "lucide-react";
 import { getApiUrl } from "@/lib/api";
 

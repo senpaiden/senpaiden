@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { MangaCard } from "@/components/MangaCard";
 import { AdvancedFilterPanel } from "@/components/AdvancedFilterPanel";
+import { AdSlot } from "@/components/AdSlot";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { getLocalCatalogue, type CatalogueManga } from "@/lib/local-catalogue";
 
 import { getApiUrl } from "@/lib/api";
 
@@ -22,11 +24,11 @@ export default async function Discover({ searchParams }: { searchParams: Promise
   const limit = 24;
   const baseUrl = getApiUrl();
   
-  let mangas: any[] = [];
+  let mangas: CatalogueManga[] = [];
   let totalCount = 0;
 
   try {
-    let url = new URL("/api/manga", baseUrl);
+    const url = new URL("/api/manga", baseUrl);
     url.searchParams.set("page", pageNum.toString());
     url.searchParams.set("limit", limit.toString());
     
@@ -37,17 +39,24 @@ export default async function Discover({ searchParams }: { searchParams: Promise
     if (excluded) url.searchParams.set("excluded", excluded);
     if (sort) url.searchParams.set("sort", sort);
       
-    const res = await fetch(url.toString());
+    const res = await fetch(url.toString(), { signal: AbortSignal.timeout(2500), next: { revalidate: 60 } });
     if (res.ok) {
       const data = await res.json();
-      mangas = data.data || [];
+      mangas = (data.data || []) as CatalogueManga[];
       totalCount = data.total || mangas.length;
     }
-  } catch (e) {
-    console.error("Failed to fetch mangas:", e);
+  } catch {
+    // Keep navigation responsive when the catalogue API is unavailable.
+  }
+  if (!mangas.length) {
+    const local = await getLocalCatalogue();
+    const genreMatches = currentGenre === "All" ? local : local.filter((manga) => manga.genres.some((genre) => genre.toLowerCase() === currentGenre.toLowerCase()));
+    const filtered = genreMatches.length ? genreMatches : local;
+    totalCount = filtered.length;
+    mangas = filtered.slice((pageNum - 1) * limit, pageNum * limit);
   }
 
-  const uiMangas = mangas.map((m: any) => ({
+  const uiMangas = mangas.map((m) => ({
     slug: m.id,
     title: m.title,
     altTitle: m.alt_title || "",
@@ -111,6 +120,8 @@ export default async function Discover({ searchParams }: { searchParams: Promise
           ))}
         </div>
 
+        <div className="mt-8"><AdSlot placement="discover-grid" /></div>
+
         {/* Pagination Controls */}
         <div className="mt-10 flex items-center justify-between border-t border-white/10 pt-6">
           <p className="text-xs text-[#A1A1AA]">
@@ -151,6 +162,7 @@ export default async function Discover({ searchParams }: { searchParams: Promise
             )}
           </div>
         </div>
+        <div className="mt-8 border-t border-white/5 pt-8"><AdSlot placement="discover-bottom" /></div>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-export type NotificationKind = "chapter" | "recommendation" | "library";
+export type NotificationKind = "chapter" | "recommendation" | "library" | "referral";
 
 export type SenpaiNotification = {
   id: string;
@@ -54,13 +54,20 @@ export function getNotifications(): SenpaiNotification[] {
     if (!Array.isArray(parsed)) return DEFAULT_NOTIFICATIONS;
 
     const savedById = new Map(parsed.map((item) => [item.id, item]));
-    return DEFAULT_NOTIFICATIONS.map((item) => ({
+    const defaults = DEFAULT_NOTIFICATIONS.map((item) => ({
       ...item,
       unread: savedById.get(item.id)?.unread ?? item.unread,
     }));
+    const custom = parsed.filter((item) => !DEFAULT_NOTIFICATIONS.some((defaultItem) => defaultItem.id === item.id));
+    return [...custom, ...defaults];
   } catch {
     return DEFAULT_NOTIFICATIONS;
   }
+}
+
+export function addNotification(notification: SenpaiNotification) {
+  const current = getNotifications();
+  saveNotifications([notification, ...current.filter((item) => item.id !== notification.id)]);
 }
 
 export function saveNotifications(notifications: SenpaiNotification[]) {

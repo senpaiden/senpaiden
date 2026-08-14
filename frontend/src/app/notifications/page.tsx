@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, CheckCheck, ChevronRight, Flame, Sparkles } from "lucide-react";
+import { Bell, CheckCheck, ChevronRight, Flame, Sparkles, Ticket } from "lucide-react";
 import {
   DEFAULT_NOTIFICATIONS,
   getNotifications,
@@ -10,11 +10,13 @@ import {
   type NotificationKind,
   type SenpaiNotification,
 } from "@/lib/notifications";
+import { AdSlot } from "@/components/AdSlot";
 
 const ICONS: Record<NotificationKind, typeof Bell> = {
   chapter: Flame,
   recommendation: Sparkles,
   library: Bell,
+  referral: Ticket,
 };
 
 export default function NotificationsPage() {
@@ -72,6 +74,7 @@ export default function NotificationsPage() {
           </button>;
         }) : <div className="px-6 py-16 text-center"><span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-emerald-400/10 text-emerald-400"><CheckCheck className="h-6 w-6" /></span><h2 className="mt-4 text-lg font-black text-white">You&apos;re all caught up</h2><p className="mt-2 text-sm text-zinc-500">New manga updates will appear here.</p></div>}
       </section>
+      <div className="mt-8 border-t border-white/5 pt-8"><AdSlot placement="notifications-bottom" /></div>
     </div>
   );
 }
