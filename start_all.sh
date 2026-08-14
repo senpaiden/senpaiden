@@ -8,9 +8,9 @@
 set -e
 
 echo ""
-echo "🚀 ==========================================================="
-echo "🚀 STARTING ALL SENPAI DEN PROJECT SERVICES"
-echo "🚀 ==========================================================="
+echo " ==========================================================="
+echo " STARTING ALL SENPAI DEN PROJECT SERVICES"
+echo " ==========================================================="
 echo ""
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -25,3 +25,6 @@ echo "🎉 ALL SERVICES STARTED SUCCESSFULLY!"
 echo "🎉 Frontend: http://localhost:3000"
 echo "🎉 ==========================================================="
 echo ""
+
+echo "🚀 Starting Frontend Next.js Server..."
+npm run dev

@@ -10,8 +10,9 @@ import { getApiUrl } from "@/lib/api";
 export const revalidate = 60; // Edge Cache
 
 export const metadata = {
-  title: "Discover — Senpai Den",
+  title: "Discover Manga, Manhwa & Webtoons",
   description: "Discover trending manga, manhwa, and webtoons curated for your next binge on Senpai Den.",
+  alternates: { canonical: "/discover" },
 };
 
 export default async function Discover({ searchParams }: { searchParams: Promise<{ genre?: string; page?: string; included?: string; excluded?: string; sort?: string }> }) {
