@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 
-const B2_ENDPOINT = process.env.R2_ENDPOINT || 'https://s3.us-east-005.backblazeb2.com';
-const B2_REGION = process.env.R2_REGION || 'us-east-005';
-const B2_BUCKET = process.env.R2_BUCKET_NAME || 'senpaiden-mangas';
-const B2_KEY_ID = process.env.R2_ACCESS_KEY_ID;
-const B2_APP_KEY = process.env.R2_SECRET_ACCESS_KEY;
+function getS3Client() {
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+  if (!accessKeyId || !secretAccessKey) return null;
 
-const s3Client = B2_KEY_ID && B2_APP_KEY ? new S3Client({
-  region: B2_REGION,
-  endpoint: B2_ENDPOINT,
-  credentials: {
-    accessKeyId: B2_KEY_ID,
-    secretAccessKey: B2_APP_KEY,
-  },
-}) : null;
+  return new S3Client({
+    region: process.env.R2_REGION || 'us-east-005',
+    endpoint: process.env.R2_ENDPOINT || 'https://s3.us-east-005.backblazeb2.com',
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+  });
+}
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
@@ -24,15 +24,18 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pat
     return new NextResponse('Bad Request', { status: 400 });
   }
 
+  const s3 = getS3Client();
+  const bucketName = process.env.R2_BUCKET_NAME || 'senpaiden-mangas';
+
   try {
     // 1. Attempt to fetch from Backblaze B2
-    if (s3Client) {
+    if (s3) {
       const command = new GetObjectCommand({
-        Bucket: B2_BUCKET,
+        Bucket: bucketName,
         Key: key,
       });
 
-      const response = await s3Client.send(command);
+      const response = await s3.send(command);
 
       if (response.Body) {
         const byteArray = await response.Body.transformToByteArray();

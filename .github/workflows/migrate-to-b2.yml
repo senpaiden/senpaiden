@@ -21,7 +21,7 @@ jobs:
 
       - name: Run Migration Script
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://lsdnqbfiytyonvmzurxj.supabase.co' }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME || 'senpaiden-mangas' }}
           R2_REGION: ${{ secrets.R2_REGION || 'us-east-005' }}

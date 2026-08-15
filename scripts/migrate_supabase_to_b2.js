@@ -17,11 +17,11 @@ process.on('unhandledRejection', (reason) => {
   console.warn('[Recovered Rejection]', reason);
 });
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://lsdnqbfiytyonvmzurxj.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error('[Error] SUPABASE_URL and SUPABASE_SERVICE_KEY must be set in environment.');
+if (!SUPABASE_KEY) {
+  console.error('[Error] SUPABASE_SERVICE_KEY must be set in environment.');
   process.exit(1);
 }
 
