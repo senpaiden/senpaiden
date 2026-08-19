@@ -231,7 +231,7 @@ async function runWatchdog() {
     
     const { data: timedOutChapters, error: fetchErr } = await supabase
       .from('chapters')
-      .select('id')
+      .select('id, retry_count')
       .eq('job_status', 'PROCESSING')
       .lt('processing_started_at', cutoff);
 
@@ -239,19 +239,31 @@ async function runWatchdog() {
     if (!timedOutChapters || timedOutChapters.length === 0) return;
 
     for (const chapter of timedOutChapters) {
-      console.warn(`[Watchdog] Chapter ${chapter.id} timed out. Marking FAILED.`);
+      console.warn(`[Watchdog] Chapter ${chapter.id} timed out. Resetting processing lock.`);
       
+      const newRetries = (chapter.retry_count || 0) + 1;
+      const targetStatus = newRetries >= 3 ? 'FAILED' : 'QUEUED';
+
       await supabase
         .from('chapters')
-        .update({ job_status: 'FAILED', updated_at: new Date().toISOString() })
+        .update({
+          job_status: targetStatus,
+          processing_started_at: null,
+          retry_count: newRetries,
+          updated_at: new Date().toISOString(),
+        })
         .eq('id', chapter.id);
         
-      await supabase.from('dead_letter_queue').insert({
-        chapter_id: chapter.id,
-        error_type: 'PROCESSING_TIMEOUT',
-        error_detail: `Worker timed out after ${TIMEOUT_MINUTES} minutes.`,
-        max_retries: parseInt(process.env.DLQ_MAX_RETRIES ?? '3', 10),
-      });
+      try {
+        await supabase.from('dead_letter_queue').insert({
+          chapter_id: chapter.id,
+          error_type: 'PROCESSING_TIMEOUT',
+          error_detail: `Worker timed out after ${TIMEOUT_MINUTES} minutes.`,
+          max_retries: parseInt(process.env.DLQ_MAX_RETRIES ?? '3', 10),
+        });
+      } catch {
+        // Ignore duplicate DLQ entries
+      }
     }
   } catch (err: any) {
     console.warn(`[Watchdog] Supabase connection notice: ${err?.message || String(err)}`);
