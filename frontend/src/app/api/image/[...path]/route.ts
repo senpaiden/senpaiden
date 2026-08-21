@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { fetchFileFromGDrive } from '@/lib/gdrive';
 
 function getS3Client() {
   const accessKeyId = process.env.R2_ACCESS_KEY_ID;
@@ -24,11 +25,25 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pat
     return new NextResponse('Bad Request', { status: 400 });
   }
 
+  // 1. Direct Google Drive fileId path: /api/image/gdrive/<fileId>
+  if (path[0] === 'gdrive' && path[1]) {
+    const fileId = path[1];
+    const decryptedBuffer = await fetchFileFromGDrive(fileId);
+    if (decryptedBuffer) {
+      return new NextResponse(decryptedBuffer, {
+        headers: {
+          'Content-Type': 'image/webp',
+          'Cache-Control': 'public, max-age=31536000, immutable',
+        },
+      });
+    }
+  }
+
   const s3 = getS3Client();
   const bucketName = process.env.R2_BUCKET_NAME || 'senpaiden-mangas';
 
+  // 2. Primary: Backblaze B2 S3 storage
   try {
-    // 1. Attempt to fetch from Backblaze B2
     if (s3) {
       const command = new GetObjectCommand({
         Bucket: bucketName,
@@ -50,7 +65,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pat
       }
     }
   } catch (b2Error) {
-    // 2. Fallback to Supabase Storage for legacy uploaded images
+    // 3. Fallback: Supabase Storage for legacy uploaded images
     try {
       const fallbackUrl = `https://lsdnqbfiytyonvmzurxj.supabase.co/storage/v1/object/public/manga-images/${key}`;
       const fallbackRes = await fetch(fallbackUrl);

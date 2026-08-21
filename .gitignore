@@ -2,11 +2,18 @@
 # SENPAI DEN — GITIGNORE
 # ============================================================
 
-# Environment variables — NEVER commit
+# Environment variables & GCP Keys — NEVER commit
 .env
 .env.local
 .env.production
 .env.*.local
+*.json
+!package.json
+!tsconfig*.json
+!frontend/package.json
+!frontend/tsconfig.json
+!hf-worker/package.json
+!hf-worker/tsconfig.json
 
 # Node.js
 node_modules/

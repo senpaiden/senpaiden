@@ -348,8 +348,25 @@ async function processImage(buffer: Buffer): Promise<SliceResult[]> {
   return results;
 }
 
-// Upload buffer to Supabase Storage or R2 / MinIO
-async function uploadToR2(key: string, buffer: Buffer): Promise<void> {
+import { isGDriveConfigured, uploadFileToGDrive, getOrCreateFolder } from './gdrive.js';
+
+// Upload buffer to Supabase Storage, Backblaze B2 S3, or Google Drive (5TB)
+async function uploadToStorage(key: string, buffer: Buffer, chapterId?: string): Promise<string> {
+  const useGDrive = process.env.STORAGE_PROVIDER === 'gdrive' || (isGDriveConfigured() && process.env.USE_GDRIVE === 'true');
+
+  if (useGDrive) {
+    let folderId = process.env.GDRIVE_ROOT_FOLDER_ID;
+    if (chapterId) {
+      const chFolder = await getOrCreateFolder(chapterId, folderId);
+      if (chFolder) folderId = chFolder;
+    }
+    const fileName = key.split('/').pop() || key;
+    const res = await uploadFileToGDrive(fileName, buffer, 'image/webp', folderId);
+    if (res?.fileId) {
+      return `gdrive/${res.fileId}`;
+    }
+  }
+
   if (process.env.USE_SUPABASE_STORAGE === 'true' || !process.env.R2_ENDPOINT) {
     const { error } = await supabase.storage
       .from(BUCKET_NAME)
@@ -359,7 +376,7 @@ async function uploadToR2(key: string, buffer: Buffer): Promise<void> {
         upsert: true,
       });
     if (error) throw error;
-    return;
+    return key;
   }
 
   await r2.send(new PutObjectCommand({
@@ -369,6 +386,7 @@ async function uploadToR2(key: string, buffer: Buffer): Promise<void> {
     ContentType: 'image/webp',
     CacheControl: 'public, max-age=31536000, immutable'
   }));
+  return key;
 }
 
 // ── 3. Main Poll Loop ─────────────────────────────────────────────────────────
@@ -481,8 +499,8 @@ async function processNextJob() {
             const key = `manga/${chapterId}/${pageNumber}_${sliceIdx}.webp`;
             const slice = slices[sliceIdx]!;
 
-            await uploadToR2(key, slice.buffer);
-            r2Keys.push(key);
+            const savedKey = await uploadToStorage(key, slice.buffer, chapterId);
+            r2Keys.push(savedKey);
 
             // Fast Blurhash computation using 16x16 raw pixel buffer
             try {
