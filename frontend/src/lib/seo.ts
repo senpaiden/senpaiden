@@ -21,3 +21,7 @@ export function cleanDescription(value: unknown, fallback = DEFAULT_DESCRIPTION,
 export function mangaCanonical(id: string) {
   return absoluteUrl(`/manga/${encodeURIComponent(id)}`);
 }
+
+export function chapterCanonical(mangaId: string, chapterNumber: string | number) {
+  return absoluteUrl(`/manga/${encodeURIComponent(mangaId)}/${encodeURIComponent(chapterNumber.toString())}`);
+}
