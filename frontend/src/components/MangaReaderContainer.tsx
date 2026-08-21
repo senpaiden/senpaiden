@@ -1,35 +1,34 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Settings, 
-  ScrollText, 
-  BookOpen, 
+import { ReaderImage } from "@/components/ReaderImage";
+import { RecommendationsRow } from "@/components/RecommendationsRow";
+import { StaleBanner } from "@/components/StaleBanner";
+import { saveHistoryLocal } from "@/lib/history-storage";
+import { awardMangaExp } from "@/lib/reader-progression";
+import { fetchApi } from "@/lib/api-client";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
+import {
+  ChevronLeft,
+  ChevronRight,
+  BookOpen,
   Columns,
-  List, 
+  ScrollText,
+  Maximize,
   Maximize2,
   Minimize2,
   ArrowLeftRight,
   ArrowUpDown,
-  Maximize,
+  Globe,
+  List,
   Trophy,
   Sparkles,
   X,
-  PartyPopper,
-  Globe,
-  Users
 } from "lucide-react";
-import { ReaderImage, PageFitMode } from "./ReaderImage";
-import { StaleBanner } from "./StaleBanner";
-import { RecommendationsRow } from "./RecommendationsRow";
-import { saveHistoryLocal } from "@/lib/history-storage";
-import { awardMangaExp } from "@/lib/reader-progression";
 
-import { useWindowVirtualizer } from '@tanstack/react-virtual';
+type PageFitMode = "fit-width" | "fit-height" | "original";
 
 interface SliceData {
   key: string;
@@ -47,6 +46,11 @@ interface ChapterMetadata {
   scanlation_group?: string;
 }
 
+interface PageGroupData {
+  pageNumber: number;
+  slices: SliceData[];
+}
+
 interface MangaReaderContainerProps {
   mangaId: string;
   mangaTitle: string;
@@ -54,6 +58,7 @@ interface MangaReaderContainerProps {
   chapterNumber: string;
   chapters: ChapterMetadata[];
   slices: SliceData[];
+  pageGroups?: PageGroupData[];
   freshness?: "fresh" | "stale" | "archived";
   r2BaseUrl: string;
   availableLanguages?: string[];
@@ -61,12 +66,17 @@ interface MangaReaderContainerProps {
 }
 
 const getSliceUrl = (baseUrl: string, key: string) => {
-  if (key.startsWith('http://') || key.startsWith('https://')) {
-    return key;
+  let url = key;
+  if (!key.startsWith('http://') && !key.startsWith('https://')) {
+    const cleanBase = baseUrl.replace(/\/$/, '');
+    const cleanKey = key.replace(/^\//, '');
+    url = `${cleanBase}/${cleanKey}`;
   }
-  const cleanBase = baseUrl.replace(/\/$/, '');
-  const cleanKey = key.replace(/^\//, '');
-  return `${cleanBase}/${cleanKey}`;
+  // Replace volatile/expired MangaDex @home CDN nodes with persistent uploads server
+  if (url.includes('.mangadex.network/data/')) {
+    url = url.replace(/https?:\/\/[^\/]+\.mangadex\.network\/data\//, 'https://uploads.mangadex.org/data/');
+  }
+  return url;
 };
 
 type ReadingMode = "webtoon" | "single" | "double";
@@ -78,12 +88,20 @@ export function MangaReaderContainer({
   chapterNumber,
   chapters,
   slices,
+  pageGroups,
   freshness,
   r2BaseUrl,
   availableLanguages = ["en", "es", "fr"],
   currentLanguage = "en"
 }: MangaReaderContainerProps) {
   const router = useRouter();
+
+  const displayPages = useMemo(() => {
+    if (pageGroups && pageGroups.length > 0) {
+      return pageGroups;
+    }
+    return slices.map((s, idx) => ({ pageNumber: idx + 1, slices: [s] }));
+  }, [pageGroups, slices]);
   const [isHudVisible, setIsHudVisible] = useState(true);
   const [currentSliceIndex, setCurrentSliceIndex] = useState(0);
   const [isCounterVisible, setIsCounterVisible] = useState(false);
@@ -98,7 +116,6 @@ export function MangaReaderContainer({
 
   const counterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
 
   // Calculate scaled heights for virtual windowing
   useEffect(() => {
@@ -169,12 +186,12 @@ export function MangaReaderContainer({
     // Record chapter in read list
     try {
       const readStr = localStorage.getItem(`senpai_read_chapters_${mangaId}`);
-      let readArr: number[] = readStr ? JSON.parse(readStr) : [];
+      const readArr: number[] = readStr ? JSON.parse(readStr) : [];
       if (!readArr.includes(currentChapterNum)) {
         readArr.push(currentChapterNum);
         localStorage.setItem(`senpai_read_chapters_${mangaId}`, JSON.stringify(readArr));
       }
-    } catch (e) {}
+    } catch {}
 
     const award = awardMangaExp(mangaId);
     if (award.awarded) {
@@ -225,14 +242,9 @@ export function MangaReaderContainer({
 
   const prefetchNextChapter = async (nextChNum: number) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
-      const url = `${apiUrl}/api/manga/${mangaId}/chapter/${nextChNum}`;
+      const data = await fetchApi<{ pages?: any[] }>(`/api/manga/${mangaId}/chapter/${nextChNum}`);
       
-      const res = await fetch(url);
-      if (!res.ok) return;
-      const data = await res.json();
-      
-      if (data.pages && data.pages.length > 0) {
+      if (data?.pages && data.pages.length > 0) {
         const prefetchKeys: string[] = [];
         for (const page of data.pages) {
           if (page.r2_keys) prefetchKeys.push(...page.r2_keys);
@@ -247,7 +259,7 @@ export function MangaReaderContainer({
           document.head.appendChild(link);
         });
       }
-    } catch (e) {
+    } catch {
       // Fail silently, prefetching is a progressive enhancement
     }
   };
@@ -342,14 +354,14 @@ export function MangaReaderContainer({
   const step = readingMode === "double" ? 2 : 1;
 
   const nextPagedPage = () => {
-    if (activePagedIndex < slices.length - step) {
+    if (activePagedIndex < displayPages.length - step) {
       const nextIdx = activePagedIndex + step;
       setActivePagedIndex(nextIdx);
       saveProgress(nextIdx);
       triggerCounterVisibility();
 
       // Phase 3 Fix: Predictive Prefetching at 70% threshold for Paged modes
-      if (!hasPrefetchedNext.current && nextChapter && nextIdx >= slices.length * 0.7) {
+      if (!hasPrefetchedNext.current && nextChapter && nextIdx >= displayPages.length * 0.7) {
         hasPrefetchedNext.current = true;
         prefetchNextChapter(nextChapter.chapter_number);
       }
@@ -384,8 +396,16 @@ export function MangaReaderContainer({
   // Cross-browser Fullscreen toggle
   const toggleFullscreen = () => {
     try {
-      const doc = document as any;
-      const docEl = document.documentElement as any;
+      const doc = document as Document & {
+        webkitFullscreenElement?: Element;
+        msFullscreenElement?: Element;
+        webkitExitFullscreen?: () => Promise<void>;
+        msExitFullscreen?: () => Promise<void>;
+      };
+      const docEl = document.documentElement as HTMLElement & {
+        webkitRequestFullscreen?: () => Promise<void>;
+        msRequestFullscreen?: () => Promise<void>;
+      };
 
       if (!doc.fullscreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
         if (docEl.requestFullscreen) {
@@ -406,7 +426,7 @@ export function MangaReaderContainer({
         }
         setIsFullscreen(false);
       }
-    } catch (e) {
+    } catch {
       console.warn("Fullscreen API not available on this device.");
     }
   };
@@ -546,7 +566,9 @@ export function MangaReaderContainer({
           isCounterVisible || isHudVisible ? "opacity-100" : "opacity-0"
         }`}
       >
-        Slice {readingMode === "webtoon" ? currentSliceIndex + 1 : activePagedIndex + 1} / {slices.length}
+        {readingMode === "webtoon"
+          ? `Slice ${currentSliceIndex + 1} / ${slices.length}`
+          : `Page ${activePagedIndex + 1} / ${displayPages.length}`}
       </div>
 
       {/* Main Content Area */}
@@ -589,18 +611,21 @@ export function MangaReaderContainer({
             })}
           </div>
         ) : readingMode === "single" ? (
-          /* Single Page View */
+          /* Single Page View (Renders full stacked page) */
           <div className="w-full min-h-screen flex items-center justify-center pt-16 pb-20 px-2 bg-black">
-            {slices[activePagedIndex] && (
-              <div className="w-full max-w-[800px]">
-                <ReaderImage
-                  src={getSliceUrl(r2BaseUrl, slices[activePagedIndex].key)}
-                  width={slices[activePagedIndex].width}
-                  height={slices[activePagedIndex].height}
-                  priority={true}
-                  blurhash={slices[activePagedIndex].blurhash}
-                  pageFit={pageFit}
-                />
+            {displayPages[activePagedIndex] && (
+              <div className="w-full max-w-[800px] flex flex-col items-center justify-center m-0 p-0 border-0 leading-none">
+                {displayPages[activePagedIndex].slices.map((slice, sIdx) => (
+                  <ReaderImage
+                    key={slice.key}
+                    src={getSliceUrl(r2BaseUrl, slice.key)}
+                    width={slice.width}
+                    height={slice.height}
+                    priority={sIdx === 0}
+                    blurhash={slice.blurhash}
+                    pageFit={pageFit}
+                  />
+                ))}
               </div>
             )}
           </div>
@@ -609,33 +634,39 @@ export function MangaReaderContainer({
           <div className="w-full min-h-screen flex items-center justify-center pt-16 pb-20 px-2 bg-black">
             <div className="w-full max-w-[1400px] flex flex-col md:flex-row items-center justify-center gap-0">
               {/* Left Page (Page A) */}
-              {slices[activePagedIndex] && (
-                <div className="w-full md:w-1/2 max-w-[700px] flex justify-end">
-                  <ReaderImage
-                    src={getSliceUrl(r2BaseUrl, slices[activePagedIndex].key)}
-                    width={slices[activePagedIndex].width}
-                    height={slices[activePagedIndex].height}
-                    priority={true}
-                    blurhash={slices[activePagedIndex].blurhash}
-                    containerClassName="max-w-[700px]"
-                    pageFit={pageFit}
-                    align="right"
-                  />
+              {displayPages[activePagedIndex] && (
+                <div className="w-full md:w-1/2 max-w-[700px] flex flex-col items-end justify-center m-0 p-0 border-0 leading-none">
+                  {displayPages[activePagedIndex].slices.map((slice, sIdx) => (
+                    <ReaderImage
+                      key={slice.key}
+                      src={getSliceUrl(r2BaseUrl, slice.key)}
+                      width={slice.width}
+                      height={slice.height}
+                      priority={sIdx === 0}
+                      blurhash={slice.blurhash}
+                      containerClassName="max-w-[700px]"
+                      pageFit={pageFit}
+                      align="right"
+                    />
+                  ))}
                 </div>
               )}
               {/* Right Page (Page B) */}
-              {slices[activePagedIndex + 1] && (
-                <div className="w-full md:w-1/2 max-w-[700px] flex justify-start">
-                  <ReaderImage
-                    src={getSliceUrl(r2BaseUrl, slices[activePagedIndex + 1].key)}
-                    width={slices[activePagedIndex + 1].width}
-                    height={slices[activePagedIndex + 1].height}
-                    priority={true}
-                    blurhash={slices[activePagedIndex + 1].blurhash}
-                    containerClassName="max-w-[700px]"
-                    pageFit={pageFit}
-                    align="left"
-                  />
+              {displayPages[activePagedIndex + 1] && (
+                <div className="w-full md:w-1/2 max-w-[700px] flex flex-col items-start justify-center m-0 p-0 border-0 leading-none">
+                  {displayPages[activePagedIndex + 1].slices.map((slice, sIdx) => (
+                    <ReaderImage
+                      key={slice.key}
+                      src={getSliceUrl(r2BaseUrl, slice.key)}
+                      width={slice.width}
+                      height={slice.height}
+                      priority={sIdx === 0}
+                      blurhash={slice.blurhash}
+                      containerClassName="max-w-[700px]"
+                      pageFit={pageFit}
+                      align="left"
+                    />
+                  ))}
                 </div>
               )}
             </div>
@@ -652,6 +683,7 @@ export function MangaReaderContainer({
               key={`preload-${slice.key}`} 
               src={getSliceUrl(r2BaseUrl, slice.key)} 
               decoding="async"
+              referrerPolicy="no-referrer"
               alt="" 
             />
           ))}

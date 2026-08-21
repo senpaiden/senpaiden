@@ -52,14 +52,14 @@ async function runPhase1DatabaseTests() {
     const testSourceId = 'test-dup-id-' + Date.now();
     await supabase.from('manga').insert({
       source_id: testSourceId,
-      source_provider: 'firefly',
+      source_provider: 'mangapill',
       title: 'Duplicate Test Manga'
     });
 
     // Attempt inserting same source_id
     const { error: dupError } = await supabase.from('manga').insert({
       source_id: testSourceId,
-      source_provider: 'firefly',
+      source_provider: 'mangapill',
       title: 'Duplicate Test Manga 2'
     });
 

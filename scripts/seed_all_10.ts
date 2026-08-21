@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
 import path from 'path';
 import WebSocket from 'ws';
-import { FireFlyAdapter } from '../github-action/src/providers/FireFlyAdapter';
+import { MangaPillAdapter } from '../github-action/src/providers/MangaPillAdapter';
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
@@ -15,8 +15,8 @@ async function seedAll10MangaIntoSupabase() {
   console.log('🚀 Seeding all 10 real manga titles into Supabase database...\n');
 
   try {
-    const firefly = new FireFlyAdapter();
-    const mangas = await firefly.fetchLatestManga(1);
+    const mangapill = new MangaPillAdapter();
+    const mangas = await mangapill.fetchLatestManga(1);
 
     if (!Array.isArray(mangas) || mangas.length === 0) {
       throw new Error('No manga returned from provider adapter.');
@@ -51,7 +51,7 @@ async function seedAll10MangaIntoSupabase() {
 
       // 2. Fetch & Upsert Chapters
       try {
-        const chapters = await firefly.fetchChapterList(item.sourceId);
+        const chapters = await mangapill.fetchChapterList(item.sourceId);
         if (Array.isArray(chapters) && chapters.length > 0) {
           for (const ch of chapters) {
             const { error: chErr } = await supabase

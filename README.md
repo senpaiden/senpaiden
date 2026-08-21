@@ -41,8 +41,8 @@ Senpai Den is a **free, mobile-first manga and manhwa reading platform** enginee
 | **Image Storage** | Cloudflare R2 | Free (10GB) |
 | **Image Processor** | Hugging Face Spaces (Docker) | Free |
 | **Scraper / CI** | GitHub Actions (Hourly Cron) | Free |
-| **Provider 1** | FireFly Manga API (self-hosted) | Free |
-| **Provider 2** | MangaHook API (fallback) | Free |
+| **Provider 1** | MangaPill (HTML DOM Scraper) | Free |
+| **Provider 2** | MangaDex API (Official REST API) | Free |
 
 **Total Monthly Cost: $0.00** *(Upgrade trigger: Supabase DB hits 450MB → Supabase Pro at $25/mo)*
 
@@ -52,7 +52,7 @@ Senpai Den is a **free, mobile-first manga and manhwa reading platform** enginee
 
 ```
 GitHub Actions (Hourly)
-    │ Provider Adapter (FireFly → MangaHook → DLQ)
+    │ Provider Adapter (MangaPill → MangaDex → DLQ)
     ▼
 Supabase PostgreSQL (QUEUED)
     │ Hugging Face polls queue
@@ -96,10 +96,10 @@ To run this platform locally without maxing out your machine's RAM, Senpai Den u
 
 - **Database:** Runs in the cloud (Supabase) to save 4GB+ of local RAM.
 - **Image Storage:** Runs locally via Docker (MinIO) to simulate Cloudflare R2.
-- **APIs:** Mock Provider API replaces external scrapers to prevent IP bans during rapid development.
+- **APIs:** Native scrapers fetch directly from MangaPill and MangaDex.
 
 ### How to Run Locally:
-1. Start the Local S3 bucket (MinIO) and Mock Provider:
+1. Start the Local S3 bucket (MinIO):
    ```bash
    docker compose up -d
    ```
@@ -154,8 +154,8 @@ senpai-den/
 │   │   └── providers/
 │   │       ├── MangaProvider.ts      # Interface
 │   │       ├── BaseAdapter.ts        # Throttle + UA rotation
-│   │       ├── FireFlyAdapter.ts
-│   │       └── MangaHookAdapter.ts
+│   │       ├── MangaPillAdapter.ts
+│   │       └── MangaDexAdapter.ts
 │   └── scripts/
 │       ├── scraper.ts
 │       └── evict.ts

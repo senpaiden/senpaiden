@@ -29,6 +29,7 @@ export function MangaCard({ manga, showChapter, className = "" }: Props) {
             alt={manga.title} 
             className="absolute inset-0 h-full w-full object-cover" 
             loading="lazy" 
+            referrerPolicy="no-referrer"
             onError={() => setImgError(true)}
           />
         ) : (

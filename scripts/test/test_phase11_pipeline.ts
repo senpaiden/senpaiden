@@ -1,5 +1,5 @@
 import http from 'http';
-import { FireFlyAdapter } from '../../github-action/src/providers/FireFlyAdapter';
+import { MangaPillAdapter } from '../../github-action/src/providers/MangaPillAdapter';
 
 async function verifyEndToEndPipeline() {
   console.log('=== END-TO-END PIPELINE AUDIT: 10 REAL MANGA TITLES ===\n');
@@ -10,8 +10,8 @@ async function verifyEndToEndPipeline() {
   // Test 1: Fetch Latest Manga List from Provider Adapter
   total++;
   try {
-    const firefly = new FireFlyAdapter();
-    const mangas = await firefly.fetchLatestManga(1);
+    const mangapill = new MangaPillAdapter();
+    const mangas = await mangapill.fetchLatestManga(1);
 
     if (Array.isArray(mangas) && mangas.length >= 10) {
       console.log(`✔ Test 1 Passed: Successfully fetched all ${mangas.length} real manga titles from Provider Adapter!`);
@@ -29,9 +29,9 @@ async function verifyEndToEndPipeline() {
   // Test 2: Verify Chapters for Ingested Titles
   total++;
   try {
-    const firefly = new FireFlyAdapter();
+    const mangapill = new MangaPillAdapter();
     const testSlug = 'chainsaw-man';
-    const chapters = await firefly.fetchChapterList(testSlug);
+    const chapters = await mangapill.fetchChapterList(testSlug);
 
     if (Array.isArray(chapters) && chapters.length > 0) {
       console.log(`\n✔ Test 2 Passed: Fetched ${chapters.length} chapters for '${testSlug}'!`);
@@ -47,9 +47,9 @@ async function verifyEndToEndPipeline() {
   // Test 3: Verify Page Images Ingestion Pipeline
   total++;
   try {
-    const firefly = new FireFlyAdapter();
+    const mangapill = new MangaPillAdapter();
     const testChapterId = 'chainsaw-man-1';
-    const pages = await firefly.fetchChapterPages(testChapterId);
+    const pages = await mangapill.fetchChapterPages(testChapterId);
 
     if (Array.isArray(pages) && pages.length >= 20) {
       console.log(`\n✔ Test 3 Passed: Ingestion pipeline loaded ${pages.length} high-res page image URLs for chapter '${testChapterId}'!`);

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getLocalCatalogue, type CatalogueManga } from "@/lib/local-catalogue";
 import { SITE_URL, mangaCanonical } from "@/lib/seo";
+import { fetchApi } from "@/lib/api-client";
 
 const staticRoutes: Array<{ path: string; changeFrequency: "daily" | "weekly" | "monthly"; priority: number }> = [
   { path: "", changeFrequency: "daily", priority: 1 },
@@ -19,18 +20,10 @@ async function getSitemapManga(): Promise<CatalogueManga[]> {
   const local = await getLocalCatalogue();
   if (local.length) return local;
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!apiUrl) return [];
-
   const results: CatalogueManga[] = [];
   for (let page = 1; page <= 100; page += 1) {
-    const response = await fetch(`${apiUrl}/api/manga?page=${page}`, {
-      signal: AbortSignal.timeout(5000),
-      next: { revalidate: 3600 },
-    });
-    if (!response.ok) break;
-    const payload = await response.json() as { data?: CatalogueManga[] };
-    const items = payload.data || [];
+    const payload = await fetchApi<{ data?: CatalogueManga[] }>(`/api/manga?page=${page}`);
+    const items = payload?.data || [];
     results.push(...items);
     if (items.length < 24) break;
   }

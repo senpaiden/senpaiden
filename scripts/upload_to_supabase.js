@@ -40,7 +40,7 @@ async function uploadManga(file) {
   // 1. Insert into public.manga
   const mangaPayload = {
     source_id: data.mangaId || data.slug,
-    source_provider: data.sourceProvider || (data.enrichmentStatus === 'requires_mangahook_provider' ? 'mangahook' : 'mangadex'),
+    source_provider: data.sourceProvider || (data.enrichmentStatus === 'requires_mangapill_provider' ? 'mangapill' : 'mangadex'),
     title: data.title,
     cover_url: data.coverUrl || null,
     genres: ['Action', 'Shounen'],

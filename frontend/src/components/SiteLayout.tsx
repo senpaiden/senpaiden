@@ -10,9 +10,9 @@ import { getLevel, getReaderProgression, PROGRESSION_UPDATED_EVENT } from "@/lib
 import { AUTH_UPDATED_EVENT, getStoredAccount, isSignedIn } from "@/lib/auth-storage";
 import { OPEN_CONSENT_EVENT } from "@/lib/consent";
 import {
-  Home, Compass, List, LayoutGrid, TrendingUp, RefreshCw,
-  Bookmark, History, Users, Search, Bell, Flame, Upload,
-  ChevronRight, Crown, Menu, X, Shield, UserRound,
+  Home, LayoutGrid, RefreshCw, Bookmark, History,
+  Search, Bell,
+  ChevronRight, Crown, Shield, UserRound,
   Moon, Sun, Laptop
 } from "lucide-react";
 
@@ -23,43 +23,6 @@ const SIDEBAR_ITEMS = [
   { icon: Bookmark, label: "Library", path: "/library" },
   { icon: History, label: "History", path: "/history" },
 ];
-
-function DiscordIcon(props: any) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <path d="M15.39 5.862a12.834 12.834 0 0 0-3.328-1.047 1 1 0 0 0-.825.437l-.373.6a13.383 13.383 0 0 0-3.738 0l-.373-.6a1 1 0 0 0-.825-.437 12.834 12.834 0 0 0-3.328 1.047 1 1 0 0 0-.58.825c-.247 5.762 1.34 10.99 4.316 14.582a1 1 0 0 0 .736.38 12.887 12.887 0 0 0 3.791-1.22 1 1 0 0 0 .151-1.636 10.224 10.224 0 0 1-1.353-.878 1 1 0 0 1 .158-1.68l.192-.12a10.016 10.016 0 0 0 7.822 0l.192.12a1 1 0 0 1 .158 1.68 10.224 10.224 0 0 1-1.353.878 1 1 0 0 0 .151 1.636 12.887 12.887 0 0 0 3.791 1.22 1 1 0 0 0 .736-.38c2.976-3.591 4.563-8.82 4.316-14.582a1 1 0 0 0-.58-.825Z"/>
-      <circle cx="8.5" cy="12.5" r="1.5" fill="currentColor"/>
-      <circle cx="15.5" cy="12.5" r="1.5" fill="currentColor"/>
-    </svg>
-  )
-}
-
-function TwitterIcon(props: any) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/>
-    </svg>
-  )
-}
-
-function InstagramIcon(props: any) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
-    </svg>
-  )
-}
-
-function YoutubeIcon(props: any) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <path d="M2.5 7.1C2.6 5.8 3.7 4.7 5 4.6 9.4 4.3 14.6 4.3 19 4.6c1.3.1 2.4 1.2 2.5 2.5.3 2.7.3 7.1 0 9.8-.1 1.3-1.2 2.4-2.5 2.5-4.4.3-9.6.3-19 0-1.3-.1-2.4-1.2-2.5-2.5-.3-2.7-.3-7.1 0-9.8z"/>
-      <path d="m9.5 15.5 7-3.5-7-3.5v7z"/>
-    </svg>
-  )
-}
 
 function HomeSkeletonLoader() {
   const navRows = ["w-56", "w-36", "w-40", "w-48", "w-36", "w-36"];
@@ -159,7 +122,6 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
   const [search, setSearch] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isSiteLoading, setIsSiteLoading] = useState(true);
-  const [showIntroVideo, setShowIntroVideo] = useState(false);
   const [accountName, setAccountName] = useState("Senpai");
   const [signedIn, setSignedIn] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
@@ -168,45 +130,10 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
   const isReader = pathname.match(/^\/manga\/[^/]+\/[^/]+(\/.*)?$/);
 
   useEffect(() => {
-    const introStorageKey = "senpaiden_has_seen_intro_video_v1";
-    const hasSeenIntro = localStorage.getItem(introStorageKey) === "true";
-    const minimumLoaderTime = hasSeenIntro ? 450 : 1800;
-    const startedAt = Date.now();
-    let done = false;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-
-    setShowIntroVideo(!hasSeenIntro);
-
-    const finishLoading = () => {
-      if (done) return;
-
-      const elapsed = Date.now() - startedAt;
-      const waitTime = Math.max(minimumLoaderTime - elapsed, 0);
-
-      timer = setTimeout(() => {
-        done = true;
-        localStorage.setItem(introStorageKey, "true");
-        setIsSiteLoading(false);
-      }, waitTime);
-    };
-
-    if (document.readyState === "complete") {
-      finishLoading();
-    } else {
-      window.addEventListener("load", finishLoading, { once: true });
-      const fallbackTimer = setTimeout(finishLoading, 4500);
-      return () => {
-        done = true;
-        window.removeEventListener("load", finishLoading);
-        clearTimeout(fallbackTimer);
-        if (timer) clearTimeout(timer);
-      };
-    }
-
-    return () => {
-      done = true;
-      if (timer) clearTimeout(timer);
-    };
+    const timer = setTimeout(() => {
+      setIsSiteLoading(false);
+    }, 250);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -306,30 +233,17 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* LOADING SCREEN */}
-      <div className={`fixed inset-0 z-[100] bg-[#0F1117] transition-opacity duration-500 flex items-center justify-center ${isSiteLoading ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
-        {showIntroVideo ? (
-          <video
-            src="/loading-page.mp4"
-            autoPlay
-            muted
-            playsInline
-            loop
-            preload="auto"
-            aria-label="SenpaiDen loading intro"
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <HomeSkeletonLoader />
-        )}
+      <div className={`fixed inset-0 z-[100] bg-[#0F1117] transition-opacity duration-500 flex items-center justify-center ${isSiteLoading ? "opacity-100" : "opacity-0 pointer-events-none"}`} suppressHydrationWarning>
+        <HomeSkeletonLoader />
       </div>
 
       {/* MOBILE TOP NAV (Visible only on small screens) */}
       {!isReader && (
       <nav className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-14 gap-2 bg-[#0F1117]/95 backdrop-blur-xl border-b border-red-500/10">
         
-        <a href="/" className="flex items-center gap-2 -ml-1">
+        <Link href="/" className="flex items-center gap-2 -ml-1">
           <img src={senpaiDenLogo.src} alt="SenpaiDen Logo" className="h-8 w-auto object-contain" />
-        </a>
+        </Link>
 
         <div className="flex items-center gap-4">
           <Link href={signedIn ? "/account" : "/login"} aria-label={signedIn ? "Account" : "Log in"} className="flex items-center gap-2 shrink-0 transition-opacity hover:opacity-80 -mr-1">
@@ -350,9 +264,9 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
       {!isReader && (
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-[260px] flex-col z-50 bg-[#0F1117]/95 backdrop-blur-xl border-r border-white/5 overflow-y-auto no-scrollbar pb-6">
         {/* LOGO */}
-        <a href="/" className="flex items-center justify-center gap-3 px-4 py-4 shrink-0 border-b border-white/5">
+        <Link href="/" className="flex items-center justify-center gap-3 px-4 py-4 shrink-0 border-b border-white/5">
           <img src={senpaiDenLogo.src} alt="SenpaiDen Logo" className="w-full max-w-[200px] h-auto object-contain drop-shadow-[0_0_8px_rgba(255,46,46,0.3)]" />
-        </a>
+        </Link>
 
         {/* MENU ITEMS */}
         <div className="flex-1 flex flex-col gap-1 px-4">
@@ -360,17 +274,15 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
             const Icon = item.icon;
             const reallyActive = isActive(item.path);
 
-            const content = <><Icon size={18} className={reallyActive ? "text-white" : "text-zinc-400"} /><span className="text-[13px] font-bold font-noto tracking-wide">{item.label}</span></>;
-            const navClass = "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200";
-            const navStyle = { background: reallyActive ? "#FF2E2E" : "transparent", color: reallyActive ? "white" : "#A1A1AA" };
-
-            return item.path === "/" ? (
-              <a key={i} href="/" className={navClass} style={navStyle}>{content}</a>
-            ) : (
+            return (
               <Link key={i} href={item.path}
-                className={navClass}
-                style={navStyle}>
-                {content}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200"
+                style={{
+                  background: reallyActive ? "#FF2E2E" : "transparent",
+                  color: reallyActive ? "white" : "#A1A1AA"
+                }}>
+                <Icon size={18} className={reallyActive ? "text-white" : "text-zinc-400"} />
+                <span className="text-[13px] font-bold font-noto tracking-wide">{item.label}</span>
               </Link>
             );
           })}

@@ -49,3 +49,5 @@ coverage/
 hf-worker/__pycache__/
 hf-worker/*.pyc
 hf-worker/.gradio/
+.vercel
+.env*

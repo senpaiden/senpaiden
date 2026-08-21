@@ -52,8 +52,8 @@ Every component that can fail (scrapers, image processors, upstream APIs) is dec
 │         │  Provider Adapter            │  Hugging Face polls queue     │
 │         ▼                              ▼                                │
 │  ┌──────────────────┐        ┌─────────────────┐                       │
-│  │  FireFlyAdapter  │        │  Hugging Face   │                       │
-│  │  MangaHookAdapter│        │  Worker Space   │                       │
+│  │  MangaPillAdapter  │        │  Hugging Face   │                       │
+│  │  MangaDexAdapter│        │  Worker Space   │                       │
 │  │  (BaseAdapter:   │        │  - Download img  │                       │
 │  │   UA rotation,   │        │  - Slice 1500px  │                       │
 │  │   2req/s,        │        │  - Convert WebP  │                       │
@@ -105,7 +105,7 @@ Every component that can fail (scrapers, image processors, upstream APIs) is dec
 **Key Properties:**
 - Fresh ephemeral IP per run → natural IP rotation against upstream source sites
 - Calls `BaseAdapter.throttledFetch()` → enforced 2 req/s, 100 req/run cap
-- Dual-provider failover: FireFly first, MangaHook on failure, DLQ on both failure
+- Dual-provider failover: MangaPill first, MangaDex on failure, DLQ on both failure
 - Also runs the weekly eviction job (Sunday 3AM UTC)
 - Supabase liveness: hourly scraper counts as "activity", preventing DB pause
 
@@ -134,15 +134,15 @@ abstract class BaseAdapter implements MangaProvider {
   protected throttledFetch(url: string): Promise<Response>;
 }
 
-class FireFlyAdapter extends BaseAdapter { /* primary */ }
-class MangaHookAdapter extends BaseAdapter { /* fallback */ }
+class MangaPillAdapter extends BaseAdapter { /* primary */ }
+class MangaDexAdapter extends BaseAdapter { /* fallback */ }
 ```
 
 **Failover Logic:**
 ```
-1. Try FireFly → success → insert QUEUED record
-2. FireFly 4xx/5xx → try MangaHook
-3. MangaHook 4xx/5xx → log to error_log → insert DLQ record (PROVIDER_BLACKOUT)
+1. Try MangaPill → success → insert QUEUED record
+2. MangaPill 4xx/5xx → try MangaDex
+3. MangaDex 4xx/5xx → log to error_log → insert DLQ record (PROVIDER_BLACKOUT)
 4. For READY chapters: maintain content_freshness = 'stale', retry every 30min for 24hr
 ```
 
@@ -157,7 +157,7 @@ class MangaHookAdapter extends BaseAdapter { /* fallback */ }
 CREATE TABLE manga (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   source_id       TEXT UNIQUE NOT NULL,       -- provider's internal ID
-  source_provider TEXT NOT NULL,              -- 'firefly' | 'mangahook'
+  source_provider TEXT NOT NULL,              -- 'mangapill' | 'mangadex'
   title           TEXT NOT NULL,
   cover_url       TEXT,
   genres          TEXT[] DEFAULT '{}',
@@ -236,7 +236,7 @@ CREATE TABLE dead_letter_queue (
 ```sql
 CREATE TABLE error_log (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  provider     TEXT,            -- 'firefly' | 'mangahook' | 'hf_worker' | 'cf_worker'
+  provider     TEXT,            -- 'mangapill' | 'mangadex' | 'hf_worker' | 'cf_worker'
   error_type   TEXT NOT NULL,
   error_detail TEXT,
   chapter_id   UUID REFERENCES chapters(id),
@@ -445,9 +445,9 @@ GitHub Actions runners are destroyed after each run. Each run gets a fresh IP fr
 ### New Chapter Discovery Flow
 ```
 1. GitHub Actions cron fires (hourly, fresh IP)
-2. FireFlyAdapter.fetchLatestManga() called (throttled, 2 req/s)
+2. MangaPillAdapter.fetchLatestManga() called (throttled, 2 req/s)
 3. New chapters inserted into Supabase: job_status = 'QUEUED'
-4. If FireFly fails → MangaHookAdapter attempted
+4. If MangaPill fails → MangaDexAdapter attempted
 5. If both fail → error_log entry + DLQ entry (PROVIDER_BLACKOUT)
 6. READY chapters: content_freshness → 'stale', retry scheduled
 ```

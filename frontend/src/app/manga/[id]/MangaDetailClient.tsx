@@ -4,11 +4,45 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Star, Bookmark, Play, ChevronRight, BookOpen, Eye, Calendar,
-  User, Palette, TrendingUp, MessageCircle, ThumbsUp, Share2,
+  Star, Bookmark, Play, ChevronRight, BookOpen, Eye,
+  User, Palette, TrendingUp, ThumbsUp, Share2,
 } from "lucide-react";
 
-export function MangaDetailClient({ manga, chapters, related }: { manga: any; chapters: any[]; related: any[] }) {
+interface DetailManga {
+  id: string;
+  title: string;
+  alt_title?: string;
+  description?: string;
+  genres?: string[];
+  status?: string;
+  cover_url?: string;
+  author?: string;
+  artist?: string;
+  view_count?: number;
+  total_chapters?: number;
+  rating?: number;
+  views?: string | number;
+}
+
+interface DetailChapter {
+  id: string;
+  chapter_number: number;
+  title?: string;
+  language?: string;
+  release_date?: string;
+  views?: number;
+  likes?: number;
+}
+
+export function MangaDetailClient({ 
+  manga, 
+  chapters, 
+  related 
+}: { 
+  manga: DetailManga; 
+  chapters: DetailChapter[]; 
+  related: DetailManga[] 
+}) {
   const router = useRouter();
   const [saved, setSaved] = useState(false);
   const [activeTab, setActiveTab] = useState<"chapters" | "info" | "reviews">("chapters");
@@ -23,19 +57,19 @@ export function MangaDetailClient({ manga, chapters, related }: { manga: any; ch
     try {
       const libraryStr = localStorage.getItem("senpai_library");
       if (libraryStr) {
-        const library = JSON.parse(libraryStr);
-        setSaved(library.some((m: any) => typeof m === "string" ? m === manga.id : m.slug === manga.id || m.id === manga.id));
+        const library = JSON.parse(libraryStr) as Array<string | { slug?: string; id?: string }>;
+        setSaved(library.some((m) => typeof m === "string" ? m === manga.id : m.slug === manga.id || m.id === manga.id));
       }
-    } catch (e) {}
+    } catch {}
   }, [manga.id]);
 
   const toggleSave = () => {
     try {
       const libraryStr = localStorage.getItem("senpai_library");
-      let library: any[] = libraryStr ? JSON.parse(libraryStr) : [];
+      let library = (libraryStr ? JSON.parse(libraryStr) : []) as Array<string | { slug?: string; id?: string; title?: string }>;
 
       if (saved) {
-        library = library.filter((m: any) => typeof m === "string" ? m !== manga.id : (m.slug !== manga.id && m.id !== manga.id));
+        library = library.filter((m) => typeof m === "string" ? m !== manga.id : (m.slug !== manga.id && m.id !== manga.id));
         setSaved(false);
       } else {
         const mangaObj = {
@@ -53,7 +87,7 @@ export function MangaDetailClient({ manga, chapters, related }: { manga: any; ch
       }
       localStorage.setItem("senpai_library", JSON.stringify(library));
       window.dispatchEvent(new CustomEvent("senpai_library_updated"));
-    } catch (e) {}
+    } catch {}
   };
 
   const REVIEWS = [
@@ -65,7 +99,7 @@ export function MangaDetailClient({ manga, chapters, related }: { manga: any; ch
     <div className="text-foreground font-exo pb-16 md:pb-8">
       {/* Banner */}
       <div className="relative h-52 overflow-hidden">
-        <img src={manga.cover_url} alt={manga.title} className="w-full h-full object-cover opacity-30" />
+        <img src={manga.cover_url} alt={manga.title} referrerPolicy="no-referrer" className="w-full h-full object-cover opacity-30" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0F1117]/80 to-[#0F1117]" />
         
         {/* Breadcrumb */}
@@ -83,7 +117,7 @@ export function MangaDetailClient({ manga, chapters, related }: { manga: any; ch
         <div className="flex flex-col md:flex-row gap-6">
           {/* Cover */}
           <div className="flex-shrink-0 mx-auto md:mx-0 rounded-2xl overflow-hidden shadow-2xl w-40 md:w-[180px] h-56 md:h-[250px] border-2 border-primary/40">
-            <img src={manga.cover_url} alt={manga.title} className="w-full h-full object-cover" />
+            <img src={manga.cover_url} alt={manga.title} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
           </div>
 
           {/* Info */}
@@ -254,7 +288,15 @@ export function MangaDetailClient({ manga, chapters, related }: { manga: any; ch
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed mb-3 font-noto">{r.text}</p>
-                  <button onClick={() => setLiked((p) => { const n = new Set(p); n.has(i) ? n.delete(i) : n.add(i); return n; })}
+                  <button onClick={() => setLiked((p) => {
+                      const n = new Set(p);
+                      if (n.has(i)) {
+                        n.delete(i);
+                      } else {
+                        n.add(i);
+                      }
+                      return n;
+                    })}
                     className={`flex items-center gap-1.5 text-[11px] transition-all ${liked.has(i) ? "text-primary" : "text-muted-foreground hover:text-white"}`}>
                     <ThumbsUp size={12} className={liked.has(i) ? "fill-red-500" : ""} />
                     {r.likes + (liked.has(i) ? 1 : 0)} helpful

@@ -35,7 +35,6 @@ echo "⚙️  Stopping background workers and dev servers..."
 
 # Array of process patterns to terminate
 PATTERNS=(
-  "mock-providers/server.js"
   "wrangler"
   "hf-worker"
   "next dev"

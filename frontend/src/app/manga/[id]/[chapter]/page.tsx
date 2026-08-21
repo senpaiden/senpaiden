@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { MangaReaderContainer } from "@/components/MangaReaderContainer";
+import { fetchApi } from "@/lib/api-client";
+import { getApiUrl } from "@/lib/api";
 import { getLocalCatalogue } from "@/lib/local-catalogue";
-import { chapterCanonical, mangaCanonical, SITE_NAME, SITE_URL, absoluteUrl } from "@/lib/seo";
+import { cleanDescription, chapterCanonical, mangaCanonical, SITE_NAME, absoluteUrl } from "@/lib/seo";
 
 // Cache immutable chapters forever. Stale chapters are cached for 60s at the edge.
 export const revalidate = 31536000;
@@ -13,7 +15,7 @@ export async function generateMetadata({
   params: Promise<{ id: string; chapter: string }>;
 }): Promise<Metadata> {
   const { id, chapter } = await params;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+  const apiUrl = getApiUrl();
 
   let title = "Manga";
   let coverUrl = absoluteUrl("/icon.png");
@@ -69,15 +71,13 @@ export async function generateMetadata({
 
 export default async function ReaderPage({ params }: { params: Promise<{ id: string; chapter: string }> }) {
   const resolvedParams = await params;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
+  const apiUrl = getApiUrl();
 
   try {
-    // Single compound fetch instead of waterfall
     const compoundRes = await fetch(`${apiUrl}/api/manga/${resolvedParams.id}/chapter/${resolvedParams.chapter}`);
 
     if (!compoundRes.ok) {
       if (compoundRes.status === 400) {
-        // Not ready, redirect to processing
         redirect(`/manga/${resolvedParams.id}/${resolvedParams.chapter}/processing`);
       }
       notFound();
@@ -86,31 +86,62 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
     const { manga, chapter, chapters, pages, available_languages } = await compoundRes.json();
     const freshness = compoundRes.headers.get("x-content-freshness") as "fresh" | "stale" | "archived" | null;
 
-    // Trigger read increment asynchronously
-    fetch(`${apiUrl}/api/chapter/${chapter.id}/read`, { method: "POST" }).catch(() => {});
+    fetchApi(`/api/chapter/${chapter.id}/read`, { method: "POST" }).catch(() => {});
 
-    // Re-flatten the slices into a single array for rendering
     const allSlices: { key: string; width: number; height: number; blurhash?: string }[] = [];
-    pages?.forEach((page: { r2_keys: string[]; slice_dimensions: string | Record<string, unknown>[]; blurhash?: string }) => {
-      const r2Keys = page.r2_keys;
-      const dims =
-        typeof page.slice_dimensions === "string"
+    const pageGroups: { pageNumber: number; slices: { key: string; width: number; height: number; blurhash?: string }[] }[] = [];
+
+    interface RawPage {
+      page_number?: number;
+      r2_keys: string[];
+      slice_dimensions?: unknown;
+      blurhash?: unknown;
+    }
+
+    pages?.forEach((page: RawPage, pageIdx: number) => {
+      const r2Keys = page.r2_keys || [];
+      let dims: { width?: number; height?: number }[] = [];
+      try {
+        dims = typeof page.slice_dimensions === "string"
           ? JSON.parse(page.slice_dimensions)
-          : page.slice_dimensions;
+          : (Array.isArray(page.slice_dimensions) ? page.slice_dimensions : []);
+      } catch {}
 
-      const bHashes = page.blurhash ? (typeof page.blurhash === "string" ? JSON.parse(page.blurhash) : page.blurhash) : [];
+      let bHashes: unknown = page.blurhash;
+      try {
+        if (typeof page.blurhash === "string" && page.blurhash.startsWith("[")) {
+          bHashes = JSON.parse(page.blurhash);
+        }
+      } catch {}
 
+      const pSlices: { key: string; width: number; height: number; blurhash?: string }[] = [];
       r2Keys.forEach((key, idx) => {
-        allSlices.push({
-          key,
-          width: (dims[idx] as { width: number })?.width,
-          height: (dims[idx] as { height: number })?.height,
-          blurhash: bHashes[idx],
-        });
+        let cleanKey = key;
+        if (cleanKey.includes(".mangadex.network/data/")) {
+          cleanKey = cleanKey.replace(/https?:\/\/[^\/]+\.mangadex\.network\/data\//, "https://uploads.mangadex.org/data/");
+        }
+        const dim = (Array.isArray(dims) && dims[idx]) ? dims[idx] : { width: 800, height: 1200 };
+        const bHash = Array.isArray(bHashes) ? bHashes[idx] : (typeof bHashes === "string" ? bHashes : undefined);
+        const item = {
+          key: cleanKey,
+          width: dim.width || 800,
+          height: dim.height || 1200,
+          blurhash: bHash,
+        };
+        allSlices.push(item);
+        pSlices.push(item);
+      });
+
+      pageGroups.push({
+        pageNumber: page.page_number || (pageIdx + 1),
+        slices: pSlices,
       });
     });
 
-    const r2BaseUrl = process.env.NEXT_PUBLIC_R2_URL || "http://localhost:9000/manga-images";
+    const r2BaseUrl =
+      process.env.NEXT_PUBLIC_R2_URL ||
+      "https://lsdnqbfiytyonvmzurxj.supabase.co/storage/v1/object/public/manga-images";
+
     const canonical = chapterCanonical(resolvedParams.id, resolvedParams.chapter);
     const mangaUrl = mangaCanonical(resolvedParams.id);
     const mangaTitle = manga.title || "Manga";
@@ -143,6 +174,7 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
           chapterNumber={resolvedParams.chapter}
           chapters={chapters || []}
           slices={allSlices}
+          pageGroups={pageGroups}
           freshness={freshness ?? undefined}
           r2BaseUrl={r2BaseUrl}
           availableLanguages={available_languages || ["en", "es", "fr"]}
@@ -150,7 +182,10 @@ export default async function ReaderPage({ params }: { params: Promise<{ id: str
         />
       </>
     );
-  } catch {
+  } catch (e) {
+    if ((e as { digest?: string })?.digest?.startsWith("NEXT_REDIRECT")) {
+      throw e;
+    }
     notFound();
   }
 }

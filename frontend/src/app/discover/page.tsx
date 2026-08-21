@@ -1,3 +1,4 @@
+import { fetchApi } from "@/lib/api-client";
 import Link from "next/link";
 import { MangaCard } from "@/components/MangaCard";
 import { AdvancedFilterPanel } from "@/components/AdvancedFilterPanel";
@@ -21,26 +22,24 @@ export default async function Discover({ searchParams }: { searchParams: Promise
   const excluded = resolvedParams.excluded;
   const sort = resolvedParams.sort;
   const limit = 24;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
   
   let mangas: CatalogueManga[] = [];
   let totalCount = 0;
 
   try {
-    const url = new URL(`${apiUrl}/api/manga`);
-    url.searchParams.set("page", pageNum.toString());
-    url.searchParams.set("limit", limit.toString());
+    const params = new URLSearchParams();
+    params.set("page", pageNum.toString());
+    params.set("limit", limit.toString());
     
     if (currentGenre !== "All" && !included) {
-      url.searchParams.set("genre", currentGenre);
+      params.set("genre", currentGenre);
     }
-    if (included) url.searchParams.set("included", included);
-    if (excluded) url.searchParams.set("excluded", excluded);
-    if (sort) url.searchParams.set("sort", sort);
+    if (included) params.set("included", included);
+    if (excluded) params.set("excluded", excluded);
+    if (sort) params.set("sort", sort);
       
-    const res = await fetch(url.toString(), { signal: AbortSignal.timeout(2500), next: { revalidate: 60 } });
-    if (res.ok) {
-      const data = await res.json();
+    const data = await fetchApi<{ data?: CatalogueManga[]; total?: number }>(`/api/manga?${params.toString()}`);
+    if (data) {
       mangas = (data.data || []) as CatalogueManga[];
       totalCount = data.total || mangas.length;
     }
@@ -86,7 +85,7 @@ export default async function Discover({ searchParams }: { searchParams: Promise
   return (
     <div className="pb-28 md:pb-8">
       <div className="mx-auto max-w-7xl px-4 pt-4 md:px-8 md:pt-8">
-        <h1 className="text-2xl font-black md:text-3xl">{isLatest ? "Latest Releases" : "Search"}</h1>
+        <h1 className="text-2xl font-black md:text-3xl">{isLatest ? "Latest Releases" : (currentGenre !== "All" ? `${currentGenre} Manga` : "Discover Manga")}</h1>
         <p className="mt-1 text-sm text-[#A1A1AA]">{isLatest ? "Manga with recently updated chapters." : "Handpicked worlds waiting inside the Den."}</p>
 
         {/* Genre Filters */}

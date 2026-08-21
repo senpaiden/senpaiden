@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-
+import { fetchApi } from "@/lib/api-client";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { MangaCard } from "@/components/MangaCard";
 import { Search as SearchIcon, X, Loader2, Frown } from "lucide-react";
 import type { Manga } from "@/lib/manga-data";
 
-export default function SearchPage() {
-  const [query, setQuery] = useState("");
+function SearchContent() {
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("q") || "";
+  const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<Manga[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -25,13 +28,10 @@ export default function SearchPage() {
     setHasSearched(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8787";
-      const res = await fetch(`${apiUrl}/api/manga?q=${encodeURIComponent(searchTerm.trim())}`);
+      const json = await fetchApi<{ data?: any[] }>(`/api/manga?q=${encodeURIComponent(searchTerm.trim())}`);
       
-      if (res.ok) {
-        const json = await res.json();
-        const data = json.data || [];
-        
+      if (json?.data) {
+        const data = json.data;
         const mapped: Manga[] = data.map((m: any) => ({
           slug: m.id,
           title: m.title,
@@ -49,12 +49,18 @@ export default function SearchPage() {
       } else {
         setResults([]);
       }
-    } catch (e) {
+    } catch {
       setResults([]);
     } finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (initialQuery) {
+      void performSearch(initialQuery);
+    }
+  }, [initialQuery]);
 
   const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -143,3 +149,12 @@ export default function SearchPage() {
     </div>
   );
 }
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={null}>
+      <SearchContent />
+    </Suspense>
+  );
+}
+

@@ -64,12 +64,14 @@ export function ReaderImage({ src, width, height, priority = false, blurhash, co
   };
 
   return (
-    <div className={cn("relative w-full mx-auto bg-black overflow-hidden leading-none select-none m-0 p-0 border-0", getContainerFitClass())}>
+    <div 
+      className={cn("relative w-full mx-auto bg-black overflow-hidden leading-none select-none m-0 p-0 border-0", getContainerFitClass())}
+      style={{ aspectRatio: `${width} / ${height}` }}
+    >
       {/* Loading Skeleton / Blurhash Placeholder */}
       {!isLoaded && !hasError && (
         <div 
           className="absolute inset-0 z-0 w-full flex items-center justify-center bg-zinc-950/80 border border-zinc-900/60"
-          style={{ aspectRatio: `${width} / ${height}` }}
         >
           {blurhash ? (
             <Blurhash
@@ -112,6 +114,7 @@ export function ReaderImage({ src, width, height, priority = false, blurhash, co
           width={width}
           height={height}
           loading={priority ? "eager" : "lazy"}
+          referrerPolicy="no-referrer"
           className={cn(
             getFitImageClass(),
             "transition-opacity duration-300 relative z-10",

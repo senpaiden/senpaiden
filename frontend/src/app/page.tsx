@@ -8,11 +8,13 @@ import { AdSlot } from "@/components/AdSlot";
 import { Frown, Play, ChevronRight } from "lucide-react";
 import { getLocalCatalogue, type CatalogueManga } from "@/lib/local-catalogue";
 
-// Server Component fetching live data from Cloudflare Worker
+import { getApiUrl } from "@/lib/api";
+
+// Server Component fetching live data from Cloudflare Worker / Next API
 export const revalidate = 60; // Edge Cache for 60 seconds
 
 export default async function Home({ searchParams }: { searchParams?: Promise<{ q?: string }> }) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8787';
+  const apiUrl = getApiUrl();
   const resolvedSearchParams = await searchParams;
   const searchQuery = resolvedSearchParams?.q?.trim() || "";
   
@@ -117,7 +119,7 @@ export default async function Home({ searchParams }: { searchParams?: Promise<{ 
           >
             {featured.cover_url && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={featured.cover_url} alt={featured.title} className="absolute inset-0 h-full w-full object-cover" />
+              <img src={featured.cover_url} alt={featured.title} referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
             )}
           </div>
           <div className="min-w-0 flex-1">

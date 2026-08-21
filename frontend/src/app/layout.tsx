@@ -87,7 +87,10 @@ export default function RootLayout({
   };
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="antialiased min-h-screen flex flex-col">
+      <head>
+        <meta name="referrer" content="no-referrer" />
+      </head>
+      <body className="antialiased min-h-screen flex flex-col" suppressHydrationWarning>
         {GA_ID && (
           <>
             <Script
@@ -110,7 +113,10 @@ export default function RootLayout({
             />
           </>
         )}
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+        />
         <SiteLayout>
           {children}
         </SiteLayout>

@@ -64,9 +64,9 @@ Build the discovery engine. This is the first moving part of the platform. By en
 - [ ] 2.2 Install dependencies: `@supabase/supabase-js`, `tsx`, `sharp` (for metadata only), `dotenv`
 - [ ] 2.3 Create `src/providers/MangaProvider.ts` — interface definition
 - [ ] 2.4 Create `src/providers/BaseAdapter.ts` — throttledFetch, UA rotation (5 UAs), 100 req/run cap, 2 req/s queue
-- [ ] 2.5 Create `src/providers/FireFlyAdapter.ts` — implement `fetchLatestManga` and `fetchChapterPages`
-- [ ] 2.6 Create `src/providers/MangaHookAdapter.ts` — implement same interface
-- [ ] 2.7 Create `src/providers/ProviderOrchestrator.ts` — failover logic (FireFly → MangaHook → DLQ)
+- [ ] 2.5 Create `src/providers/MangaPillAdapter.ts` — implement `fetchLatestManga` and `fetchChapterPages`
+- [ ] 2.6 Create `src/providers/MangaDexAdapter.ts` — implement same interface
+- [ ] 2.7 Create `src/providers/ProviderOrchestrator.ts` — failover logic (MangaPill → MangaDex → DLQ)
 - [ ] 2.8 Create `scripts/scraper.ts` — main entry point: orchestrate discovery, upsert to Supabase
 - [ ] 2.9 Create `scripts/evict.ts` — calls Supabase `evict_old_chapter_images()` RPC + R2 cleanup
 - [ ] 2.10 Write `.github/workflows/scraper.yml` — hourly cron, secrets injection, `npx tsx scripts/scraper.ts`
@@ -85,13 +85,13 @@ Build the discovery engine. This is the first moving part of the platform. By en
 
 ### Dependencies
 - Phase 1 complete (Supabase schema must exist before inserting records)
-- FireFly API key (from self-hosted instance or public endpoint)
-- MangaHook API key
+- MangaPill API key (from self-hosted instance or public endpoint)
+- MangaDex API key
 
 ### Verification
 - [ ] Run `npx tsx scripts/scraper.ts` locally — verify ≥1 manga upserted into Supabase
 - [ ] Verify `chapters` records created with `job_status = 'QUEUED'`
-- [ ] Kill FireFly env var, re-run — verify MangaHook fallback activates
+- [ ] Kill MangaPill env var, re-run — verify MangaDex fallback activates
 - [ ] Kill both env vars, re-run — verify DLQ entry created, no crash
 - [ ] Push to GitHub, trigger `workflow_dispatch`, confirm Actions run succeeds
 - [ ] Confirm 100 req/run cap test: mock 150 URLs, verify only 100 are fetched
@@ -251,12 +251,12 @@ Build the user-facing product. This is what users see, touch, and judge the plat
 ---
 
 ## Local Development (Mock APIs)
-If you want to run the platform entirely locally without deploying the external `FireFly` or `MangaHook` scrapers, a mock API server is included.
+If you want to run the platform entirely locally without deploying the external `MangaPill` or `MangaDex` scrapers, a mock API server is included.
 
 1. Start the mock provider:
    `docker compose up -d`
-2. This spins up an Express server on `http://localhost:4000` that perfectly mimics the FireFly/MangaHook JSON interface with demo data (*Solo Leveling* and *Tower of God*).
-3. The `.env` file is pre-configured to point `FIREFLY_API_BASE_URL` to `http://localhost:4000`.
+2. This spins up an Express server on `http://localhost:4000` that perfectly mimics the MangaPill/MangaDex JSON interface with demo data (*Solo Leveling* and *Tower of God*).
+3. The `.env` file is pre-configured to point `MANGAPILL_BASE_URL` to `http://localhost:4000`.
 
 ---
 
@@ -283,7 +283,7 @@ These apply to every phase:
 | Supabase pauses project (7-day inactivity) | Low | High | Hourly scraper cron counts as activity; configure keep-alive ping |
 | R2 bandwidth cap exceeded | Low | Medium | Cloudflare CDN serves from edge — R2 bandwidth is NOT charged for CDN requests |
 | GitHub Actions minutes exhausted | Low | Medium | Reduce scrape frequency to 2-hourly if needed |
-| FireFly/MangaHook APIs shut down | Medium | High | Adapter pattern + DLQ; platform keeps serving stale until new adapter is deployed |
+| MangaPill/MangaDex APIs shut down | Medium | High | Adapter pattern + DLQ; platform keeps serving stale until new adapter is deployed |
 
 ---
 

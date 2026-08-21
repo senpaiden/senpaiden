@@ -1,0 +1,848 @@
+[
+  {
+    "id": "8a775007-fc10-47e0-99cf-d15640f07a8c",
+    "title": "20th Century Boys",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "055cde16-5724-451f-a797-842a065856c3",
+    "title": "Against the Gods",
+    "total": 231,
+    "ready_completed": 231,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "7366807f-0e80-4c84-a204-b7ea90b02f1e",
+    "title": "Akira",
+    "total": 42,
+    "ready_completed": 42,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "82239a93-9de8-4238-bedf-c44957fdc963",
+    "title": "Apotheosis",
+    "total": 417,
+    "ready_completed": 417,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "40eb19e5-1e64-4995-98b7-2eda6999a3c4",
+    "title": "Attack on Titan",
+    "total": 1,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 1
+  },
+  {
+    "id": "7d11c7a2-63aa-449e-ba19-b89f1c3ddab5",
+    "title": "Bastard",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "763532c5-f915-4144-9c1f-6e44a00c81ca",
+    "title": "Battle Through the Heavens",
+    "total": 471,
+    "ready_completed": 471,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "df9b1d6e-c76c-43fa-9983-e4ca6643a387",
+    "title": "Beastars",
+    "total": 198,
+    "ready_completed": 198,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "b759eb84-420f-42b8-931e-c9eefaa3fa89",
+    "title": "Berserk",
+    "total": 404,
+    "ready_completed": 404,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "9d3c1eb0-bf0a-4209-9db7-b0567b7599fe",
+    "title": "Berserk of Gluttony",
+    "total": 37,
+    "ready_completed": 37,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "79faa586-38b0-4c1b-a789-2b24d3519140",
+    "title": "Black Clover",
+    "total": 9,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 9
+  },
+  {
+    "id": "e2e3c51e-729e-4fff-bd58-ea3066c17d1e",
+    "title": "Bleach",
+    "total": 4,
+    "ready_completed": 1,
+    "processing": 0,
+    "queued": 0,
+    "failed": 3
+  },
+  {
+    "id": "571e50da-ad90-4f6e-ab6f-2ecba183615b",
+    "title": "Blue Lock",
+    "total": 3,
+    "ready_completed": 1,
+    "processing": 0,
+    "queued": 0,
+    "failed": 2
+  },
+  {
+    "id": "a0a41211-023f-42b4-a431-5b8d56f1ee2f",
+    "title": "Boruto",
+    "total": 1,
+    "ready_completed": 1,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "10cd3839-1a4f-4836-b3e0-0db55f6ba417",
+    "title": "Chainsaw Man",
+    "total": 100,
+    "ready_completed": 95,
+    "processing": 0,
+    "queued": 0,
+    "failed": 5
+  },
+  {
+    "id": "1a6763c2-9f08-41e9-85df-be56697e9a09",
+    "title": "Coiling Dragon",
+    "total": 216,
+    "ready_completed": 216,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "800d6307-c624-496f-a112-7faee4bc6c61",
+    "title": "Days of Hana",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "e35d5baa-49d4-4fb3-a16d-cccb9bd9104b",
+    "title": "Death Note",
+    "total": 3,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 3
+  },
+  {
+    "id": "ea6fb42c-64a7-4236-ba02-18386364241e",
+    "title": "Demon Slayer",
+    "total": 3,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 3
+  },
+  {
+    "id": "075c4838-ed1b-492c-ab73-0a5e1a013345",
+    "title": "Dr. Stone",
+    "total": 3,
+    "ready_completed": 0,
+    "processing": 1,
+    "queued": 0,
+    "failed": 2
+  },
+  {
+    "id": "5f12cae5-35f1-4f86-8f0f-c257d022a817",
+    "title": "Dragon Ball",
+    "total": 3,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 3
+  },
+  {
+    "id": "e3c6b021-e42d-4e8d-93e8-9eada762dd58",
+    "title": "Eleceed",
+    "total": 103,
+    "ready_completed": 103,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "b73db1db-9a55-40d7-a1ef-05d49b68efbb",
+    "title": "Fairy Tail",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "6698d714-1bd5-4f08-828a-84c05d250de8",
+    "title": "Fire Force",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "d4c7eb79-c623-4f91-a357-e4283442be77",
+    "title": "Full-Time Magister",
+    "total": 96,
+    "ready_completed": 96,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "cdb0d79a-c111-48eb-a19a-be1c9b15f094",
+    "title": "Fullmetal Alchemist",
+    "total": 118,
+    "ready_completed": 118,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "ce27ad21-728f-461e-98d4-43f00e50b5fa",
+    "title": "Gantz",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "0509ec20-50ea-4d15-8006-47fea21e3d6c",
+    "title": "Golden Kamuy",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "a9ceb9b7-c0a4-4586-b1e3-7c9aca2c2cd9",
+    "title": "Gosu",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "c3c05212-80ce-4088-8083-579aa8145aaf",
+    "title": "Grand Blue",
+    "total": 1,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 1
+  },
+  {
+    "id": "1dfc286f-afb5-49ed-9bb6-6cf61fe4f054",
+    "title": "Haikyuu!!",
+    "total": 3,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 3
+  },
+  {
+    "id": "9e85c5f0-3741-4dfb-ac66-bbd39478e74e",
+    "title": "Hardcore Leveling Warrior",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "8226eb7a-6b62-44cc-aa92-1c0d79f21f0c",
+    "title": "I Alone Level Grinding",
+    "total": 16,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 16
+  },
+  {
+    "id": "2fa0566b-0d85-4248-ad30-12df6b665299",
+    "title": "Inuyasha",
+    "total": 3,
+    "ready_completed": 1,
+    "processing": 0,
+    "queued": 0,
+    "failed": 2
+  },
+  {
+    "id": "62d41910-cc7a-4ea2-994a-4ff0e78dbadc",
+    "title": "Jinx",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "c001c54f-ec0e-484f-942d-3227314f8aed",
+    "title": "JoJo's Bizarre Adventure",
+    "total": 98,
+    "ready_completed": 98,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "d45675fe-e2bf-4924-a194-7541e34f95ca",
+    "title": "Jujutsu Kaisen",
+    "total": 3,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 3
+  },
+  {
+    "id": "23e6a820-a36f-4c41-9f71-7040fafb0117",
+    "title": "Kaiju No. 8",
+    "total": 7,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 7
+  },
+  {
+    "id": "0fb2270f-7bb2-45ac-b017-1271c1cdca4d",
+    "title": "Kingdom",
+    "total": 5,
+    "ready_completed": 5,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "b2f1f3e6-c5d0-4df0-adbd-39bda672fe44",
+    "title": "Level Up With the Gods",
+    "total": 2,
+    "ready_completed": 2,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "bae51755-c916-48da-a977-bb6170356620",
+    "title": "Lookism",
+    "total": 25,
+    "ready_completed": 25,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "ee8be09f-5529-4022-b132-714aeddb1829",
+    "title": "Lore Olympus",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "04d28032-7bee-47ce-adf8-a720b01ff5be",
+    "title": "Made in Abyss",
+    "total": 91,
+    "ready_completed": 91,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "623b6594-f04c-4395-a7ba-c0122b7aee65",
+    "title": "Martial Peak",
+    "total": 100,
+    "ready_completed": 100,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "4c24637b-260a-4cbd-b599-5614dfec0fdd",
+    "title": "Mercenary Enrollment",
+    "total": 37,
+    "ready_completed": 37,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "9ad58a9b-1fe8-43e0-819a-b48e852d5c16",
+    "title": "Mob Psycho 100",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "ee3b5f5b-cb40-4ab2-a061-91c169942d7c",
+    "title": "Monster",
+    "total": 135,
+    "ready_completed": 128,
+    "processing": 0,
+    "queued": 0,
+    "failed": 7
+  },
+  {
+    "id": "64f3d5f9-cd1a-475a-8369-3b1b510fea87",
+    "title": "My Hero Academia",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "16a48522-21bf-4ac0-9abd-659ebf0c334a",
+    "title": "Nano Machine",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "b32a875e-673a-419b-8590-136e5b47127e",
+    "title": "Naruto",
+    "total": 701,
+    "ready_completed": 27,
+    "processing": 2,
+    "queued": 672,
+    "failed": 0
+  },
+  {
+    "id": "cf1946d8-3649-4d4f-94ff-2fab0d883615",
+    "title": "Noblesse",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "e3e7ef73-5aeb-4ad8-8123-be417fe36830",
+    "title": "Omniscient Reader's Viewpoint",
+    "total": 4,
+    "ready_completed": 4,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "462c034e-180d-40a9-8533-8a6c81ccb268",
+    "title": "One Piece",
+    "total": 1206,
+    "ready_completed": 1196,
+    "processing": 0,
+    "queued": 0,
+    "failed": 10
+  },
+  {
+    "id": "4560c4cc-a528-40c7-9a25-cf3d06c36f27",
+    "title": "One Punch Man",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "44c3540a-af67-49f5-96e0-f8925faf45f1",
+    "title": "Overgeared",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "cffafcda-9a27-489a-9dc9-6adb4cf12fea",
+    "title": "Oyasumi Punpun",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "549b8162-e939-45a8-b33b-d836ed182345",
+    "title": "Painter of the Night",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "5beeba2c-b353-4814-8cd4-33ac6e8eb691",
+    "title": "Parasyte",
+    "total": 2,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 2
+  },
+  {
+    "id": "164f3785-0e81-4df0-9b29-5e24e1950750",
+    "title": "Remarried Empress",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "05d3d636-4dad-4096-84bf-c6ef4de5e829",
+    "title": "Renegade Immortal",
+    "total": 167,
+    "ready_completed": 167,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "33fd5afd-5101-4dea-a174-5662390f20a3",
+    "title": "Rurouni Kenshin",
+    "total": 3,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 3
+  },
+  {
+    "id": "c9ca4953-bec5-40e3-9dab-f4d7be7bf350",
+    "title": "Skeleton Soldier Couldn't Protect the Dungeon",
+    "total": 5,
+    "ready_completed": 2,
+    "processing": 0,
+    "queued": 0,
+    "failed": 3
+  },
+  {
+    "id": "4ac2d65e-4ed2-449f-9a97-56a412cc32d5",
+    "title": "Slam Dunk",
+    "total": 278,
+    "ready_completed": 278,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "fad3e896-02db-4b01-815d-3d77cb0b7a4d",
+    "title": "Soul Eater",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "07c0e2e1-e217-43f2-915b-58b34330fa39",
+    "title": "Soul Land (Douluo Dalu)",
+    "total": 366,
+    "ready_completed": 366,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "578cc480-ba1e-4a95-b77e-bd4378fcd3be",
+    "title": "Spirit Sword Sovereign",
+    "total": 114,
+    "ready_completed": 114,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "87f2c124-e746-44a2-885e-dae6d430c998",
+    "title": "Spy x Family",
+    "total": 7,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 7
+  },
+  {
+    "id": "b2034700-72f4-4f92-965c-3c060c54b5fb",
+    "title": "SSS-Class Suicide Hunter",
+    "total": 1,
+    "ready_completed": 1,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "249b262d-437c-459c-9922-802d708c187b",
+    "title": "Sweet Home",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "71364e36-12a8-41a4-aad0-855599f1292c",
+    "title": "Tales of Demons and Gods",
+    "total": 556,
+    "ready_completed": 549,
+    "processing": 0,
+    "queued": 0,
+    "failed": 7
+  },
+  {
+    "id": "25a14712-4eb2-4ad1-919d-334378c9ce1f",
+    "title": "The Beginning After the End",
+    "total": 58,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 58
+  },
+  {
+    "id": "d8ed9878-d705-489c-ac1f-7fd36f82a5c9",
+    "title": "The Book Eating Magician",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "5d39b787-9c7e-47ac-9b1a-5ccc5db4bb20",
+    "title": "The Boxer",
+    "total": 10,
+    "ready_completed": 10,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "5235ec54-5814-49e7-9211-705d5940a92d",
+    "title": "The Fable",
+    "total": 2,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 2
+  },
+  {
+    "id": "d369daee-0334-42c9-8795-3fa96f7d3d73",
+    "title": "The God of High School",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "d02dfbf9-5c98-4fc7-bb15-91d3ab19141b",
+    "title": "The Great Ruler",
+    "total": 190,
+    "ready_completed": 185,
+    "processing": 0,
+    "queued": 0,
+    "failed": 5
+  },
+  {
+    "id": "f5e40707-1f8b-42f5-97fb-761599ee5be8",
+    "title": "The King's Avatar",
+    "total": 193,
+    "ready_completed": 193,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "1dca8125-3266-490c-ab98-9be4f357505e",
+    "title": "The Legend of the Northern Blade",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "975f4cdd-e59b-4309-9c65-a58357a46f51",
+    "title": "The Promised Neverland",
+    "total": 3,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 3
+  },
+  {
+    "id": "627c3f7c-d906-4e22-92f2-e63b06c486d3",
+    "title": "The Seven Deadly Sins",
+    "total": 1,
+    "ready_completed": 1,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "f5f4ba86-79fb-4c57-89ca-dd14c14f8de4",
+    "title": "Tokyo Ghoul",
+    "total": 3,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 3
+  },
+  {
+    "id": "e35b3cc8-078c-4fbb-8214-0b1f94b60951",
+    "title": "Tomb Raider King",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "ee4e6af3-0d5c-4049-9bbf-e1148a661362",
+    "title": "Tower of God",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "33ed0969-fa2d-47d4-93c4-525464a8db3a",
+    "title": "Trash of the Count's Family",
+    "total": 2,
+    "ready_completed": 2,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "0e7b447c-6d90-4337-b502-2cdc0dd661ce",
+    "title": "True Beauty",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "62020415-8738-4e7e-92dd-476a4970b759",
+    "title": "Under the Oak Tree",
+    "total": 3,
+    "ready_completed": 3,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "0c53ec8d-4460-4efd-991e-8af0d9b7700a",
+    "title": "Vagabond",
+    "total": 112,
+    "ready_completed": 112,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "c6560918-b29b-443d-aadb-fd6f3ca4db7d",
+    "title": "Villains Are Destined to Die",
+    "total": 1,
+    "ready_completed": 1,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "ee39d62d-0b4f-4e26-b0b3-67428952486b",
+    "title": "Vinland Saga",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "8ccd96aa-4726-42b5-94f8-637a0c29b96f",
+    "title": "Volcanic Age",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "33a4ce60-cd1c-462e-a907-bee5a61fcd4f",
+    "title": "Weak Hero",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "73929866-46b3-4dba-931b-4b24006930ba",
+    "title": "Who Made Me a Princess",
+    "total": 58,
+    "ready_completed": 58,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "e142cdf8-3e59-4957-abf0-e924cf196cad",
+    "title": "Wind Breaker",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  },
+  {
+    "id": "02808fa5-6647-44bc-a472-285f545c448b",
+    "title": "Yu Yu Hakusho",
+    "total": 0,
+    "ready_completed": 0,
+    "processing": 0,
+    "queued": 0,
+    "failed": 0
+  }
+]
