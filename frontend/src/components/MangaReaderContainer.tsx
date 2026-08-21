@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ReaderImage } from "@/components/ReaderImage";
 import { RecommendationsRow } from "@/components/RecommendationsRow";
 import { StaleBanner } from "@/components/StaleBanner";
+import { AdSlot } from "@/components/AdSlot";
 import { saveHistoryLocal } from "@/lib/history-storage";
 import { awardMangaExp } from "@/lib/reader-progression";
 import { fetchApi } from "@/lib/api-client";
@@ -573,6 +574,11 @@ export function MangaReaderContainer({
 
       {/* Main Content Area */}
       <div className="w-full min-h-screen cursor-pointer" onClick={handleContainerClick}>
+        {/* Top Reader Ad Banner */}
+        <div className="mx-auto max-w-3xl px-4 pt-16 pb-3">
+          <AdSlot placement="reader-top" />
+        </div>
+
         {readingMode === "webtoon" ? (
           /* Webtoon Strip Mode: Seamless Virtualized list */
           <div 
@@ -612,7 +618,7 @@ export function MangaReaderContainer({
           </div>
         ) : readingMode === "single" ? (
           /* Single Page View (Renders full stacked page) */
-          <div className="w-full min-h-screen flex items-center justify-center pt-16 pb-20 px-2 bg-black">
+          <div className="w-full min-h-screen flex items-center justify-center pt-8 pb-20 px-2 bg-black">
             {displayPages[activePagedIndex] && (
               <div className="w-full max-w-[800px] flex flex-col items-center justify-center m-0 p-0 border-0 leading-none">
                 {displayPages[activePagedIndex].slices.map((slice, sIdx) => (
@@ -631,7 +637,7 @@ export function MangaReaderContainer({
           </div>
         ) : (
           /* Double Spread View (Manga Dual Page Book Mode) */
-          <div className="w-full min-h-screen flex items-center justify-center pt-16 pb-20 px-2 bg-black">
+          <div className="w-full min-h-screen flex items-center justify-center pt-8 pb-20 px-2 bg-black">
             <div className="w-full max-w-[1400px] flex flex-col md:flex-row items-center justify-center gap-0">
               {/* Left Page (Page A) */}
               {displayPages[activePagedIndex] && (
@@ -672,6 +678,11 @@ export function MangaReaderContainer({
             </div>
           </div>
         )}
+
+        {/* Bottom Reader Ad Banner */}
+        <div className="mx-auto max-w-3xl px-4 pt-6 pb-24">
+          <AdSlot placement="reader-bottom" />
+        </div>
       </div>
 
       {/* Smart Preloader Queue (Background Idle Fetching) */}
