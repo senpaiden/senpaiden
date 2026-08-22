@@ -238,32 +238,20 @@ async function runWatchdog() {
     if (fetchErr) throw fetchErr;
     if (!timedOutChapters || timedOutChapters.length === 0) return;
 
-    for (const chapter of timedOutChapters) {
-      console.warn(`[Watchdog] Chapter ${chapter.id} timed out. Resetting processing lock.`);
-      
-      const newRetries = (chapter.retry_count || 0) + 1;
-      const targetStatus = newRetries >= 3 ? 'FAILED' : 'QUEUED';
+    const ids = timedOutChapters.map(c => c.id);
+    console.warn(`[Watchdog] Resetting ${ids.length} timed out chapters...`);
+    
+    const { error: resetErr } = await supabase
+      .from('chapters')
+      .update({
+        job_status: 'QUEUED',
+        processing_started_at: null,
+        updated_at: new Date().toISOString(),
+      })
+      .in('id', ids);
 
-      await supabase
-        .from('chapters')
-        .update({
-          job_status: targetStatus,
-          processing_started_at: null,
-          retry_count: newRetries,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', chapter.id);
-        
-      try {
-        await supabase.from('dead_letter_queue').insert({
-          chapter_id: chapter.id,
-          error_type: 'PROCESSING_TIMEOUT',
-          error_detail: `Worker timed out after ${TIMEOUT_MINUTES} minutes.`,
-          max_retries: parseInt(process.env.DLQ_MAX_RETRIES ?? '3', 10),
-        });
-      } catch {
-        // Ignore duplicate DLQ entries
-      }
+    if (resetErr) {
+      console.error('[Watchdog] Failed to batch reset timed out chapters:', resetErr);
     }
   } catch (err: any) {
     console.warn(`[Watchdog] Supabase connection notice: ${err?.message || String(err)}`);
