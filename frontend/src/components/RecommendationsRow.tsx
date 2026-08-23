@@ -26,18 +26,25 @@ export function RecommendationsRow({ mangaId, type, title }: RecommendationsRowP
         
         if (json?.data) {
           const data = json.data;
-          const mapped: Manga[] = data.map((m: any) => ({
-            slug: m.id,
-            title: m.title,
-            altTitle: m.alt_title || "",
-            description: m.description || "",
-            genres: m.genres || ["Action"],
-            status: m.status || "Ongoing",
-            cover_url: m.cover_url,
-            coverHue: 250,
-            coverHue2: 300,
-            latestChapter: m.latest_chapter_number || 1,
-          }));
+          const seen = new Set<string>();
+          const mapped: Manga[] = data
+            .filter((m: any) => {
+              if (!m.id || seen.has(m.id)) return false;
+              seen.add(m.id);
+              return true;
+            })
+            .map((m: any) => ({
+              slug: m.id,
+              title: m.title,
+              altTitle: m.alt_title || "",
+              description: m.description || "",
+              genres: m.genres || ["Action"],
+              status: m.status || "Ongoing",
+              cover_url: m.cover_url,
+              coverHue: 250,
+              coverHue2: 300,
+              latestChapter: m.latest_chapter_number || 1,
+            }));
 
           setRecommendations(mapped);
         }

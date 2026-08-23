@@ -8,33 +8,27 @@ import { AdSlot } from "@/components/AdSlot";
 import { Frown, Play, ChevronRight } from "lucide-react";
 import { getLocalCatalogue, type CatalogueManga } from "@/lib/local-catalogue";
 
-import { getApiUrl } from "@/lib/api";
-
 // Server Component fetching live data from Cloudflare Worker / Next API
 export const revalidate = 60; // Edge Cache for 60 seconds
 
+import { getCachedMangaList } from "@/lib/cache";
+
 export default async function Home({ searchParams }: { searchParams?: Promise<{ q?: string }> }) {
-  const apiUrl = getApiUrl();
   const resolvedSearchParams = await searchParams;
   const searchQuery = resolvedSearchParams?.q?.trim() || "";
   
   let mangas: CatalogueManga[] = [];
   try {
-    const endpoint = searchQuery
-      ? `${apiUrl}/api/manga?q=${encodeURIComponent(searchQuery)}`
-      : `${apiUrl}/api/manga?page=1&limit=20`;
-    const res = await fetch(endpoint, {
-      // Navigation must never wait on a slow optional catalogue service.
-      signal: AbortSignal.timeout(2500),
-      next: { revalidate: 60 },
+    const result = await getCachedMangaList({
+      q: searchQuery || undefined,
+      page: 1,
+      limit: 20,
     });
-    if (res.ok) {
-      const data = await res.json();
-      mangas = (data.data || []) as CatalogueManga[];
+    if (result.data && result.data.length > 0) {
+      mangas = result.data as CatalogueManga[];
     }
   } catch {
-    // Render the built-in fallback state. An expected timeout must not trigger
-    // Next.js' development error overlay and block otherwise valid routing.
+    // Fallback to local catalogue
   }
   if (!mangas.length) {
     const local = await getLocalCatalogue();
@@ -42,7 +36,14 @@ export default async function Home({ searchParams }: { searchParams?: Promise<{ 
   }
 
   // Map API data to the UI format temporarily if it's missing fields
-  const uiMangas = mangas.map((m) => ({
+  const seenIds = new Set<string>();
+  const uniqueMangas = mangas.filter((m) => {
+    if (!m.id || seenIds.has(m.id)) return false;
+    seenIds.add(m.id);
+    return true;
+  });
+
+  const uiMangas = uniqueMangas.map((m) => ({
     slug: m.id,
     title: m.title,
     altTitle: m.alt_title || "",
@@ -118,7 +119,6 @@ export default async function Home({ searchParams }: { searchParams?: Promise<{ 
             className="hidden aspect-[2/3] w-56 shrink-0 rounded-2xl border border-white/10 shadow-2xl md:block bg-[#16161F] overflow-hidden relative"
           >
             {featured.cover_url && (
-              // eslint-disable-next-line @next/next/no-img-element
               <img src={featured.cover_url} alt={featured.title} referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-cover" />
             )}
           </div>

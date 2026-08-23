@@ -44,7 +44,7 @@ async function getAccessToken(): Promise<string | null> {
 
   // 2. Fallback to Service Account JWT
   const clientEmail = process.env.GDRIVE_CLIENT_EMAIL;
-  let privateKey = process.env.GDRIVE_PRIVATE_KEY;
+  const privateKey = process.env.GDRIVE_PRIVATE_KEY;
   const jsonKey = process.env.GDRIVE_SERVICE_ACCOUNT_JSON;
 
   try {
