@@ -25,24 +25,28 @@ export async function GET(
       return NextResponse.json({ error: 'Manga not found' }, { status: 404 });
     }
 
-    // Fetch all chapters for navigation
+    // Fetch all chapters for navigation (up to 5,000 for long-running series)
     const { data: chapters } = await supabase
       .from('chapters')
       .select('id, chapter_number, title, job_status, language, scanlation_group')
       .eq('manga_id', mangaId)
-      .order('chapter_number', { ascending: true });
+      .order('chapter_number', { ascending: true })
+      .limit(5000);
 
-    // Fetch current target chapter
-    const { data: chapter, error: chErr } = await supabase
+    // Fetch current target chapter (prioritizing English and READY status)
+    const { data: candidateChapters, error: chErr } = await supabase
       .from('chapters')
       .select('*')
       .eq('manga_id', mangaId)
       .eq('chapter_number', chapterNumber)
-      .single();
+      .limit(10);
 
-    if (chErr || !chapter) {
+    if (chErr || !candidateChapters || candidateChapters.length === 0) {
       return NextResponse.json({ error: 'Chapter not found' }, { status: 404 });
     }
+
+    // Pick English or first ready candidate
+    const chapter = candidateChapters.find((c) => c.language === 'en') || candidateChapters[0];
 
     if (chapter.job_status !== 'READY' && chapter.job_status !== 'COMPLETED') {
       return NextResponse.json(

@@ -21,12 +21,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Manga not found' }, { status: 404 });
     }
 
-    // Query chapters for this manga
+    // Query chapters for this manga (supports 1,000+ chapters like One Piece)
     const { data: chapters } = await supabase
       .from('chapters')
       .select('id, chapter_number, title, job_status, language, scanlation_group, created_at')
       .eq('manga_id', id)
-      .order('chapter_number', { ascending: true });
+      .order('chapter_number', { ascending: true })
+      .limit(5000);
 
     return NextResponse.json(
       {
