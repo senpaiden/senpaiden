@@ -5,7 +5,6 @@ import { fetchApi } from "@/lib/api-client";
 
 import { MangaCard } from "@/components/MangaCard";
 import { History as HistoryIcon, Trash2 } from "lucide-react";
-import { getApiUrl } from "@/lib/api";
 import type { Manga } from "@/lib/manga-data";
 import { AdSlot } from "@/components/AdSlot";
 
@@ -66,7 +65,6 @@ export default function HistoryPage() {
         }
       }
 
-      const apiUrl = getApiUrl();
       const needsLookupIds = pendingItems.filter((i) => i.needsMetadata).map((i) => i.manga.slug);
 
       const metadataMap = new Map<string, any>();

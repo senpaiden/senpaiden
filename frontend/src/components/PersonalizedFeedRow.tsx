@@ -12,6 +12,7 @@ interface CatalogItem {
   cover_url?: string;
   status: string;
   genres: string[];
+  latest_chapter_number?: number;
   client_vector: number[];
 }
 
@@ -44,18 +45,26 @@ export function PersonalizedFeedRow() {
 
         // If user has zero local history, default to top catalog items
         if (userSlugs.size === 0) {
-          const fallback = catalog.slice(0, 6).map((item) => ({
-            slug: item.slug,
-            title: item.title,
-            altTitle: "",
-            description: "",
-            genres: item.genres || ["Action"],
-            status: item.status || "Ongoing",
-            cover_url: item.cover_url,
-            coverHue: 250,
-            coverHue2: 300,
-            latestChapter: 1,
-          }));
+          const seen = new Set<string>();
+          const fallback = catalog
+            .filter((item) => {
+              if (!item.slug || seen.has(item.slug)) return false;
+              seen.add(item.slug);
+              return true;
+            })
+            .slice(0, 6)
+            .map((item) => ({
+              slug: item.slug,
+              title: item.title,
+              altTitle: "",
+              description: "",
+              genres: item.genres || ["Action"],
+              status: item.status || "Ongoing",
+              cover_url: item.cover_url,
+              coverHue: 250,
+              coverHue2: 300,
+              latestChapter: item.latest_chapter_number || 1,
+            }));
           setRecommendations(fallback);
           setIsLoaded(true);
           return;
@@ -107,18 +116,26 @@ export function PersonalizedFeedRow() {
         // Sort descending by score
         scored.sort((a, b) => b.score - a.score);
 
-        const mapped: Manga[] = scored.slice(0, 6).map(({ item }) => ({
-          slug: item.slug,
-          title: item.title,
-          altTitle: "",
-          description: "",
-          genres: item.genres || ["Action"],
-          status: item.status || "Ongoing",
-          cover_url: item.cover_url,
-          coverHue: 250,
-          coverHue2: 300,
-          latestChapter: 1,
-        }));
+        const seenRecs = new Set<string>();
+        const mapped: Manga[] = scored
+          .filter(({ item }) => {
+            if (!item.slug || seenRecs.has(item.slug)) return false;
+            seenRecs.add(item.slug);
+            return true;
+          })
+          .slice(0, 6)
+          .map(({ item }) => ({
+            slug: item.slug,
+            title: item.title,
+            altTitle: "",
+            description: "",
+            genres: item.genres || ["Action"],
+            status: item.status || "Ongoing",
+            cover_url: item.cover_url,
+            coverHue: 250,
+            coverHue2: 300,
+            latestChapter: item.latest_chapter_number || 1,
+          }));
 
         setRecommendations(mapped);
       } catch {

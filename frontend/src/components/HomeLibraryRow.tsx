@@ -17,7 +17,7 @@ export function HomeLibraryRow() {
       if (saved) {
         setLibrary(JSON.parse(saved));
       }
-    } catch (e) {}
+    } catch {}
   }, []);
 
   if (!mounted || library.length === 0) return null;

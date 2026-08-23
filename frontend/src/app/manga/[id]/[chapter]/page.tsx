@@ -4,7 +4,7 @@ import { MangaReaderContainer } from "@/components/MangaReaderContainer";
 import { fetchApi } from "@/lib/api-client";
 import { getApiUrl } from "@/lib/api";
 import { getLocalCatalogue } from "@/lib/local-catalogue";
-import { cleanDescription, chapterCanonical, mangaCanonical, SITE_NAME, absoluteUrl } from "@/lib/seo";
+import { chapterCanonical, mangaCanonical, SITE_NAME, absoluteUrl } from "@/lib/seo";
 
 // Cache immutable chapters forever. Stale chapters are cached for 60s at the edge.
 export const revalidate = 31536000;
@@ -22,7 +22,7 @@ export async function generateMetadata({
 
   try {
     const res = await fetch(`${apiUrl}/api/manga/${id}`, {
-      signal: AbortSignal.timeout(2000),
+      signal: AbortSignal.timeout(8000),
       next: { revalidate: 3600 },
     });
     if (res.ok) {
