@@ -56,11 +56,68 @@ export async function GET(
     }
 
     // Fetch pages for this chapter
-    const { data: pages } = await supabase
+    let { data: pages } = await supabase
       .from('pages')
       .select('*')
       .eq('chapter_id', chapter.id)
       .order('page_number', { ascending: true });
+
+    // Fallback: If pages are missing or only contain unauthenticated gdrive keys, resolve live MangaDex pages
+    const hasOnlyGdrive = pages && pages.length > 0 && pages.every(p => Array.isArray(p.r2_keys) && p.r2_keys.every((k: string) => k.startsWith('gdrive/')));
+    if (!pages || pages.length === 0 || hasOnlyGdrive) {
+      try {
+        let chapterUuid = '';
+        if (chapter.source_url && chapter.source_url.includes('mangadex.org/chapter/')) {
+          chapterUuid = chapter.source_url.split('mangadex.org/chapter/')[1]?.split('/')[0]?.split('?')[0] || '';
+        }
+
+        if (!chapterUuid && manga.source_id && /^[0-9a-f-]{36}$/i.test(manga.source_id)) {
+          const chRes = await fetch(
+            `https://api.mangadex.org/chapter?manga=${manga.source_id}&chapter=${chapterNumber}&limit=5`,
+            { signal: AbortSignal.timeout(8000) }
+          );
+          if (chRes.ok) {
+            const chData = await chRes.json();
+            if (chData.data && chData.data.length > 0) {
+              const enCh = chData.data.find((c: any) => c.attributes.translatedLanguage === 'en') || chData.data[0];
+              chapterUuid = enCh.id;
+            }
+          }
+        }
+
+        if (chapterUuid) {
+          const atHomeRes = await fetch(
+            `https://api.mangadex.org/at-home/server/${chapterUuid}`,
+            { signal: AbortSignal.timeout(8000) }
+          );
+          if (atHomeRes.ok) {
+            const atHomeJson = await atHomeRes.json();
+            const hash = atHomeJson.chapter?.hash;
+            const files = atHomeJson.chapter?.data || [];
+            if (hash && files.length > 0) {
+              const livePages = files.map((file: string, idx: number) => ({
+                chapter_id: chapter.id,
+                page_number: idx + 1,
+                r2_keys: [`https://uploads.mangadex.org/data/${hash}/${file}`],
+                slice_dimensions: [{ width: 800, height: 1200 }],
+              }));
+
+              // Background update to cache in Supabase
+              (async () => {
+                try {
+                  await supabase.from('pages').delete().eq('chapter_id', chapter.id);
+                  await supabase.from('pages').insert(livePages);
+                } catch {}
+              })();
+
+              pages = livePages as any;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[Chapter Route] Live MangaDex page fetch fallback error:', err);
+      }
+    }
 
     const available_languages = Array.from(
       new Set((chapters || []).map((c) => (c as { language?: string }).language).filter(Boolean))

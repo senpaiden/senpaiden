@@ -3,6 +3,7 @@ version: "3.8"
 services:
   minio:
     image: minio/minio
+    container_name: senpaiden-minio
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -12,6 +13,22 @@ services:
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
+
+  hf-worker:
+    build:
+      context: ./hf-worker
+      dockerfile: Dockerfile
+    container_name: senpaiden-hf-worker
+    ports:
+      - "7860:7860"
+    env_file:
+      - ./hf-worker/.env
+    environment:
+      - PORT=7860
+      - R2_ENDPOINT=http://minio:9000
+    depends_on:
+      - minio
+    restart: unless-stopped
 
 volumes:
   minio_data:

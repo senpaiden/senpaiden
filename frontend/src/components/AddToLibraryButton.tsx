@@ -16,7 +16,7 @@ export function AddToLibraryButton({ manga }: { manga: Manga }) {
           setInLibrary(true);
         }
       }
-    } catch (e) {}
+    } catch {}
   }, [manga.slug]);
 
   const toggleLibrary = () => {
@@ -33,7 +33,7 @@ export function AddToLibraryButton({ manga }: { manga: Manga }) {
       localStorage.setItem("senpai_library", JSON.stringify(library));
       setInLibrary(!inLibrary);
       window.dispatchEvent(new CustomEvent("senpai_library_updated"));
-    } catch (e) {}
+    } catch {}
   };
 
   return (

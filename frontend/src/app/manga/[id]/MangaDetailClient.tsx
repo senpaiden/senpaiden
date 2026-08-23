@@ -49,7 +49,6 @@ export function MangaDetailClient({
   const [liked, setLiked] = useState<Set<number>>(new Set());
 
   const genres = manga.genres || ["Action", "Fantasy"];
-  const color = "#FF2E2E"; // Default accent color for UI
   const startChapter = chapters.length > 0 ? Math.min(...chapters.map(c => c.chapter_number)) : 1;
   const latestChapter = chapters.length > 0 ? Math.max(...chapters.map(c => c.chapter_number)) : 1;
 

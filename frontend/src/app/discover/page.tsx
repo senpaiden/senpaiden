@@ -1,9 +1,9 @@
-import { fetchApi } from "@/lib/api-client";
 import Link from "next/link";
 import { MangaCard } from "@/components/MangaCard";
 import { AdvancedFilterPanel } from "@/components/AdvancedFilterPanel";
 import { AdSlot } from "@/components/AdSlot";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { getCachedMangaList } from "@/lib/cache";
 import { getLocalCatalogue, type CatalogueManga } from "@/lib/local-catalogue";
 
 export const revalidate = 60; // Edge Cache
@@ -19,7 +19,6 @@ export default async function Discover({ searchParams }: { searchParams: Promise
   const currentGenre = resolvedParams.genre || "All";
   const pageNum = parseInt(resolvedParams.page || "1", 10);
   const included = resolvedParams.included;
-  const excluded = resolvedParams.excluded;
   const sort = resolvedParams.sort;
   const limit = 24;
   
@@ -27,21 +26,14 @@ export default async function Discover({ searchParams }: { searchParams: Promise
   let totalCount = 0;
 
   try {
-    const params = new URLSearchParams();
-    params.set("page", pageNum.toString());
-    params.set("limit", limit.toString());
-    
-    if (currentGenre !== "All" && !included) {
-      params.set("genre", currentGenre);
-    }
-    if (included) params.set("included", included);
-    if (excluded) params.set("excluded", excluded);
-    if (sort) params.set("sort", sort);
-      
-    const data = await fetchApi<{ data?: CatalogueManga[]; total?: number }>(`/api/manga?${params.toString()}`);
-    if (data) {
-      mangas = (data.data || []) as CatalogueManga[];
-      totalCount = data.total || mangas.length;
+    const result = await getCachedMangaList({
+      genre: currentGenre !== "All" && !included ? currentGenre : undefined,
+      page: pageNum,
+      limit,
+    });
+    if (result.data && result.data.length > 0) {
+      mangas = result.data as CatalogueManga[];
+      totalCount = result.total || mangas.length;
     }
   } catch {
     // Keep navigation responsive when the catalogue API is unavailable.
@@ -54,7 +46,14 @@ export default async function Discover({ searchParams }: { searchParams: Promise
     mangas = filtered.slice((pageNum - 1) * limit, pageNum * limit);
   }
 
-  const uiMangas = mangas.map((m) => ({
+  const seenIds = new Set<string>();
+  const uniqueMangas = mangas.filter((m) => {
+    if (!m.id || seenIds.has(m.id)) return false;
+    seenIds.add(m.id);
+    return true;
+  });
+
+  const uiMangas = uniqueMangas.map((m) => ({
     slug: m.id,
     title: m.title,
     altTitle: m.alt_title || "",

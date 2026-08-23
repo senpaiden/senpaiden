@@ -67,6 +67,9 @@ interface MangaReaderContainerProps {
 }
 
 const getSliceUrl = (baseUrl: string, key: string) => {
+  if (key.startsWith('gdrive/')) {
+    return `/api/image/${key}`;
+  }
   let url = key;
   if (!key.startsWith('http://') && !key.startsWith('https://')) {
     const cleanBase = baseUrl.replace(/\/$/, '');
@@ -181,7 +184,7 @@ export function MangaReaderContainer({
           setCurrentSliceIndex(parsed.sliceIndex);
           setActivePagedIndex(parsed.sliceIndex);
         }
-      } catch (e) {}
+      } catch {}
     }
 
     // Record chapter in read list
@@ -205,7 +208,7 @@ export function MangaReaderContainer({
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Persist current progress to localStorage and IndexedDB
-  const saveProgress = (index: number) => {
+  const saveProgress = useCallback((index: number) => {
     setCurrentSliceIndex(index);
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => {
@@ -218,30 +221,30 @@ export function MangaReaderContainer({
         timestamp: Date.now()
       });
     }, 250);
-  };
+  }, [mangaId, mangaTitle, mangaCoverUrl, chapterNumber]);
 
   // Safe chapter routing helper (Bug H3 Fix)
-  const navigateToChapter = (targetChapter: ChapterMetadata) => {
+  const navigateToChapter = useCallback((targetChapter: ChapterMetadata) => {
     const isProcessing = targetChapter.job_status === 'QUEUED' || targetChapter.job_status === 'PROCESSING';
     if (isProcessing) {
       router.push(`/manga/${mangaId}/${targetChapter.chapter_number}/processing`);
     } else {
       router.push(`/manga/${mangaId}/${targetChapter.chapter_number}`);
     }
-  };
+  }, [router, mangaId]);
 
   // Trigger auto-fading page counter badge
-  const triggerCounterVisibility = () => {
+  const triggerCounterVisibility = useCallback(() => {
     setIsCounterVisible(true);
     if (counterTimeoutRef.current) clearTimeout(counterTimeoutRef.current);
     counterTimeoutRef.current = setTimeout(() => {
       setIsCounterVisible(false);
     }, 2200);
-  };
+  }, []);
 
   const hasPrefetchedNext = useRef(false);
 
-  const prefetchNextChapter = async (nextChNum: number) => {
+  const prefetchNextChapter = useCallback(async (nextChNum: number) => {
     try {
       const data = await fetchApi<{ pages?: any[] }>(`/api/manga/${mangaId}/chapter/${nextChNum}`);
       
@@ -263,7 +266,7 @@ export function MangaReaderContainer({
     } catch {
       // Fail silently, prefetching is a progressive enhancement
     }
-  };
+  }, [mangaId, r2BaseUrl]);
 
   const virtualItems = virtualizer.getVirtualItems();
 
@@ -283,7 +286,78 @@ export function MangaReaderContainer({
         prefetchNextChapter(nextChapter.chapter_number);
       }
     }
-  }, [virtualItems, readingMode, nextChapter, slices.length, currentSliceIndex]);
+  }, [virtualItems, readingMode, nextChapter, slices.length, currentSliceIndex, saveProgress, triggerCounterVisibility, prefetchNextChapter]);
+
+  const step = readingMode === "double" ? 2 : 1;
+
+  // Cross-browser Fullscreen toggle
+  const toggleFullscreen = useCallback(() => {
+    try {
+      if (typeof document === "undefined") return;
+      const doc = document as Document & {
+        webkitFullscreenElement?: Element;
+        msFullscreenElement?: Element;
+        webkitExitFullscreen?: () => Promise<void>;
+        msExitFullscreen?: () => Promise<void>;
+      };
+      const docEl = document.documentElement as HTMLElement & {
+        webkitRequestFullscreen?: () => Promise<void>;
+        msRequestFullscreen?: () => Promise<void>;
+      };
+
+      if (!doc.fullscreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+        if (docEl.requestFullscreen) {
+          docEl.requestFullscreen().catch(() => {});
+        } else if (docEl.webkitRequestFullscreen) {
+          docEl.webkitRequestFullscreen();
+        } else if (docEl.msRequestFullscreen) {
+          docEl.msRequestFullscreen();
+        }
+        setIsFullscreen(true);
+      } else {
+        if (doc.exitFullscreen) {
+          doc.exitFullscreen().catch(() => {});
+        } else if (doc.webkitExitFullscreen) {
+          doc.webkitExitFullscreen();
+        } else if (doc.msExitFullscreen) {
+          doc.msExitFullscreen();
+        }
+        setIsFullscreen(false);
+      }
+    } catch {
+      console.warn("Fullscreen API not available on this device.");
+    }
+  }, []);
+
+  const nextPagedPage = useCallback(() => {
+    if (activePagedIndex < displayPages.length - step) {
+      const nextIdx = activePagedIndex + step;
+      setActivePagedIndex(nextIdx);
+      saveProgress(nextIdx);
+      triggerCounterVisibility();
+
+      // Phase 3 Fix: Predictive Prefetching at 70% threshold for Paged modes
+      if (!hasPrefetchedNext.current && nextChapter && nextIdx >= displayPages.length * 0.7) {
+        hasPrefetchedNext.current = true;
+        prefetchNextChapter(nextChapter.chapter_number);
+      }
+    } else if (nextChapter) {
+      navigateToChapter(nextChapter);
+    } else {
+      setIsEndModalOpen(true);
+    }
+  }, [activePagedIndex, displayPages.length, step, nextChapter, saveProgress, triggerCounterVisibility, prefetchNextChapter, navigateToChapter]);
+
+  const prevPagedPage = useCallback(() => {
+    if (activePagedIndex > 0) {
+      const prevIdx = Math.max(0, activePagedIndex - step);
+      setActivePagedIndex(prevIdx);
+      saveProgress(prevIdx);
+      triggerCounterVisibility();
+    } else if (prevChapter) {
+      navigateToChapter(prevChapter);
+    }
+  }, [activePagedIndex, step, prevChapter, saveProgress, triggerCounterVisibility, navigateToChapter]);
 
   // Keyboard & Power-User navigation shortcuts
   useEffect(() => {
@@ -328,7 +402,7 @@ export function MangaReaderContainer({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [readingMode, activePagedIndex, slices.length, nextChapter, prevChapter, mangaId, router]);
+  }, [readingMode, nextChapter, prevChapter, mangaId, router, nextPagedPage, prevPagedPage, toggleFullscreen]);
 
   // Handle center vs side screen clicks
   const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -352,38 +426,6 @@ export function MangaReaderContainer({
     }
   };
 
-  const step = readingMode === "double" ? 2 : 1;
-
-  const nextPagedPage = () => {
-    if (activePagedIndex < displayPages.length - step) {
-      const nextIdx = activePagedIndex + step;
-      setActivePagedIndex(nextIdx);
-      saveProgress(nextIdx);
-      triggerCounterVisibility();
-
-      // Phase 3 Fix: Predictive Prefetching at 70% threshold for Paged modes
-      if (!hasPrefetchedNext.current && nextChapter && nextIdx >= displayPages.length * 0.7) {
-        hasPrefetchedNext.current = true;
-        prefetchNextChapter(nextChapter.chapter_number);
-      }
-    } else if (nextChapter) {
-      navigateToChapter(nextChapter);
-    } else {
-      setIsEndModalOpen(true);
-    }
-  };
-
-  const prevPagedPage = () => {
-    if (activePagedIndex > 0) {
-      const prevIdx = Math.max(0, activePagedIndex - step);
-      setActivePagedIndex(prevIdx);
-      saveProgress(prevIdx);
-      triggerCounterVisibility();
-    } else if (prevChapter) {
-      navigateToChapter(prevChapter);
-    }
-  };
-
   const setMode = (mode: ReadingMode) => {
     setReadingMode(mode);
     localStorage.setItem("senpai_reader_mode", mode);
@@ -392,44 +434,6 @@ export function MangaReaderContainer({
   const updateFit = (fit: PageFitMode) => {
     setPageFit(fit);
     localStorage.setItem("senpai_page_fit", fit);
-  };
-
-  // Cross-browser Fullscreen toggle
-  const toggleFullscreen = () => {
-    try {
-      const doc = document as Document & {
-        webkitFullscreenElement?: Element;
-        msFullscreenElement?: Element;
-        webkitExitFullscreen?: () => Promise<void>;
-        msExitFullscreen?: () => Promise<void>;
-      };
-      const docEl = document.documentElement as HTMLElement & {
-        webkitRequestFullscreen?: () => Promise<void>;
-        msRequestFullscreen?: () => Promise<void>;
-      };
-
-      if (!doc.fullscreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
-        if (docEl.requestFullscreen) {
-          docEl.requestFullscreen().catch(() => {});
-        } else if (docEl.webkitRequestFullscreen) {
-          docEl.webkitRequestFullscreen();
-        } else if (docEl.msRequestFullscreen) {
-          docEl.msRequestFullscreen();
-        }
-        setIsFullscreen(true);
-      } else {
-        if (doc.exitFullscreen) {
-          doc.exitFullscreen().catch(() => {});
-        } else if (doc.webkitExitFullscreen) {
-          doc.webkitExitFullscreen();
-        } else if (doc.msExitFullscreen) {
-          doc.msExitFullscreen();
-        }
-        setIsFullscreen(false);
-      }
-    } catch {
-      console.warn("Fullscreen API not available on this device.");
-    }
   };
 
   return (
