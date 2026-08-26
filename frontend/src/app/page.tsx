@@ -5,6 +5,7 @@ import { HomeLibraryRow } from "@/components/HomeLibraryRow";
 import { PersonalizedFeedRow } from "@/components/PersonalizedFeedRow";
 import { ContinueReadingBubble } from "@/components/ContinueReadingBubble";
 import { AdSlot } from "@/components/AdSlot";
+import { VideoAdUnit } from "@/components/VideoAdUnit";
 import { Frown, Play, ChevronRight } from "lucide-react";
 import { getLocalCatalogue, type CatalogueManga } from "@/lib/local-catalogue";
 
@@ -195,6 +196,11 @@ export default async function Home({ searchParams }: { searchParams?: Promise<{ 
             </div>
           ))}
         </div>
+      </section>
+
+      {/* High-CPM Video Ad Unit */}
+      <section className="mx-auto mt-8 max-w-7xl px-4 md:px-8">
+        <VideoAdUnit />
       </section>
 
       {/* Recently Updated */}

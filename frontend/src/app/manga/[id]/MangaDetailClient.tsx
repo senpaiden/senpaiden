@@ -8,6 +8,7 @@ import {
   User, Palette, TrendingUp, ThumbsUp, Share2, ChevronDown, ArrowUpDown
 } from "lucide-react";
 import { AdSlot } from "@/components/AdSlot";
+import { VideoAdUnit } from "@/components/VideoAdUnit";
 
 const CHUNK_SIZE = 50;
 
@@ -231,6 +232,11 @@ export function MangaDetailClient({
                 </Link>
               ))}
             </div>
+
+            {/* Desktop Sidebar Sponsor */}
+            <div className="mt-6 pt-4 border-t border-white/5">
+              <AdSlot placement="manga-detail" className="!my-0 !w-full" />
+            </div>
           </div>
         </div>
 
@@ -370,6 +376,11 @@ export function MangaDetailClient({
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Video Ad Unit inside Info Tab */}
+              <div className="col-span-full mt-4">
+                <VideoAdUnit title={`Sponsor Spotlight: Trending Anime & Manga Universe`} />
               </div>
             </div>
           )}

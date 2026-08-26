@@ -9,6 +9,7 @@ import { getUnreadNotificationCount, NOTIFICATIONS_UPDATED_EVENT } from "@/lib/n
 import { getLevel, getReaderProgression, PROGRESSION_UPDATED_EVENT } from "@/lib/reader-progression";
 import { AUTH_UPDATED_EVENT, getStoredAccount, isSignedIn } from "@/lib/auth-storage";
 import { OPEN_CONSENT_EVENT } from "@/lib/consent";
+import { StickyAnchorAd } from "@/components/StickyAnchorAd";
 import {
   Home, LayoutGrid, RefreshCw, Bookmark, History,
   Search, Bell,
@@ -395,12 +396,14 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
         )}
         
         {/* PAGE CONTENT */}
-        <main className={`flex-1 overflow-x-hidden ${!isReader ? "pt-14 md:pt-0 pb-16 md:pb-0" : ""} w-full`}>
+        <main className={`flex-1 overflow-x-hidden ${!isReader ? "pt-14 md:pt-0 pb-20 md:pb-16" : ""} w-full`}>
           {children}
           {!isReader && <footer className="mx-4 mt-10 border-t border-white/5 px-2 py-8 md:mx-8 md:flex md:items-center md:justify-between"><p className="text-xs text-zinc-600">© 2026 SenpaiDen. Reader-first manga discovery.</p><nav aria-label="Legal and company links" className="mt-4 flex flex-wrap gap-x-5 gap-y-3 md:mt-0">{[{ label: "About", href: "/about" }, { label: "Partners", href: "/partners" }, { label: "Contact", href: "/contact" }, { label: "Privacy", href: "/privacy" }, { label: "Cookies", href: "/cookies" }, { label: "Affiliate disclosure", href: "/affiliate-disclosure" }, { label: "Terms", href: "/terms" }, { label: "Copyright", href: "/copyright" }].map((item) => <Link key={item.href} href={item.href} className="min-h-11 py-3 text-xs font-bold text-zinc-500 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60">{item.label}</Link>)}<button onClick={() => window.dispatchEvent(new Event(OPEN_CONSENT_EVENT))} className="min-h-11 py-3 text-xs font-bold text-zinc-500 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60">Privacy choices</button></nav></footer>}
         </main>
       </div>
 
+      {/* Floating Status Bar / Bottom Anchor Ad Banner */}
+      {!isReader && <StickyAnchorAd />}
     </div>
   );
 }
