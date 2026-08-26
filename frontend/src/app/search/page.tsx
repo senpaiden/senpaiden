@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { MangaCard } from "@/components/MangaCard";
 import { Search as SearchIcon, X, Loader2, Frown } from "lucide-react";
 import type { Manga } from "@/lib/manga-data";
+import { AdSlot } from "@/components/AdSlot";
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -129,8 +130,15 @@ function SearchContent() {
               Found {results.length} results for &quot;{query}&quot;
             </p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
-              {results.map((manga) => (
-                <MangaCard key={manga.slug} manga={manga} showChapter />
+              {results.map((manga, index) => (
+                <div key={manga.slug} className="contents">
+                  <MangaCard manga={manga} showChapter />
+                  {(index + 1) % 6 === 0 && index < results.length - 1 && (
+                    <div className="col-span-full my-3">
+                      <AdSlot placement="discover-grid" />
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>

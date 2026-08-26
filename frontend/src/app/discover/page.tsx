@@ -112,8 +112,15 @@ export default async function Discover({ searchParams }: { searchParams: Promise
 
         {/* Manga Cards Grid */}
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
-          {uiMangas.map((m) => (
-            <MangaCard key={m.slug} manga={m} showChapter />
+          {uiMangas.map((m, index) => (
+            <div key={m.slug} className="contents">
+              <MangaCard manga={m} showChapter />
+              {(index + 1) % 6 === 0 && index < uiMangas.length - 1 && (
+                <div className="col-span-full my-3">
+                  <AdSlot placement="discover-grid" />
+                </div>
+              )}
+            </div>
           ))}
         </div>
 

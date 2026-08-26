@@ -7,6 +7,7 @@ import { MangaCard } from "@/components/MangaCard";
 import { History as HistoryIcon, Trash2 } from "lucide-react";
 import type { Manga } from "@/lib/manga-data";
 import { AdSlot } from "@/components/AdSlot";
+import { InterstitialAdModal } from "@/components/InterstitialAdModal";
 
 interface HistoryItem {
   manga: Manga;
@@ -131,12 +132,16 @@ export default function HistoryPage() {
 
   return (
     <div className="pb-28 md:pb-8">
+      {/* 5-Second Full-Screen Interstitial Ad */}
+      <InterstitialAdModal storageKey="senpai_history_interstitial_seen" title="Reading History Sponsor" durationSeconds={5} />
 
       <div className="mx-auto max-w-7xl px-4 pt-4 md:px-8 md:pt-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-black md:text-3xl">History</h1>
-            <p className="mt-1 text-sm text-[#A1A1AA]">Your recently read manga series.</p>
+            <h1 className="text-2xl font-black md:text-3xl">Reading History</h1>
+            <p className="mt-1 text-sm text-[#A1A1AA]">
+              Pick up where you left off ({history.length} {history.length === 1 ? "title" : "titles"}).
+            </p>
           </div>
           {history.length > 0 && (
             <button
@@ -167,8 +172,15 @@ export default function HistoryPage() {
           </div>
         ) : (
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
-            {history.map((item) => (
-              <MangaCard key={item.manga.slug} manga={item.manga} showChapter />
+            {history.map((item, index) => (
+              <div key={item.manga.slug} className="contents">
+                <MangaCard manga={item.manga} showChapter />
+                {(index + 1) % 6 === 0 && index < history.length - 1 && (
+                  <div className="col-span-full my-3">
+                    <AdSlot placement="history-bottom" />
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         )}
