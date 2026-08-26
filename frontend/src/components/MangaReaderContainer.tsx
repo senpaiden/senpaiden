@@ -8,7 +8,6 @@ import { RecommendationsRow } from "@/components/RecommendationsRow";
 import { StaleBanner } from "@/components/StaleBanner";
 import { AdSlot } from "@/components/AdSlot";
 import { saveHistoryLocal } from "@/lib/history-storage";
-import { awardMangaExp } from "@/lib/reader-progression";
 import { fetchApi } from "@/lib/api-client";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -116,7 +115,6 @@ export function MangaReaderContainer({
   const [activePagedIndex, setActivePagedIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [containerWidth, setContainerWidth] = useState(800); // Default max-width
-  const [expAward, setExpAward] = useState<{ amount: number; leveledUp?: boolean; rewardUnlocked?: boolean } | null>(null);
 
   const counterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -196,12 +194,6 @@ export function MangaReaderContainer({
         localStorage.setItem(`senpai_read_chapters_${mangaId}`, JSON.stringify(readArr));
       }
     } catch {}
-
-    const award = awardMangaExp(mangaId);
-    if (award.awarded) {
-      setExpAward({ amount: award.expAwarded, leveledUp: award.leveledUp, rewardUnlocked: award.rewardUnlocked });
-      window.setTimeout(() => setExpAward(null), 4500);
-    }
   }, [mangaId, chapterNumber, currentChapterNum]);
 
   // Debounced progress saver reference to prevent scroll thrashing (Bug M1 Fix)
@@ -594,31 +586,25 @@ export function MangaReaderContainer({
               const imgUrl = getSliceUrl(r2BaseUrl, slice.key);
   return (
     <div
-                  key={virtualItem.key} 
-                  data-index={virtualItem.index} 
-                  ref={virtualizer.measureElement}
-                  className="absolute top-0 left-0 w-full m-0 p-0 border-0 leading-none flex justify-center"
-                  style={{
-                    transform: `translateY(${virtualItem.start}px)`,
-                  }}
+      key={virtualItem.key} 
+      data-index={virtualItem.index} 
+      ref={virtualizer.measureElement}
+      className="absolute top-0 left-0 w-full m-0 p-0 border-0 leading-none flex justify-center"
+      style={{
+        transform: `translateY(${virtualItem.start}px)`,
+      }}
     >
-      {expAward && (
-        <div role="status" className="fixed right-4 top-4 z-[70] flex max-w-xs items-center gap-3 rounded-2xl border border-yellow-300/30 bg-[#15120A]/95 px-4 py-3 text-white shadow-2xl shadow-yellow-500/10 backdrop-blur-xl animate-in slide-in-from-top-3 duration-300 motion-reduce:animate-none">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-yellow-300/15 text-yellow-300"><Trophy className="h-5 w-5" /></span>
-          <span><strong className="block text-sm">+{expAward.amount} EXP earned</strong><span className="text-xs text-zinc-400">{expAward.rewardUnlocked ? "Level 50! Pro Plus unlocked for 1 year." : expAward.leveledUp ? "Level up! Your reader rank increased." : "First read of this manga counted."}</span></span>
-        </div>
-      )}
-                  <ReaderImage
-                    src={imgUrl}
-                    width={slice.width}
-                    height={slice.height}
-                    priority={virtualItem.index < 3}
-                    blurhash={slice.blurhash}
-                    pageFit={pageFit}
-                  />
-                </div>
-              );
-            })}
+      <ReaderImage
+        src={imgUrl}
+        width={slice.width}
+        height={slice.height}
+        priority={virtualItem.index < 3}
+        blurhash={slice.blurhash}
+        pageFit={pageFit}
+      />
+    </div>
+  );
+})}
           </div>
         ) : readingMode === "single" ? (
           /* Single Page View (Renders full stacked page) */
@@ -683,9 +669,57 @@ export function MangaReaderContainer({
           </div>
         )}
 
-        {/* Bottom Reader Ad Banner */}
-        <div className="mx-auto max-w-3xl px-4 pt-6 pb-24">
-          <AdSlot placement="reader-bottom" />
+        {/* Chapter Completion & Next Chapter Intermission Card */}
+        <div className="mx-auto max-w-2xl px-4 pt-10 pb-28">
+          <div className="rounded-3xl border border-white/10 bg-[#12151D] p-6 text-center shadow-2xl backdrop-blur-xl relative overflow-hidden">
+            {/* Ambient Background Glow */}
+            <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-48 h-48 bg-primary/15 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col items-center">
+              <span className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[11px] font-black uppercase tracking-wider mb-3">
+                ✓ Chapter {chapterNumber} Completed
+              </span>
+              
+              <h3 className="text-lg md:text-xl font-black text-white font-rajdhani mb-1">
+                {nextChapter ? `Ready for Chapter ${nextChapter.chapter_number}?` : `You're all caught up with ${mangaTitle}!`}
+              </h3>
+              <p className="text-xs text-muted-foreground mb-5 max-w-md">
+                {nextChapter ? (nextChapter.title || "Continue your read with the next installment.") : "Check back later for new chapter releases or browse related manga below."}
+              </p>
+
+              {/* Intermission Ad Banner */}
+              <div className="w-full mb-6">
+                <AdSlot placement="reader-bottom" />
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full justify-center">
+                {nextChapter ? (
+                  <Link
+                    href={`/manga/${mangaId}/${nextChapter.chapter_number}`}
+                    className="w-full sm:w-auto px-7 py-3 rounded-xl font-black text-white bg-primary shadow-[0_0_20px_rgba(255,46,46,0.4)] hover:scale-105 transition-all text-sm flex items-center justify-center gap-2 font-rajdhani"
+                  >
+                    <span>Next Chapter ({nextChapter.chapter_number})</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => setIsEndModalOpen(true)}
+                    className="w-full sm:w-auto px-7 py-3 rounded-xl font-black text-white bg-gradient-to-r from-violet-600 to-cyan-500 hover:scale-105 transition-all text-sm flex items-center justify-center gap-2 font-rajdhani shadow-lg shadow-violet-500/25"
+                  >
+                    <span>View Series Recommendations</span>
+                  </button>
+                )}
+
+                <Link
+                  href={`/manga/${mangaId}`}
+                  className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-zinc-300 transition-colors border border-white/10 text-center"
+                >
+                  Manga Details
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

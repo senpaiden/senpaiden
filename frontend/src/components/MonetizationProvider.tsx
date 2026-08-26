@@ -22,19 +22,15 @@ export function MonetizationProvider() {
         Boolean(
           canServeAdsInBrowser() &&
             ADS_ENABLED &&
-            (preferences || getConsent())?.advertising &&
-            !hasActivePremium()
+            (preferences || getConsent())?.advertising
         )
       );
     sync();
     const onConsent = (event: Event) =>
       sync((event as CustomEvent<ConsentPreferences>).detail);
-    const onPremium = () => sync();
     window.addEventListener(CONSENT_UPDATED_EVENT, onConsent);
-    window.addEventListener("senpai-premium-updated", onPremium);
     return () => {
       window.removeEventListener(CONSENT_UPDATED_EVENT, onConsent);
-      window.removeEventListener("senpai-premium-updated", onPremium);
     };
   }, []);
 

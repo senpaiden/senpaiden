@@ -346,7 +346,6 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
              ))}
              <div className="mx-4 my-2 h-px bg-white/5" />
              {[
-               { icon: Crown, label: "Premium", path: "/premium" },
                { icon: Bell, label: "Notifications", path: "/notifications" },
                { icon: UserRound, label: "Account", path: "/account" },
              ].map((item) => (
@@ -376,9 +375,6 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
           </form>
 
           <div className="flex items-center gap-4 ml-auto">
-            <Link href="/premium" className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all bg-[#FFD700]/10 border border-[#FFD700]/20 text-[#FFD700] hover:bg-[#FFD700]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFD700]/60">
-              <Crown size={14} /> Premium
-            </Link>
             <Link href="/notifications" aria-label={`Open notifications${unreadNotifications ? `, ${unreadNotifications} unread` : ""}`} className="relative w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/5 text-zinc-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60">
               <Bell size={18} />
               {unreadNotifications > 0 && <span className="absolute right-0.5 top-0.5 grid min-h-4 min-w-4 place-items-center rounded-full border-2 border-[#0F1117] bg-primary px-0.5 text-[8px] font-black leading-none text-white">{unreadNotifications > 9 ? "9+" : unreadNotifications}</span>}
@@ -387,7 +383,6 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
               {signedIn ? <>
               <div className="flex flex-col items-end">
                 <span className="max-w-24 truncate text-[12px] font-bold text-white group-hover:text-primary transition-colors">{accountName}</span>
-                <span className="text-[10px] text-zinc-500">Lv. {readerLevel}</span>
               </div>
               <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-800 border-2 border-white/10 group-hover:border-primary transition-colors">
                 <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop&auto=format" alt="User" className="w-full h-full object-cover" />

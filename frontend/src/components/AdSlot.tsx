@@ -33,18 +33,15 @@ export function AdSlot({
       const isAllowed = Boolean(
         canServeAdsInBrowser() &&
           ADS_ENABLED &&
-          isEnabled &&
-          !hasActivePremium()
+          isEnabled
       );
       setVisible(isAllowed);
     };
 
     sync();
     window.addEventListener(CONSENT_UPDATED_EVENT, sync);
-    window.addEventListener("senpai-premium-updated", sync);
     return () => {
       window.removeEventListener(CONSENT_UPDATED_EVENT, sync);
-      window.removeEventListener("senpai-premium-updated", sync);
     };
   }, [isEnabled]);
 
