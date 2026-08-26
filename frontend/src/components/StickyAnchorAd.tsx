@@ -12,9 +12,20 @@ export function StickyAnchorAd() {
   const [collapsed, setCollapsed] = useState(false);
   const [closed, setClosed] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [interstitialOpen, setInterstitialOpen] = useState(false);
 
   // Check if we are in reader mode
   const isReader = pathname?.startsWith("/read/") || (pathname?.startsWith("/manga/") && pathname?.split("/").length > 3);
+
+  useEffect(() => {
+    const handleInterstitialState = (e: Event) => {
+      const customEvent = e as CustomEvent<{ isOpen: boolean }>;
+      setInterstitialOpen(Boolean(customEvent.detail?.isOpen));
+    };
+
+    window.addEventListener("senpai_interstitial_state", handleInterstitialState);
+    return () => window.removeEventListener("senpai_interstitial_state", handleInterstitialState);
+  }, []);
 
   useEffect(() => {
     if (isReader) {
@@ -30,11 +41,11 @@ export function StickyAnchorAd() {
     setVisible(isAllowed);
   }, [pathname, isReader]);
 
-  if (!visible || closed || isReader) return null;
+  if (!visible || closed || isReader || interstitialOpen) return null;
 
   return (
     <div
-      className={`fixed z-40 transition-all duration-300 left-1/2 -translate-x-1/2 w-full max-w-4xl px-2 ${
+      className={`fixed z-40 transition-all duration-300 left-0 right-0 md:left-[260px] md:right-0 w-full md:w-auto md:max-w-3xl md:mx-auto px-3 ${
         collapsed ? "bottom-16 md:bottom-2" : "bottom-16 md:bottom-2"
       }`}
     >

@@ -184,7 +184,11 @@ export default function HistoryPage() {
             ))}
           </div>
         )}
-        {isLoaded && <div className="mt-10 border-t border-white/5 pt-8"><AdSlot placement="history-bottom" /></div>}
+        {isLoaded && history.length > 0 && (
+          <div className="mt-10 border-t border-white/5 pt-8">
+            <AdSlot placement="history-bottom" />
+          </div>
+        )}
       </div>
     </div>
   );

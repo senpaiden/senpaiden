@@ -101,7 +101,11 @@ export default function LibraryPage() {
             ))}
           </div>
         )}
-        {isLoaded && <div className="mt-10 border-t border-white/5 pt-8"><AdSlot placement="library-bottom" /></div>}
+        {isLoaded && library.length > 0 && (
+          <div className="mt-10 border-t border-white/5 pt-8">
+            <AdSlot placement="library-bottom" />
+          </div>
+        )}
       </div>
     </div>
   );

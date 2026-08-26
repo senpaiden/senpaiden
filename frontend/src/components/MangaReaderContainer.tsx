@@ -196,6 +196,16 @@ export function MangaReaderContainer({
     } catch {}
   }, [mangaId, chapterNumber, currentChapterNum]);
 
+  // Always reset scroll position to the very top on chapter change
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      if (document.documentElement) document.documentElement.scrollTop = 0;
+      if (document.body) document.body.scrollTop = 0;
+      if (containerRef.current) containerRef.current.scrollTop = 0;
+    }
+  }, [chapterNumber]);
+
   // Debounced progress saver reference to prevent scroll thrashing (Bug M1 Fix)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -217,11 +227,17 @@ export function MangaReaderContainer({
 
   // Safe chapter routing helper (Bug H3 Fix)
   const navigateToChapter = useCallback((targetChapter: ChapterMetadata) => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      if (document.documentElement) document.documentElement.scrollTop = 0;
+      if (document.body) document.body.scrollTop = 0;
+      if (containerRef.current) containerRef.current.scrollTop = 0;
+    }
     const isProcessing = targetChapter.job_status === 'QUEUED' || targetChapter.job_status === 'PROCESSING';
     if (isProcessing) {
-      router.push(`/manga/${mangaId}/${targetChapter.chapter_number}/processing`);
+      router.push(`/manga/${mangaId}/${targetChapter.chapter_number}/processing`, { scroll: true });
     } else {
-      router.push(`/manga/${mangaId}/${targetChapter.chapter_number}`);
+      router.push(`/manga/${mangaId}/${targetChapter.chapter_number}`, { scroll: true });
     }
   }, [router, mangaId]);
 
@@ -697,6 +713,12 @@ export function MangaReaderContainer({
                 {nextChapter ? (
                   <Link
                     href={`/manga/${mangaId}/${nextChapter.chapter_number}`}
+                    scroll={true}
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+                      }
+                    }}
                     className="w-full sm:w-auto px-7 py-3 rounded-xl font-black text-white bg-primary shadow-[0_0_20px_rgba(255,46,46,0.4)] hover:scale-105 transition-all text-sm flex items-center justify-center gap-2 font-rajdhani"
                   >
                     <span>Next Chapter ({nextChapter.chapter_number})</span>
@@ -783,6 +805,12 @@ export function MangaReaderContainer({
             {nextChapter ? (
               <Link
                 href={`/manga/${mangaId}/${nextChapter.chapter_number}`}
+                scroll={true}
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+                  }
+                }}
                 className="px-4 py-2 rounded-xl sd-gradient hover:opacity-90 text-xs font-bold flex items-center gap-1 text-white transition-opacity shadow-[0_4px_14px_0_rgba(139,92,246,0.39)] hover:shadow-[0_6px_20px_rgba(139,92,246,0.23)]"
               >
                 <span className="hidden sm:inline">Ch. {nextChapter.chapter_number}</span>

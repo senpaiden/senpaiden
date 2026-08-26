@@ -54,8 +54,18 @@ export function InterstitialAdModal({
     return () => clearInterval(timer);
   }, [isOpen]);
 
+  useEffect(() => {
+    if (isOpen) {
+      window.dispatchEvent(new CustomEvent("senpai_interstitial_state", { detail: { isOpen: true } }));
+    }
+    return () => {
+      window.dispatchEvent(new CustomEvent("senpai_interstitial_state", { detail: { isOpen: false } }));
+    };
+  }, [isOpen]);
+
   const handleClose = () => {
     setIsOpen(false);
+    window.dispatchEvent(new CustomEvent("senpai_interstitial_state", { detail: { isOpen: false } }));
   };
 
   if (!isOpen) return null;
