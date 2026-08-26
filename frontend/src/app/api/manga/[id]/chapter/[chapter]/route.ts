@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from '@/lib/supabase';
+import { resolveMangaRecord } from '@/lib/cache';
 
 export async function GET(
   req: NextRequest,
@@ -11,19 +12,15 @@ export async function GET(
       return NextResponse.json({ error: 'Supabase environment variables not configured.' }, { status: 500 });
     }
 
-    const { id: mangaId, chapter: chapterNumStr } = await params;
+    const { id: rawMangaId, chapter: chapterNumStr } = await params;
     const chapterNumber = parseFloat(chapterNumStr);
 
-    // Fetch manga details
-    const { data: manga, error: mangaErr } = await supabase
-      .from('manga')
-      .select('*')
-      .eq('id', mangaId)
-      .single();
-
-    if (mangaErr || !manga) {
+    // Fetch manga details via universal resolver (UUID, slug, title, or source_id)
+    const manga = await resolveMangaRecord(rawMangaId, supabase);
+    if (!manga) {
       return NextResponse.json({ error: 'Manga not found' }, { status: 404 });
     }
+    const mangaId = manga.id;
 
     // Fetch all chapters for navigation (up to 5,000 for long-running series)
     const { data: chapters } = await supabase

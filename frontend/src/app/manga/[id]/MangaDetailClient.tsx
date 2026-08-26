@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Star, Bookmark, Play, ChevronRight, BookOpen, Eye,
-  User, Palette, TrendingUp, ThumbsUp, Share2,
+  User, Palette, TrendingUp, ThumbsUp, Share2, ChevronDown, ArrowUpDown
 } from "lucide-react";
+import { AdSlot } from "@/components/AdSlot";
+
+const CHUNK_SIZE = 50;
 
 interface DetailManga {
   id: string;
@@ -32,6 +35,7 @@ interface DetailChapter {
   release_date?: string;
   views?: number;
   likes?: number;
+  pages?: number;
 }
 
 export function MangaDetailClient({ 
@@ -47,10 +51,49 @@ export function MangaDetailClient({
   const [saved, setSaved] = useState(false);
   const [activeTab, setActiveTab] = useState<"chapters" | "info" | "reviews">("chapters");
   const [liked, setLiked] = useState<Set<number>>(new Set());
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+  const [selectedRangeIndex, setSelectedRangeIndex] = useState(0);
 
   const genres = manga.genres || ["Action", "Fantasy"];
   const startChapter = chapters.length > 0 ? Math.min(...chapters.map(c => c.chapter_number)) : 1;
   const latestChapter = chapters.length > 0 ? Math.max(...chapters.map(c => c.chapter_number)) : 1;
+
+  // Sorted chapter list based on sort order
+  const sortedChapters = useMemo(() => {
+    const list = [...chapters];
+    list.sort((a, b) => {
+      const aNum = Number(a.chapter_number) || 0;
+      const bNum = Number(b.chapter_number) || 0;
+      return sortOrder === "asc" ? aNum - bNum : bNum - aNum;
+    });
+    return list;
+  }, [chapters, sortOrder]);
+
+  // Calculate 50-chapter ranges
+  const ranges = useMemo(() => {
+    if (sortedChapters.length === 0) return [];
+    const chunks: { label: string; startIndex: number; endIndex: number }[] = [];
+    for (let i = 0; i < sortedChapters.length; i += CHUNK_SIZE) {
+      const end = Math.min(i + CHUNK_SIZE, sortedChapters.length);
+      const firstCh = sortedChapters[i].chapter_number;
+      const lastCh = sortedChapters[end - 1].chapter_number;
+      const label = `Ch. ${firstCh} – ${lastCh}`;
+      chunks.push({ label, startIndex: i, endIndex: end });
+    }
+    return chunks;
+  }, [sortedChapters]);
+
+  // Slice visible chapters for active range
+  const visibleChapters = useMemo(() => {
+    const range = ranges[selectedRangeIndex];
+    if (!range) return sortedChapters.slice(0, CHUNK_SIZE);
+    return sortedChapters.slice(range.startIndex, range.endIndex);
+  }, [sortedChapters, ranges, selectedRangeIndex]);
+
+  const toggleSort = () => {
+    setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
+    setSelectedRangeIndex(0);
+  };
 
   useEffect(() => {
     try {
@@ -206,26 +249,93 @@ export function MangaDetailClient({
           {/* Chapters */}
           {activeTab === "chapters" && (
             <div className="max-w-2xl">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm text-muted-foreground font-noto">{chapters.length} chapters total</span>
-                <button className="text-xs font-bold px-3 py-1.5 rounded-lg bg-red-500/10 text-primary border border-red-500/25 hover:bg-red-500/20 transition-colors">
-                  Sort
-                </button>
+              {/* Header Controls: Total Count, Range Dropdown, Sort Toggle */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 p-3 rounded-2xl bg-white/[0.02] border border-white/5">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-white font-rajdhani">
+                    {chapters.length} Chapters
+                  </span>
+                  <span className="text-xs text-muted-foreground font-noto">
+                    (Showing {visibleChapters.length})
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  {/* Range Dropdown (Only show if multiple ranges exist) */}
+                  {ranges.length > 1 && (
+                    <div className="relative flex items-center">
+                      <select
+                        value={selectedRangeIndex}
+                        onChange={(e) => setSelectedRangeIndex(Number(e.target.value))}
+                        aria-label="Select chapter range"
+                        className="appearance-none cursor-pointer pl-3 pr-8 py-1.5 rounded-xl text-xs font-bold bg-[#161B22] text-white border border-white/10 hover:border-primary/40 focus:border-primary focus:outline-none transition-all"
+                      >
+                        {ranges.map((range, idx) => (
+                          <option key={range.label} value={idx} className="bg-[#161B22] text-white">
+                            {range.label}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown size={14} className="absolute right-2.5 pointer-events-none text-muted-foreground" />
+                    </div>
+                  )}
+
+                  {/* Sort Order Toggle */}
+                  <button 
+                    onClick={toggleSort}
+                    className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-red-500/10 text-primary border border-red-500/25 hover:bg-red-500/20 transition-all active:scale-95"
+                    title={sortOrder === "desc" ? "Sorted Newest First" : "Sorted Oldest First"}
+                  >
+                    <ArrowUpDown size={13} />
+                    <span>{sortOrder === "desc" ? "Newest" : "Oldest"}</span>
+                  </button>
+                </div>
               </div>
+
+              {/* Big Top Banner Ad - Refreshes when chapter range or sort changes */}
+              <div className="mb-4">
+                <AdSlot 
+                  key={`range-ad-${selectedRangeIndex}-${sortOrder}`} 
+                  placement="manga-detail" 
+                />
+              </div>
+
+              {/* Chapter Rows with in-feed ads every 10 chapters */}
               <div className="flex flex-col gap-2">
-                {chapters.map((ch: any) => (
-                  <Link href={`/manga/${manga.id}/${ch.chapter_number}`} key={ch.chapter_number}
-                    className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl group transition-all hover:scale-[1.01] bg-[#161B22]/80 border border-white/5 hover:border-primary/25">
-                    <div className="w-12 md:w-14 text-center md:text-right">
-                      <span className="text-xs md:text-sm font-black text-primary font-jetbrains">Ch.{ch.chapter_number}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-white group-hover:text-primary transition-colors truncate">{ch.title || `Chapter ${ch.chapter_number}`}</div>
-                      <div className="text-[10px] text-muted-foreground mt-0.5 truncate">{ch.pages || 20} pages</div>
-                    </div>
-                    {ch.chapter_number > latestChapter - 2 && <span className="hidden sm:inline-block text-[9px] font-black px-1.5 py-0.5 rounded bg-primary text-white">NEW</span>}
-                    <ChevronRight size={15} className="text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
-                  </Link>
+                {visibleChapters.map((ch: DetailChapter, index: number) => (
+                  <div key={ch.chapter_number} className="flex flex-col gap-2">
+                    <Link 
+                      href={`/manga/${manga.id}/${ch.chapter_number}`}
+                      className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl group transition-all hover:scale-[1.01] bg-[#161B22]/80 border border-white/5 hover:border-primary/25"
+                    >
+                      <div className="w-12 md:w-14 text-center md:text-right">
+                        <span className="text-xs md:text-sm font-black text-primary font-jetbrains">
+                          Ch.{ch.chapter_number}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-white group-hover:text-primary transition-colors truncate">
+                          {ch.title || `Chapter ${ch.chapter_number}`}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                          {ch.pages || 20} pages
+                        </div>
+                      </div>
+                      {ch.chapter_number > latestChapter - 2 && (
+                        <span className="hidden sm:inline-block text-[9px] font-black px-1.5 py-0.5 rounded bg-primary text-white">
+                          NEW
+                        </span>
+                      )}
+                      <ChevronRight size={15} className="text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+                    </Link>
+
+                    {/* In-Feed Ad after every 10 chapters */}
+                    {(index + 1) % 10 === 0 && index < visibleChapters.length - 1 && (
+                      <div className="my-1.5">
+                        <AdSlot placement="manga-detail" />
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
