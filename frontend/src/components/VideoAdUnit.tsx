@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Play, Pause, Volume2, VolumeX, Sparkles, ExternalLink } from "lucide-react";
-import { ADS_ENABLED, canServeAdsInBrowser } from "@/lib/monetization";
+import { ADS_ENABLED, canServeAdsInBrowser, ADSTERRA_SMARTLINK_URL } from "@/lib/monetization";
 import { getConsent } from "@/lib/consent";
 
 interface VideoAdUnitProps {
@@ -17,7 +17,7 @@ interface VideoAdUnitProps {
 export function VideoAdUnit({
   title = "Discover Next-Gen Anime Gaming",
   sponsorName = "Epic Anime Universe",
-  sponsorUrl = "https://senpaiden.vercel.app",
+  sponsorUrl = ADSTERRA_SMARTLINK_URL || "https://senpaiden.vercel.app",
   posterSrc = "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&auto=format&fit=crop&q=80",
   className = "",
 }: VideoAdUnitProps) {

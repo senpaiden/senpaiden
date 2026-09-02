@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Zap, X, Play, CheckCircle2, Lock, Sparkles, ExternalLink } from "lucide-react";
 import { unlockChapter } from "@/lib/fastpass";
 import { VideoAdUnit } from "@/components/VideoAdUnit";
+import { ADSTERRA_SMARTLINK_URL } from "@/lib/monetization";
 
 interface FastPassUnlockModalProps {
   isOpen: boolean;
@@ -56,6 +57,9 @@ export function FastPassUnlockModal({
   }, [isPlayingAd, countdown, mangaId, chapterNumber]);
 
   const handleStartAd = () => {
+    if (typeof window !== "undefined" && ADSTERRA_SMARTLINK_URL) {
+      window.open(ADSTERRA_SMARTLINK_URL, "_blank", "noopener,noreferrer");
+    }
     setIsPlayingAd(true);
   };
 
