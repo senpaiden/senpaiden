@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   Star, Bookmark, Play, ChevronRight, BookOpen, Eye,
   User, Palette, TrendingUp, ThumbsUp, Share2, ChevronDown, ArrowUpDown,
-  Zap, Lock, Unlock
+  Zap, Lock, Unlock, Check, MessageSquarePlus, Send
 } from "lucide-react";
 import { AdSlot } from "@/components/AdSlot";
 import { VideoAdUnit } from "@/components/VideoAdUnit";
@@ -42,6 +42,16 @@ interface DetailChapter {
   pages?: number;
 }
 
+interface CommunityReview {
+  id: string;
+  user: string;
+  avatar: string;
+  rating: number;
+  text: string;
+  likes: number;
+  time: string;
+}
+
 export function MangaDetailClient({ 
   manga, 
   chapters, 
@@ -53,15 +63,23 @@ export function MangaDetailClient({
 }) {
   const router = useRouter();
   const [saved, setSaved] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<"chapters" | "info" | "reviews">("chapters");
-  const [liked, setLiked] = useState<Set<number>>(new Set());
-  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+  const [liked, setLiked] = useState<Set<string>>(new Set());
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("asc");
   const [selectedRangeIndex, setSelectedRangeIndex] = useState(0);
   const [unlockedChapters, setUnlockedChapters] = useState<number[]>([]);
   const [fastPassModalChapter, setFastPassModalChapter] = useState<number | null>(null);
   const [isFastPassModalOpen, setIsFastPassModalOpen] = useState(false);
 
-  const genres = manga.genres || ["Action", "Fantasy"];
+  // Dynamic reviews state
+  const [reviewsList, setReviewsList] = useState<CommunityReview[]>([]);
+  const [newReviewText, setNewReviewText] = useState("");
+  const [newReviewRating, setNewReviewRating] = useState(10);
+  const [newReviewName, setNewReviewName] = useState("");
+  const [showReviewForm, setShowReviewForm] = useState(false);
+
+  const genres = manga.genres && manga.genres.length > 0 ? manga.genres : ["Action", "Fantasy"];
   const startChapter = chapters.length > 0 ? Math.min(...chapters.map(c => c.chapter_number)) : 1;
   const latestChapter = chapters.length > 0 ? Math.max(...chapters.map(c => c.chapter_number)) : 1;
 
@@ -73,6 +91,81 @@ export function MangaDetailClient({
     window.addEventListener(FASTPASS_UPDATED_EVENT, syncUnlocked);
     return () => window.removeEventListener(FASTPASS_UPDATED_EVENT, syncUnlocked);
   }, [manga.id]);
+
+  // Load reviews specific to this manga
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(`senpai_reviews_${manga.id}`);
+      if (stored) {
+        setReviewsList(JSON.parse(stored));
+      } else {
+        const seedReviews: CommunityReview[] = [
+          {
+            id: `seed-1-${manga.id}`,
+            user: "kage_reader",
+            avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=80&h=80&fit=crop&auto=format",
+            rating: 10,
+            text: `The pacing and character progression in ${manga.title} is top tier. Definitely one of the best ${genres[0] || 'manga'} series right now!`,
+            likes: 428,
+            time: "2 days ago",
+          },
+          {
+            id: `seed-2-${manga.id}`,
+            user: "luna_void",
+            avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&auto=format",
+            rating: 9,
+            text: `Incredible art style and tension. The story keeps you hooked from chapter 1 onwards. Highly recommended!`,
+            likes: 312,
+            time: "5 days ago",
+          }
+        ];
+        setReviewsList(seedReviews);
+      }
+    } catch {}
+  }, [manga.id, manga.title, genres]);
+
+  const handlePostReview = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newReviewText.trim()) return;
+    const authorName = newReviewName.trim() || "Manga Fan";
+    const userRev: CommunityReview = {
+      id: `user-rev-${Date.now()}`,
+      user: authorName,
+      avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(authorName)}`,
+      rating: newReviewRating,
+      text: newReviewText.trim(),
+      likes: 1,
+      time: "Just now",
+    };
+    const updated = [userRev, ...reviewsList];
+    setReviewsList(updated);
+    setNewReviewText("");
+    setNewReviewName("");
+    setShowReviewForm(false);
+    try {
+      localStorage.setItem(`senpai_reviews_${manga.id}`, JSON.stringify(updated));
+    } catch {}
+  };
+
+  const handleShare = async () => {
+    if (typeof window === "undefined") return;
+    const shareData = {
+      title: `${manga.title} on Senpai Den`,
+      text: `Read ${manga.title} for free with all chapters on Senpai Den!`,
+      url: window.location.href,
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch {}
+    }
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2500);
+    } catch {}
+  };
 
   // Sorted chapter list based on sort order
   const sortedChapters = useMemo(() => {
@@ -225,10 +318,21 @@ export function MangaDetailClient({
                 className={`w-10 md:w-12 h-10 md:h-12 rounded-xl flex items-center justify-center transition-all border ${saved ? 'bg-primary/15 border-primary/40' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>
                 <Bookmark size={17} className={saved ? "fill-red-500 text-red-500" : ""} />
               </button>
-              <button className="w-10 md:w-12 h-10 md:h-12 rounded-xl flex items-center justify-center transition-all bg-white/5 border border-white/10 hover:bg-white/10">
-                <Share2 size={17} />
+              <button 
+                onClick={handleShare}
+                title="Share this manga"
+                className={`w-10 md:w-12 h-10 md:h-12 rounded-xl flex items-center justify-center transition-all border ${
+                  shareCopied ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' : 'bg-white/5 border-white/10 hover:bg-white/10 text-white'
+                }`}
+              >
+                {shareCopied ? <Check size={17} /> : <Share2 size={17} />}
               </button>
             </div>
+            {shareCopied && (
+              <div className="mt-2 text-xs font-bold text-emerald-400 flex items-center justify-center md:justify-start gap-1 animate-in fade-in">
+                <Check size={13} /> Link copied to clipboard!
+              </div>
+            )}
           </div>
 
           {/* Related manga */}
@@ -300,10 +404,10 @@ export function MangaDetailClient({
                   <button 
                     onClick={toggleSort}
                     className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-red-500/10 text-primary border border-red-500/25 hover:bg-red-500/20 transition-all active:scale-95"
-                    title={sortOrder === "desc" ? "Sorted Newest First" : "Sorted Oldest First"}
+                    title={sortOrder === "asc" ? "Sorted Oldest First" : "Sorted Newest First"}
                   >
                     <ArrowUpDown size={13} />
-                    <span>{sortOrder === "desc" ? "Newest" : "Oldest"}</span>
+                    <span>{sortOrder === "asc" ? "Oldest (1 → N)" : "Newest (N → 1)"}</span>
                   </button>
                 </div>
               </div>
@@ -391,8 +495,8 @@ export function MangaDetailClient({
                 </h3>
                 <div className="space-y-3">
                   {[
-                    { label: "Author", value: manga.author || "Unknown", icon: User },
-                    { label: "Artist", value: manga.artist || "Unknown", icon: Palette },
+                    { label: "Author", value: manga.author || "Official Author / Studio", icon: User },
+                    { label: "Artist", value: manga.artist || "Official Artist", icon: Palette },
                     { label: "Status", value: manga.status || "Ongoing", icon: TrendingUp },
                     { label: "Genres", value: genres.join(", "), icon: Star },
                   ].map(({ label, value, icon: Icon }) => (
@@ -417,41 +521,107 @@ export function MangaDetailClient({
           {/* Reviews */}
           {activeTab === "reviews" && (
             <div className="max-w-2xl space-y-4">
-              {REVIEWS.map((r, i) => (
-                <div key={i} className="p-4 md:p-5 rounded-2xl bg-[#161B22]/80 border border-white/5">
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-800 flex-shrink-0">
-                      <img src={r.avatar} alt={r.user} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-bold text-white truncate">{r.user}</span>
-                        <span className="text-[10px] text-muted-foreground">{r.time}</span>
-                      </div>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        {Array.from({ length: 5 }).map((_, j) => (
-                          <Star key={j} size={10} className={j < (r.rating/2) ? "fill-yellow-400 text-yellow-400" : "text-gray-700"} />
-                        ))}
-                        <span className="text-[10px] text-yellow-400 font-bold ml-1">{r.rating}/10</span>
-                      </div>
-                    </div>
+              {/* Community Review Header & Form Trigger */}
+              <div className="p-4 md:p-5 rounded-2xl bg-[#161B22]/90 border border-white/5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Star size={16} className="text-yellow-400 fill-yellow-400" />
+                    <span className="text-sm font-bold text-white font-rajdhani">Community Ratings & Reviews</span>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed mb-3 font-noto">{r.text}</p>
-                  <button onClick={() => setLiked((p) => {
-                      const n = new Set(p);
-                      if (n.has(i)) {
-                        n.delete(i);
-                      } else {
-                        n.add(i);
-                      }
-                      return n;
-                    })}
-                    className={`flex items-center gap-1.5 text-[11px] transition-all ${liked.has(i) ? "text-primary" : "text-muted-foreground hover:text-white"}`}>
-                    <ThumbsUp size={12} className={liked.has(i) ? "fill-red-500" : ""} />
-                    {r.likes + (liked.has(i) ? 1 : 0)} helpful
+                  <button
+                    onClick={() => setShowReviewForm(!showReviewForm)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl sd-gradient text-white text-xs font-bold shadow-md shadow-primary/20 transition-all hover:scale-105"
+                  >
+                    <MessageSquarePlus size={13} />
+                    <span>{showReviewForm ? "Close Form" : "Write Review"}</span>
                   </button>
                 </div>
-              ))}
+
+                {showReviewForm && (
+                  <form onSubmit={handlePostReview} className="mt-4 pt-4 border-t border-white/5 space-y-3">
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <input
+                        type="text"
+                        placeholder="Your Name (e.g. AnimeSenpai)"
+                        value={newReviewName}
+                        onChange={(e) => setNewReviewName(e.target.value)}
+                        className="flex-1 px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-primary/50"
+                      />
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-zinc-400">Score:</span>
+                        <select
+                          value={newReviewRating}
+                          onChange={(e) => setNewReviewRating(Number(e.target.value))}
+                          className="px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-xs font-bold text-yellow-400 focus:outline-none focus:border-primary/50"
+                        >
+                          {[10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map((n) => (
+                            <option key={n} value={n} className="bg-[#161B22] text-white">
+                              {n} / 10 ⭐
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <textarea
+                      placeholder={`What did you think of ${manga.title}? Write your thoughts...`}
+                      rows={3}
+                      value={newReviewText}
+                      onChange={(e) => setNewReviewText(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl bg-black/40 border border-white/10 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-primary/50 font-noto leading-relaxed"
+                    />
+
+                    <div className="flex justify-end">
+                      <button
+                        type="submit"
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary hover:bg-red-500 text-white text-xs font-black shadow-lg shadow-primary/30 transition-all active:scale-95"
+                      >
+                        <Send size={12} />
+                        <span>Publish Review</span>
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+
+              {/* Reviews List */}
+              {reviewsList.map((r) => {
+                const isLiked = liked.has(r.id);
+                return (
+                  <div key={r.id} className="p-4 md:p-5 rounded-2xl bg-[#161B22]/80 border border-white/5">
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-800 flex-shrink-0">
+                        <img src={r.avatar} alt={r.user} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-bold text-white truncate">{r.user}</span>
+                          <span className="text-[10px] text-muted-foreground">{r.time}</span>
+                        </div>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          {Array.from({ length: 5 }).map((_, j) => (
+                            <Star key={j} size={10} className={j < (r.rating / 2) ? "fill-yellow-400 text-yellow-400" : "text-gray-700"} />
+                          ))}
+                          <span className="text-[10px] text-yellow-400 font-bold ml-1">{r.rating}/10</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed mb-3 font-noto">{r.text}</p>
+                    <button 
+                      onClick={() => setLiked((p) => {
+                        const n = new Set(p);
+                        if (n.has(r.id)) n.delete(r.id);
+                        else n.add(r.id);
+                        return n;
+                      })}
+                      className={`flex items-center gap-1.5 text-[11px] transition-all ${isLiked ? "text-primary font-bold" : "text-muted-foreground hover:text-white"}`}
+                    >
+                      <ThumbsUp size={12} className={isLiked ? "fill-red-500" : ""} />
+                      {r.likes + (isLiked ? 1 : 0)} helpful
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
