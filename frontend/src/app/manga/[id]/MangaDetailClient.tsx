@@ -232,11 +232,6 @@ export function MangaDetailClient({
                 </Link>
               ))}
             </div>
-
-            {/* Desktop Sidebar Sponsor */}
-            <div className="mt-6 pt-4 border-t border-white/5">
-              <AdSlot placement="manga-detail" className="!my-0 !w-full" />
-            </div>
           </div>
         </div>
 
@@ -298,50 +293,39 @@ export function MangaDetailClient({
                 </div>
               </div>
 
-              {/* Big Top Banner Ad - Refreshes when chapter range or sort changes */}
+              {/* Top Banner Ad */}
               <div className="mb-4">
-                <AdSlot 
-                  key={`range-ad-${selectedRangeIndex}-${sortOrder}`} 
-                  placement="manga-detail" 
-                />
+                <AdSlot placement="manga-detail" />
               </div>
 
-              {/* Chapter Rows with in-feed ads every 10 chapters */}
+              {/* Chapter Rows */}
               <div className="flex flex-col gap-2">
-                {visibleChapters.map((ch: DetailChapter, index: number) => (
-                  <div key={ch.chapter_number} className="flex flex-col gap-2">
-                    <Link 
-                      href={`/manga/${manga.id}/${ch.chapter_number}`}
-                      className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl group transition-all hover:scale-[1.01] bg-[#161B22]/80 border border-white/5 hover:border-primary/25"
-                    >
-                      <div className="w-12 md:w-14 text-center md:text-right">
-                        <span className="text-xs md:text-sm font-black text-primary font-jetbrains">
-                          Ch.{ch.chapter_number}
-                        </span>
+                {visibleChapters.map((ch: DetailChapter) => (
+                  <Link 
+                    key={ch.chapter_number}
+                    href={`/manga/${manga.id}/${ch.chapter_number}`}
+                    className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl group transition-all hover:scale-[1.01] bg-[#161B22]/80 border border-white/5 hover:border-primary/25"
+                  >
+                    <div className="w-12 md:w-14 text-center md:text-right">
+                      <span className="text-xs md:text-sm font-black text-primary font-jetbrains">
+                        Ch.{ch.chapter_number}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-white group-hover:text-primary transition-colors truncate">
+                        {ch.title || `Chapter ${ch.chapter_number}`}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-white group-hover:text-primary transition-colors truncate">
-                          {ch.title || `Chapter ${ch.chapter_number}`}
-                        </div>
-                        <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
-                          {ch.pages || 20} pages
-                        </div>
+                      <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                        {ch.pages || 20} pages
                       </div>
-                      {ch.chapter_number > latestChapter - 2 && (
-                        <span className="hidden sm:inline-block text-[9px] font-black px-1.5 py-0.5 rounded bg-primary text-white">
-                          NEW
-                        </span>
-                      )}
-                      <ChevronRight size={15} className="text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
-                    </Link>
-
-                    {/* In-Feed Ad after every 10 chapters */}
-                    {(index + 1) % 10 === 0 && index < visibleChapters.length - 1 && (
-                      <div className="my-1.5">
-                        <AdSlot placement="manga-detail" />
-                      </div>
+                    </div>
+                    {ch.chapter_number > latestChapter - 2 && (
+                      <span className="hidden sm:inline-block text-[9px] font-black px-1.5 py-0.5 rounded bg-primary text-white">
+                        NEW
+                      </span>
                     )}
-                  </div>
+                    <ChevronRight size={15} className="text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+                  </Link>
                 ))}
               </div>
             </div>

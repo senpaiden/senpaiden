@@ -185,15 +185,8 @@ export default async function Home({ searchParams }: { searchParams?: Promise<{ 
       <section className="mx-auto max-w-7xl px-4 md:px-8">
         <SectionTitle title="Trending Now" accent="violet" href="/discover" />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
-          {trending.map((m, index) => (
-            <div key={m.slug} className="contents">
-              <MangaCard manga={m} showChapter />
-              {(index + 1) % 6 === 0 && index < trending.length - 1 && (
-                <div className="col-span-full my-3">
-                  <AdSlot placement="home-feed" />
-                </div>
-              )}
-            </div>
+          {trending.map((m) => (
+            <MangaCard key={m.slug} manga={m} showChapter />
           ))}
         </div>
       </section>

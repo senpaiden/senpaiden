@@ -454,28 +454,28 @@ export function MangaReaderContainer({
           isHudVisible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0 pointer-events-none"
         }`}
       >
-        <div className="sd-glass border-x-0 border-t-0 rounded-none px-4 py-3">
+        <div className="sd-glass border-x-0 border-t-0 rounded-none px-3 sm:px-4 py-2.5 sm:py-3">
           <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <Link
                 href={`/manga/${mangaId}`}
-                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-[#A1A1AA] hover:text-white transition-colors border border-white/10"
+                className="p-1.5 sm:p-2 rounded-xl bg-white/5 hover:bg-white/10 text-[#A1A1AA] hover:text-white transition-colors border border-white/10 shrink-0"
                 title="Back to Manga Details"
               >
                 <ChevronLeft className="w-5 h-5" />
               </Link>
-              <div className="truncate">
-                <h1 className="text-sm font-semibold text-white truncate max-w-[120px] sm:max-w-md">{mangaTitle}</h1>
-                <p className="text-xs text-[#A1A1AA]">Chapter {chapterNumber}</p>
+              <div className="truncate min-w-0 flex-1">
+                <h1 className="text-xs sm:text-sm font-semibold text-white truncate max-w-[140px] xs:max-w-[200px] sm:max-w-md">{mangaTitle}</h1>
+                <p className="text-[11px] sm:text-xs text-[#A1A1AA] truncate">Chapter {chapterNumber}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {/* 3 Reading Mode Selectors */}
-              <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10">
+              <div className="flex items-center gap-0.5 sm:gap-1 bg-white/5 p-0.5 sm:p-1 rounded-xl border border-white/10">
                 <button
                   onClick={() => setMode("webtoon")}
-                  className={`px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors ${
+                  className={`px-1.5 sm:px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors ${
                     readingMode === "webtoon" ? "bg-[#38BDF8]/20 text-[#38BDF8] border border-[#38BDF8]/30 font-semibold" : "text-[#A1A1AA] hover:text-white"
                   }`}
                   title="Continuous Webtoon Strip"
@@ -485,7 +485,7 @@ export function MangaReaderContainer({
                 </button>
                 <button
                   onClick={() => setMode("single")}
-                  className={`px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors ${
+                  className={`px-1.5 sm:px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors ${
                     readingMode === "single" ? "bg-[#22C55E]/20 text-[#22C55E] border border-[#22C55E]/30 font-semibold" : "text-[#A1A1AA] hover:text-white"
                   }`}
                   title="Single Page View"
@@ -495,7 +495,7 @@ export function MangaReaderContainer({
                 </button>
                 <button
                   onClick={() => setMode("double")}
-                  className={`px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors ${
+                  className={`px-1.5 sm:px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors ${
                     readingMode === "double" ? "bg-[#8B5CF6]/20 text-[#8B5CF6] border border-[#8B5CF6]/30 font-semibold" : "text-[#A1A1AA] hover:text-white"
                   }`}
                   title="Double Spread View (Book Mode)"
@@ -540,7 +540,7 @@ export function MangaReaderContainer({
               </div>
 
               {/* Multi-Language ISO Selector Pill */}
-              <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10">
+              <div className="flex items-center gap-1 bg-white/5 p-0.5 sm:p-1 rounded-xl border border-white/10">
                 <Globe className="w-3.5 h-3.5 text-[#A1A1AA] ml-1 hidden sm:block shrink-0" />
                 <select
                   value={selectedLang}
@@ -550,7 +550,7 @@ export function MangaReaderContainer({
                     localStorage.setItem("senpai_preferred_lang", newLang);
                     router.push(`/manga/${mangaId}/${chapterNumber}?lang=${newLang}`);
                   }}
-                  className="bg-transparent text-white text-xs rounded-lg px-1.5 py-1 focus:outline-none cursor-pointer font-medium"
+                  className="bg-transparent text-white text-xs rounded-lg px-1 sm:px-1.5 py-1 focus:outline-none cursor-pointer font-medium"
                   title="Change Chapter Translation Language"
                 >
                   {availableLanguages.map((lang) => (
@@ -563,7 +563,7 @@ export function MangaReaderContainer({
 
               <button
                 onClick={toggleFullscreen}
-                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-[#A1A1AA] hover:text-white transition-colors border border-white/10"
+                className="p-1.5 sm:p-2 rounded-lg bg-white/5 hover:bg-white/10 text-[#A1A1AA] hover:text-white transition-colors border border-white/10 shrink-0"
                 title="Toggle Fullscreen"
               >
                 {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -586,11 +586,6 @@ export function MangaReaderContainer({
 
       {/* Main Content Area */}
       <div className="w-full min-h-screen cursor-pointer" onClick={handleContainerClick}>
-        {/* Top Reader Ad Banner */}
-        <div className="mx-auto max-w-3xl px-4 pt-16 pb-3">
-          <AdSlot placement="reader-top" />
-        </div>
-
         {readingMode === "webtoon" ? (
           /* Webtoon Strip Mode: Seamless Virtualized list */
           <div 
@@ -703,13 +698,8 @@ export function MangaReaderContainer({
                 {nextChapter ? (nextChapter.title || "Continue your read with the next installment.") : "Check back later for new chapter releases or browse related manga below."}
               </p>
 
-              {/* Intermission Ad Banner */}
-              <div className="w-full mb-6">
-                <AdSlot placement="reader-bottom" />
-              </div>
-
               {/* Action buttons */}
-              <div className="flex flex-col sm:flex-row items-center gap-3 w-full justify-center">
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full justify-center mb-6">
                 {nextChapter ? (
                   <Link
                     href={`/manga/${mangaId}/${nextChapter.chapter_number}`}
@@ -739,6 +729,11 @@ export function MangaReaderContainer({
                 >
                   Manga Details
                 </Link>
+              </div>
+
+              {/* Intermission Ad Banner */}
+              <div className="w-full">
+                <AdSlot placement="reader-bottom" />
               </div>
             </div>
           </div>

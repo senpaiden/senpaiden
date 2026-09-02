@@ -6,7 +6,6 @@ import { MangaCard } from "@/components/MangaCard";
 import { Bookmark, Trash2 } from "lucide-react";
 import type { Manga } from "@/lib/manga-data";
 import { AdSlot } from "@/components/AdSlot";
-import { InterstitialAdModal } from "@/components/InterstitialAdModal";
 
 export default function LibraryPage() {
   const [library, setLibrary] = useState<Manga[]>([]);
@@ -49,9 +48,6 @@ export default function LibraryPage() {
 
   return (
     <div className="pb-28 md:pb-8">
-      {/* 5-Second Full-Screen Interstitial Ad */}
-      <InterstitialAdModal storageKey="senpai_library_interstitial_seen" title="Library Partner Sponsor" durationSeconds={5} />
-
       <div className="mx-auto max-w-7xl px-4 pt-4 md:px-8 md:pt-8">
         <div className="flex items-center justify-between">
           <div>

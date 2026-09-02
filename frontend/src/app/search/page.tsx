@@ -130,16 +130,12 @@ function SearchContent() {
               Found {results.length} results for &quot;{query}&quot;
             </p>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8">
-              {results.map((manga, index) => (
-                <div key={manga.slug} className="contents">
-                  <MangaCard manga={manga} showChapter />
-                  {(index + 1) % 6 === 0 && index < results.length - 1 && (
-                    <div className="col-span-full my-3">
-                      <AdSlot placement="discover-grid" />
-                    </div>
-                  )}
-                </div>
+              {results.map((manga) => (
+                <MangaCard key={manga.slug} manga={manga} showChapter />
               ))}
+            </div>
+            <div className="mt-8 border-t border-white/5 pt-8">
+              <AdSlot placement="discover-bottom" />
             </div>
           </div>
         ) : (

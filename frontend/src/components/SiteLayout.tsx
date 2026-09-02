@@ -25,77 +25,7 @@ const SIDEBAR_ITEMS = [
   { icon: History, label: "History", path: "/history" },
 ];
 
-function HomeSkeletonLoader() {
-  const navRows = ["w-56", "w-36", "w-40", "w-48", "w-36", "w-36"];
-  const chipRows = ["w-20", "w-24", "w-24", "w-20", "w-24", "w-20", "w-28"];
 
-  return (
-    <div className="flex min-h-screen w-full overflow-hidden bg-[#0F1117] text-white" role="status" aria-label="Loading SenpaiDen">
-      <aside className="hidden w-[260px] shrink-0 border-r border-white/5 bg-[#0F1117] px-5 py-5 md:block">
-        <div className="mb-8 flex h-24 items-center justify-center border-b border-white/5 pb-5">
-          <img src={senpaiDenLogo.src} alt="SenpaiDen Logo" className="w-full max-w-[210px] object-contain opacity-95" />
-        </div>
-        <div className="space-y-4">
-          {navRows.map((widthClass, index) => (
-            <div key={index} className={`h-12 ${widthClass} animate-pulse rounded-2xl ${index === 0 ? "bg-primary" : "bg-white/[0.07]"}`} />
-          ))}
-        </div>
-        <div className="mt-10 flex justify-center">
-          <div className="h-72 w-56 animate-pulse rounded-full bg-white/[0.08]" />
-        </div>
-      </aside>
-
-      <section className="min-w-0 flex-1">
-        <div className="flex h-20 items-center gap-4 border-b border-white/5 px-5 md:px-10">
-          <div className="h-12 flex-1 max-w-[360px] animate-pulse rounded-2xl bg-white/[0.08]" />
-          <div className="hidden h-10 w-28 animate-pulse rounded-xl bg-[#FFD700]/20 md:block" />
-          <div className="hidden h-10 w-10 animate-pulse rounded-full bg-white/[0.08] md:block" />
-          <div className="hidden items-center gap-3 md:flex">
-            <div className="h-8 w-20 animate-pulse rounded-lg bg-white/[0.08]" />
-            <div className="h-12 w-12 animate-pulse rounded-full bg-white/[0.12]" />
-          </div>
-        </div>
-
-        <main className="px-5 py-8 md:px-10 md:py-14">
-          <div className="grid max-w-4xl gap-8 md:grid-cols-[280px_minmax(0,1fr)] md:items-center">
-            <div className="aspect-[3/4.4] w-full max-w-[280px] animate-pulse rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.16] via-white/[0.07] to-white/[0.02]" />
-            <div className="space-y-6">
-              <div className="flex gap-3">
-                <div className="h-4 w-24 animate-pulse rounded bg-white/[0.16]" />
-                <div className="h-4 w-32 animate-pulse rounded bg-white/[0.08]" />
-              </div>
-              <div className="space-y-4">
-                <div className="h-16 w-full max-w-[360px] animate-pulse rounded-xl bg-white/[0.12]" />
-                <div className="h-16 w-full max-w-[300px] animate-pulse rounded-xl bg-white/[0.10]" />
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <div className="h-14 w-48 animate-pulse rounded-2xl bg-white/[0.12] shadow-[0_24px_55px_rgba(124,58,237,0.22)]" />
-                <div className="h-14 w-36 animate-pulse rounded-2xl border border-emerald-400/20 bg-emerald-400/10" />
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-14 border-t border-white/5 pt-8">
-            <div className="flex gap-3 overflow-hidden">
-              {chipRows.map((widthClass, index) => (
-                <div key={index} className={`h-10 shrink-0 ${widthClass} animate-pulse rounded-full border border-white/8 bg-white/[0.07]`} />
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-10">
-            <div className="mb-5 h-8 w-56 animate-pulse rounded-lg bg-white/[0.12]" />
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-              {Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="h-56 animate-pulse rounded-2xl border border-white/5 bg-white/[0.06]" />
-              ))}
-            </div>
-          </div>
-        </main>
-      </section>
-    </div>
-  );
-}
 
 function ActiveLinkHandler({
   setHasGenre,
@@ -122,20 +52,12 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
   const [hasSort, setHasSort] = useState(false);
   const [search, setSearch] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isSiteLoading, setIsSiteLoading] = useState(true);
   const [accountName, setAccountName] = useState("Senpai");
   const [signedIn, setSignedIn] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [readerLevel, setReaderLevel] = useState(1);
 
   const isReader = pathname.match(/^\/manga\/[^/]+\/[^/]+(\/.*)?$/);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsSiteLoading(false);
-    }, 250);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     const syncProgression = () => setReaderLevel(getLevel(getReaderProgression().totalExp));
@@ -233,10 +155,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
           style={{ background: "radial-gradient(circle, #7C3AED 0%, transparent 70%)" }} />
       </div>
 
-      {/* LOADING SCREEN */}
-      <div className={`fixed inset-0 z-[100] bg-[#0F1117] transition-opacity duration-500 flex items-center justify-center ${isSiteLoading ? "opacity-100" : "opacity-0 pointer-events-none"}`} suppressHydrationWarning>
-        <HomeSkeletonLoader />
-      </div>
+
 
       {/* MOBILE TOP NAV (Visible only on small screens) */}
       {!isReader && (
@@ -396,7 +315,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
         )}
         
         {/* PAGE CONTENT */}
-        <main className={`flex-1 overflow-x-hidden ${!isReader ? "pt-14 md:pt-0 pb-20 md:pb-16" : ""} w-full`}>
+        <main className={`flex-1 overflow-x-hidden ${!isReader ? "pt-14 md:pt-0 pb-36 md:pb-16" : ""} w-full`}>
           {children}
           {!isReader && <footer className="mx-4 mt-10 border-t border-white/5 px-2 py-8 md:mx-8 md:flex md:items-center md:justify-between"><p className="text-xs text-zinc-600">© 2026 SenpaiDen. Reader-first manga discovery.</p><nav aria-label="Legal and company links" className="mt-4 flex flex-wrap gap-x-5 gap-y-3 md:mt-0">{[{ label: "About", href: "/about" }, { label: "Partners", href: "/partners" }, { label: "Contact", href: "/contact" }, { label: "Privacy", href: "/privacy" }, { label: "Cookies", href: "/cookies" }, { label: "Affiliate disclosure", href: "/affiliate-disclosure" }, { label: "Terms", href: "/terms" }, { label: "Copyright", href: "/copyright" }].map((item) => <Link key={item.href} href={item.href} className="min-h-11 py-3 text-xs font-bold text-zinc-500 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60">{item.label}</Link>)}<button onClick={() => window.dispatchEvent(new Event(OPEN_CONSENT_EVENT))} className="min-h-11 py-3 text-xs font-bold text-zinc-500 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60">Privacy choices</button></nav></footer>}
         </main>
