@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { SiteLayout } from "@/components/SiteLayout";
 import { CookieConsent } from "@/components/CookieConsent";
@@ -124,6 +126,8 @@ export default function RootLayout({
         </SiteLayout>
         <CookieConsent />
         <MonetizationProvider />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
