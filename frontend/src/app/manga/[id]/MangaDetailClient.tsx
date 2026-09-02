@@ -5,10 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Star, Bookmark, Play, ChevronRight, BookOpen, Eye,
-  User, Palette, TrendingUp, ThumbsUp, Share2, ChevronDown, ArrowUpDown
+  User, Palette, TrendingUp, ThumbsUp, Share2, ChevronDown, ArrowUpDown,
+  Zap, Lock, Unlock
 } from "lucide-react";
 import { AdSlot } from "@/components/AdSlot";
 import { VideoAdUnit } from "@/components/VideoAdUnit";
+import { isChapterFastPass, isChapterUnlocked, getUnlockedChapters, FASTPASS_UPDATED_EVENT } from "@/lib/fastpass";
+import { FastPassUnlockModal } from "@/components/FastPassUnlockModal";
 
 const CHUNK_SIZE = 50;
 
@@ -54,10 +57,22 @@ export function MangaDetailClient({
   const [liked, setLiked] = useState<Set<number>>(new Set());
   const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
   const [selectedRangeIndex, setSelectedRangeIndex] = useState(0);
+  const [unlockedChapters, setUnlockedChapters] = useState<number[]>([]);
+  const [fastPassModalChapter, setFastPassModalChapter] = useState<number | null>(null);
+  const [isFastPassModalOpen, setIsFastPassModalOpen] = useState(false);
 
   const genres = manga.genres || ["Action", "Fantasy"];
   const startChapter = chapters.length > 0 ? Math.min(...chapters.map(c => c.chapter_number)) : 1;
   const latestChapter = chapters.length > 0 ? Math.max(...chapters.map(c => c.chapter_number)) : 1;
+
+  useEffect(() => {
+    const syncUnlocked = () => {
+      setUnlockedChapters(getUnlockedChapters(manga.id));
+    };
+    syncUnlocked();
+    window.addEventListener(FASTPASS_UPDATED_EVENT, syncUnlocked);
+    return () => window.removeEventListener(FASTPASS_UPDATED_EVENT, syncUnlocked);
+  }, [manga.id]);
 
   // Sorted chapter list based on sort order
   const sortedChapters = useMemo(() => {
@@ -300,33 +315,63 @@ export function MangaDetailClient({
 
               {/* Chapter Rows */}
               <div className="flex flex-col gap-2">
-                {visibleChapters.map((ch: DetailChapter) => (
-                  <Link 
-                    key={ch.chapter_number}
-                    href={`/manga/${manga.id}/${ch.chapter_number}`}
-                    className="flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl group transition-all hover:scale-[1.01] bg-[#161B22]/80 border border-white/5 hover:border-primary/25"
-                  >
-                    <div className="w-12 md:w-14 text-center md:text-right">
-                      <span className="text-xs md:text-sm font-black text-primary font-jetbrains">
-                        Ch.{ch.chapter_number}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-white group-hover:text-primary transition-colors truncate">
-                        {ch.title || `Chapter ${ch.chapter_number}`}
+                {visibleChapters.map((ch: DetailChapter) => {
+                  const isFastPass = isChapterFastPass(ch.chapter_number, latestChapter, chapters.length);
+                  const isUnlocked = unlockedChapters.includes(ch.chapter_number);
+                  const isLockedFastPass = isFastPass && !isUnlocked;
+
+                  return (
+                    <Link 
+                      key={ch.chapter_number}
+                      href={`/manga/${manga.id}/${ch.chapter_number}`}
+                      onClick={(e) => {
+                        if (isLockedFastPass) {
+                          e.preventDefault();
+                          setFastPassModalChapter(ch.chapter_number);
+                          setIsFastPassModalOpen(true);
+                        }
+                      }}
+                      className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl group transition-all hover:scale-[1.01] border ${
+                        isLockedFastPass 
+                          ? 'bg-[#181512]/90 border-yellow-500/20 hover:border-yellow-500/40'
+                          : 'bg-[#161B22]/80 border-white/5 hover:border-primary/25'
+                      }`}
+                    >
+                      <div className="w-12 md:w-14 text-center md:text-right">
+                        <span className={`text-xs md:text-sm font-black font-jetbrains ${isLockedFastPass ? 'text-yellow-400' : 'text-primary'}`}>
+                          Ch.{ch.chapter_number}
+                        </span>
                       </div>
-                      <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
-                        {ch.pages || 20} pages
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-white group-hover:text-primary transition-colors truncate">
+                          {ch.title || `Chapter ${ch.chapter_number}`}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                          {ch.pages || 20} pages
+                        </div>
                       </div>
-                    </div>
-                    {ch.chapter_number > latestChapter - 2 && (
-                      <span className="hidden sm:inline-block text-[9px] font-black px-1.5 py-0.5 rounded bg-primary text-white">
-                        NEW
-                      </span>
-                    )}
-                    <ChevronRight size={15} className="text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
-                  </Link>
-                ))}
+
+                      {/* FastPass / New Status Badges */}
+                      {isLockedFastPass ? (
+                        <span className="flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-lg bg-yellow-400/10 text-yellow-400 border border-yellow-400/30 shadow-[0_0_10px_rgba(250,204,21,0.15)]">
+                          <Zap size={11} className="fill-yellow-400" />
+                          <span>FastPass</span>
+                        </span>
+                      ) : isFastPass && isUnlocked ? (
+                        <span className="flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                          <Unlock size={11} />
+                          <span>Unlocked</span>
+                        </span>
+                      ) : ch.chapter_number > latestChapter - 2 ? (
+                        <span className="hidden sm:inline-block text-[9px] font-black px-1.5 py-0.5 rounded bg-primary text-white">
+                          NEW
+                        </span>
+                      ) : null}
+
+                      <ChevronRight size={15} className={`transition-colors flex-shrink-0 ${isLockedFastPass ? 'text-yellow-500/70 group-hover:text-yellow-400' : 'text-muted-foreground group-hover:text-primary'}`} />
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -411,6 +456,22 @@ export function MangaDetailClient({
           )}
         </div>
       </div>
+
+      {/* FastPass Rewarded Unlock Modal */}
+      {fastPassModalChapter !== null && (
+        <FastPassUnlockModal
+          isOpen={isFastPassModalOpen}
+          onClose={() => setIsFastPassModalOpen(false)}
+          mangaId={manga.id}
+          mangaTitle={manga.title}
+          mangaCoverUrl={manga.cover_url}
+          chapterNumber={fastPassModalChapter}
+          onUnlocked={() => {
+            setIsFastPassModalOpen(false);
+            router.push(`/manga/${manga.id}/${fastPassModalChapter}`);
+          }}
+        />
+      )}
     </div>
   );
 }

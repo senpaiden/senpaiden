@@ -7,6 +7,8 @@ import { ReaderImage } from "@/components/ReaderImage";
 import { RecommendationsRow } from "@/components/RecommendationsRow";
 import { StaleBanner } from "@/components/StaleBanner";
 import { AdSlot } from "@/components/AdSlot";
+import { isChapterFastPass, isChapterUnlocked, FASTPASS_UPDATED_EVENT } from "@/lib/fastpass";
+import { FastPassUnlockModal } from "@/components/FastPassUnlockModal";
 import { saveHistoryLocal } from "@/lib/history-storage";
 import { fetchApi } from "@/lib/api-client";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
@@ -161,6 +163,19 @@ export function MangaReaderContainer({
   
   const prevChapter = currentChapterIndex > 0 ? sortedChapters[currentChapterIndex - 1] : null;
   const nextChapter = currentChapterIndex < sortedChapters.length - 1 ? sortedChapters[currentChapterIndex + 1] : null;
+
+  const latestChapterNum = sortedChapters.length > 0 ? sortedChapters[sortedChapters.length - 1].chapter_number : 1;
+  const [isFastPassLockActive, setIsFastPassLockActive] = useState(false);
+
+  useEffect(() => {
+    const checkLock = () => {
+      const unlocked = isChapterUnlocked(mangaId, currentChapterNum, latestChapterNum, sortedChapters.length);
+      setIsFastPassLockActive(!unlocked);
+    };
+    checkLock();
+    window.addEventListener(FASTPASS_UPDATED_EVENT, checkLock);
+    return () => window.removeEventListener(FASTPASS_UPDATED_EVENT, checkLock);
+  }, [mangaId, currentChapterNum, latestChapterNum, sortedChapters.length]);
 
   // Load saved settings & progress on mount + record chapter read history
   useEffect(() => {
@@ -877,6 +892,21 @@ export function MangaReaderContainer({
           </div>
         </div>
       )}
+
+      {/* FastPass Lock Modal */}
+      <FastPassUnlockModal
+        isOpen={isFastPassLockActive}
+        onClose={() => {
+          router.push(`/manga/${mangaId}`);
+        }}
+        mangaId={mangaId}
+        mangaTitle={mangaTitle}
+        mangaCoverUrl={mangaCoverUrl}
+        chapterNumber={currentChapterNum}
+        onUnlocked={() => {
+          setIsFastPassLockActive(false);
+        }}
+      />
     </div>
   );
 }
