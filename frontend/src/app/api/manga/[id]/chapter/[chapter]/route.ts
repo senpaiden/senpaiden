@@ -59,9 +59,8 @@ export async function GET(
       .eq('chapter_id', chapter.id)
       .order('page_number', { ascending: true });
 
-    // Fallback: If pages are missing or only contain unauthenticated gdrive keys, resolve live MangaDex pages
-    const hasOnlyGdrive = pages && pages.length > 0 && pages.every(p => Array.isArray(p.r2_keys) && p.r2_keys.every((k: string) => k.startsWith('gdrive/')));
-    if (!pages || pages.length === 0 || hasOnlyGdrive) {
+    // Fallback: If pages are completely missing in DB, resolve live MangaDex pages as fallback
+    if (!pages || pages.length === 0) {
       try {
         let chapterUuid = '';
         if (chapter.source_url && chapter.source_url.includes('mangadex.org/chapter/')) {
