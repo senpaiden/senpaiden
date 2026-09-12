@@ -64,7 +64,8 @@ export async function getCachedMangaList(params: {
     .select('id, title, cover_url, status, genres, description, updated_at, view_count, title_i18n', { count: 'exact' })
     .neq('title', 'm')
     .not('title', 'is', null)
-    .not('cover_url', 'is', null);
+    .not('cover_url', 'is', null)
+    .or('title_i18n->disabled.is.null,title_i18n->disabled.eq.false');
 
   if (sort === 'views') {
     query = query.order('view_count', { ascending: false, nullsFirst: false });
@@ -97,7 +98,7 @@ export async function getCachedMangaList(params: {
     return { data: [], total: 0, page, limit };
   }
 
-  let enrichedData = data || [];
+  let enrichedData = (data || []).filter((m: any) => !m.title_i18n?.disabled);
   if (enrichedData.length > 0) {
     try {
       const mangaIds = enrichedData.map((m: any) => m.id);
@@ -167,6 +168,7 @@ export async function getCachedCatalogVectors() {
       .select('id, title, cover_url, status, genres, title_i18n')
       .neq('title', 'm')
       .not('cover_url', 'is', null)
+      .or('title_i18n->disabled.is.null,title_i18n->disabled.eq.false')
       .order('updated_at', { ascending: false })
       .limit(60);
 
@@ -186,15 +188,17 @@ export async function getCachedCatalogVectors() {
       }
     }
 
-    const mapped = initialItems.map((item: any) => ({
-      slug: item.id,
-      title: item.title,
-      cover_url: item.cover_url,
-      status: item.status,
-      genres: item.genres,
-      latest_chapter_number: maxMap.get(item.id) || item.title_i18n?.latest_chapter || item.title_i18n?.total_chapters || 1,
-      client_vector: [1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0],
-    }));
+    const mapped = initialItems
+      .filter((item: any) => !item.title_i18n?.disabled)
+      .map((item: any) => ({
+        slug: item.id,
+        title: item.title,
+        cover_url: item.cover_url,
+        status: item.status,
+        genres: item.genres,
+        latest_chapter_number: maxMap.get(item.id) || item.title_i18n?.latest_chapter || item.title_i18n?.total_chapters || 1,
+        client_vector: [1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0],
+      }));
 
     setCached(cacheKey, mapped, 600); // 10 minutes
     return mapped;
@@ -224,25 +228,37 @@ export async function resolveMangaRecord(idOrSlug: string, supabase: any) {
     .from('manga')
     .select('*')
     .eq('source_id', idOrSlug)
-    .maybeSingle();
-  if (bySource) return bySource;
+    .order('view_count', { ascending: false, nullsFirst: false })
+    .limit(5);
+  if (bySource && bySource.length > 0) {
+    const active = bySource.find((m: any) => !m.title_i18n?.disabled) || bySource[0];
+    return active;
+  }
 
-  // 3. Exact Title / Clean Slug lookup
+  // 3. Exact Title / Clean Slug lookup (preferring active titles)
   const cleanTitle = decodeURIComponent(idOrSlug).replace(/[-_]+/g, ' ').trim();
   const { data: byTitle } = await supabase
     .from('manga')
     .select('*')
     .ilike('title', cleanTitle)
-    .limit(1);
-  if (byTitle && byTitle.length > 0) return byTitle[0];
+    .order('view_count', { ascending: false, nullsFirst: false })
+    .limit(5);
+  if (byTitle && byTitle.length > 0) {
+    const active = byTitle.find((m: any) => !m.title_i18n?.disabled) || byTitle[0];
+    return active;
+  }
 
   // 4. Fuzzy / Substring Title lookup
   const { data: byFuzzy } = await supabase
     .from('manga')
     .select('*')
     .ilike('title', `%${cleanTitle}%`)
-    .limit(1);
-  if (byFuzzy && byFuzzy.length > 0) return byFuzzy[0];
+    .order('view_count', { ascending: false, nullsFirst: false })
+    .limit(5);
+  if (byFuzzy && byFuzzy.length > 0) {
+    const active = byFuzzy.find((m: any) => !m.title_i18n?.disabled) || byFuzzy[0];
+    return active;
+  }
 
   return null;
 }
@@ -354,6 +370,7 @@ export async function getCachedRecommendations(excludeId: string) {
       .neq('id', excludeId)
       .neq('title', 'm')
       .not('cover_url', 'is', null)
+      .or('title_i18n->disabled.is.null,title_i18n->disabled.eq.false')
       .order('updated_at', { ascending: false })
       .limit(6);
 
