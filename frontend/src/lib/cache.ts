@@ -74,7 +74,7 @@ export async function getCachedMangaList(params: {
     .not('cover_url', 'is', null)
     .or('title_i18n->disabled.is.null,title_i18n->disabled.eq.false');
 
-  if (sort === 'views') {
+  if (sort === 'views' || sort === 'rating' || sort === 'top' || sort === 'popular') {
     query = query.order('view_count', { ascending: false, nullsFirst: false });
   } else {
     query = query.order('updated_at', { ascending: false });
@@ -197,7 +197,7 @@ export async function getCachedCatalogVectors(allow18Plus: boolean = false) {
     }
 
     const { data: initialItems, error } = await query
-      .order('updated_at', { ascending: false })
+      .order('view_count', { ascending: false, nullsFirst: false })
       .limit(60);
 
     if (error || !initialItems) return [];
