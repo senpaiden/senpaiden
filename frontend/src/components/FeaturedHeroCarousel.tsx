@@ -74,7 +74,6 @@ export function FeaturedHeroCarousel({ items }: FeaturedHeroCarouselProps) {
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         {/* Background Artwork Showcase with Smooth Transition */}
