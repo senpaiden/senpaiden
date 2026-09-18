@@ -378,7 +378,7 @@ export async function getCachedMangaDetail(id: string) {
         let rawChapters: any[] = [];
         if (manga.source_provider === 'atsu') {
           const res = await fetch(`https://atsu.moe/api/manga/allChapters?mangaId=${manga.source_id}`, {
-            signal: AbortSignal.timeout(3500),
+            signal: AbortSignal.timeout(8000),
           });
           if (res.ok) {
             const json = await res.json();
@@ -395,7 +395,7 @@ export async function getCachedMangaDetail(id: string) {
         } else if (manga.source_provider === 'asura') {
           const slug = manga.source_id.replace(/^asura:/, '');
           const res = await fetch(`https://api.asurascans.com/api/series/${slug}/chapters`, {
-            signal: AbortSignal.timeout(3500),
+            signal: AbortSignal.timeout(8000),
           });
           if (res.ok) {
             const json = await res.json();

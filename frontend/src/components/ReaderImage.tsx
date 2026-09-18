@@ -21,15 +21,41 @@ interface ReaderImageProps {
 export function ReaderImage({ src, width, height, priority = false, blurhash, containerClassName, pageFit = "fit-width", align = "center" }: ReaderImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [stage, setStage] = useState<number>(0);
+  const [currentSrc, setCurrentSrc] = useState<string>(src);
   const [retryKey, setRetryKey] = useState(0);
 
   const handleRetry = () => {
     setIsLoaded(false);
     setHasError(false);
+    setStage(0);
+    setCurrentSrc(src);
     setRetryKey((prev) => prev + 1);
   };
 
-  const imageSrc = retryKey > 0 ? `${src}?retry=${retryKey}` : src;
+  const handleImageError = () => {
+    // Stage 0 -> 1: Try .webp format if it's .avif on cdn.atsu.moe
+    if (stage === 0 && currentSrc && currentSrc.includes("cdn.atsu.moe") && currentSrc.endsWith(".avif")) {
+      const webpUrl = currentSrc.replace(".avif", ".webp");
+      setCurrentSrc(webpUrl);
+      setStage(1);
+      return;
+    }
+
+    // Stage 0/1 -> 2: Try edge image proxy
+    if (stage < 2 && src && !currentSrc.startsWith("/api/image/proxy")) {
+      const proxyUrl = `/api/image/proxy?url=${encodeURIComponent(src)}`;
+      setCurrentSrc(proxyUrl);
+      setStage(2);
+      return;
+    }
+
+    // All fallbacks exhausted
+    setIsLoaded(true);
+    setHasError(true);
+  };
+
+  const imageSrc = retryKey > 0 ? (currentSrc.includes("?") ? `${currentSrc}&retry=${retryKey}` : `${currentSrc}?retry=${retryKey}`) : currentSrc;
 
   const getAlignClass = () => {
     if (align === "left") return "mr-auto ml-0";
@@ -127,10 +153,7 @@ export function ReaderImage({ src, width, height, priority = false, blurhash, co
             marginRight: align === "left" ? "auto" : align === "right" ? "0" : "auto",
           }}
           onLoad={() => setIsLoaded(true)}
-          onError={() => {
-            setIsLoaded(true);
-            setHasError(true);
-          }}
+          onError={handleImageError}
         />
       )}
     </div>
