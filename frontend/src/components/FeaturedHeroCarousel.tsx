@@ -88,9 +88,12 @@ export function FeaturedHeroCarousel({ items }: FeaturedHeroCarouselProps) {
               {manga.cover_url && (
                 <>
                   {/* Subtle Ambient Glow */}
-                  <div
-                    className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-20 scale-125 pointer-events-none"
-                    style={{ backgroundImage: `url(${manga.cover_url})` }}
+                  <img
+                    src={manga.cover_url}
+                    alt=""
+                    aria-hidden="true"
+                    referrerPolicy="no-referrer"
+                    className="absolute inset-0 w-full h-full object-cover filter blur-3xl opacity-20 scale-125 pointer-events-none"
                   />
 
                   {/* Sharp Right-Aligned Character Artwork */}
