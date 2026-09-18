@@ -486,7 +486,7 @@ export function MangaDetailClient({
               {related.map((r: any) => (
                 <Link href={`/manga/${r.id}`} key={r.id} className="flex items-center gap-2 p-2 rounded-xl group transition-all hover:bg-white/5">
                   <div className="w-8 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-800">
-                    <img src={r.cover_url} alt={r.title} className="w-full h-full object-cover" />
+                    <img src={r.cover_url} alt={r.title} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                   </div>
                   <div className="min-w-0">
                     <div className="text-[11px] font-bold text-white group-hover:text-primary transition-colors truncate">{r.title}</div>
@@ -796,7 +796,7 @@ export function MangaDetailClient({
                     <div key={r.id} className="p-4 md:p-5 rounded-2xl bg-[#161B22]/80 border border-white/5">
                       <div className="flex items-start gap-3 mb-3">
                         <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-800 flex-shrink-0">
-                          <img src={r.avatar} alt={r.user} className="w-full h-full object-cover" />
+                          <img src={r.avatar} alt={r.user} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">

@@ -106,6 +106,7 @@ export function FastPassUnlockModal({
                 <img
                   src={mangaCoverUrl}
                   alt={mangaTitle}
+                  referrerPolicy="no-referrer"
                   className="w-12 h-16 object-cover rounded-xl bg-zinc-800 shrink-0"
                 />
               ) : (

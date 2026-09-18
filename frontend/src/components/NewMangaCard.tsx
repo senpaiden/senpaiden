@@ -26,6 +26,7 @@ export function NewMangaCard({ manga, idx }: { manga: any; idx?: number }) {
     >
       <div className="relative overflow-hidden bg-[#0a0d12] aspect-[3/4]">
         <img src={manga.cover_url || manga.cover} alt={manga.title}
+          referrerPolicy="no-referrer"
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-90" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#161B22] via-[#161B22]/30 to-transparent" />
         

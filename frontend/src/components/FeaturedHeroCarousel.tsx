@@ -98,6 +98,7 @@ export function FeaturedHeroCarousel({ items }: FeaturedHeroCarouselProps) {
                     <img
                       src={manga.cover_url}
                       alt={manga.title}
+                      referrerPolicy="no-referrer"
                       className="w-full h-full object-cover object-[center_15%] transition-transform duration-1000 group-hover:scale-105"
                     />
                     {/* Gradient blending the artwork seamlessly into the dark background */}
