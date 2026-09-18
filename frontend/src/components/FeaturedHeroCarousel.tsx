@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Play, Star, Sparkles, ChevronLeft, ChevronRight, Eye, Loader2 } from "lucide-react";
 import { formatViews } from "@/lib/manga-data";
 import { triggerStartLoading } from "@/components/TopProgressBar";
+import { SmartImage } from "@/components/SmartImage";
 
 export interface HeroMangaItem {
   slug: string;
@@ -73,6 +74,7 @@ export function FeaturedHeroCarousel({ items }: FeaturedHeroCarouselProps) {
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         {/* Background Artwork Showcase with Smooth Transition */}
@@ -88,20 +90,18 @@ export function FeaturedHeroCarousel({ items }: FeaturedHeroCarouselProps) {
               {manga.cover_url && (
                 <>
                   {/* Subtle Ambient Glow */}
-                  <img
+                  <SmartImage
                     src={manga.cover_url}
                     alt=""
                     aria-hidden="true"
-                    referrerPolicy="no-referrer"
                     className="absolute inset-0 w-full h-full object-cover filter blur-3xl opacity-20 scale-125 pointer-events-none"
                   />
 
                   {/* Sharp Right-Aligned Character Artwork */}
                   <div className="absolute right-0 top-0 bottom-0 w-full sm:w-[60%] md:w-[50%] lg:w-[48%] h-full overflow-hidden pointer-events-none">
-                    <img
+                    <SmartImage
                       src={manga.cover_url}
                       alt={manga.title}
-                      referrerPolicy="no-referrer"
                       className="w-full h-full object-cover object-[center_15%] transition-transform duration-1000 group-hover:scale-105"
                     />
                     {/* Gradient blending the artwork seamlessly into the dark background */}

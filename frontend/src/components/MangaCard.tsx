@@ -6,6 +6,8 @@ import { coverGradient, formatViews, type Manga } from "@/lib/manga-data";
 import { isMatureManga } from "@/lib/age-restriction";
 import { Eye } from "lucide-react";
 
+import { SmartImage } from "@/components/SmartImage";
+
 interface Props {
   manga: Manga;
   showChapter?: boolean;
@@ -29,13 +31,12 @@ export function MangaCard({ manga, showChapter, rank, className = "" }: Props) {
       >
         {/* Procedural cover fallback or Real Image */}
         {manga.cover_url && !imgError ? (
-          <img 
+          <SmartImage 
             src={manga.cover_url} 
             alt={manga.title} 
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" 
             loading="lazy" 
-            referrerPolicy="no-referrer"
-            onError={() => setImgError(true)}
+            onAllErrors={() => setImgError(true)}
           />
         ) : (
           <div className="absolute inset-0 opacity-60 mix-blend-screen"
