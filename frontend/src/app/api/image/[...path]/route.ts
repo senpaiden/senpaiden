@@ -26,6 +26,26 @@ const MAX_IMAGE_CACHE_ENTRIES = 500;
 const imageProxyCache = new Map<string, CachedProxyImage>();
 const inFlightImageFetches = new Map<string, Promise<CachedProxyImage | null>>();
 
+const FALLBACK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a12"/>
+      <stop offset="50%" stop-color="#131224"/>
+      <stop offset="100%" stop-color="#08070d"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#bg)"/>
+  <circle cx="400" cy="600" r="300" fill="url(#glow)"/>
+  <rect x="30" y="30" width="740" height="1140" rx="16" fill="none" stroke="#8B5CF6" stroke-opacity="0.15" stroke-width="2"/>
+  <text x="400" y="580" text-anchor="middle" fill="#8B5CF6" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="800" letter-spacing="4">SENPAI DEN</text>
+  <text x="400" y="620" text-anchor="middle" fill="#A1A1AA" font-family="system-ui, -apple-system, sans-serif" font-size="14">Processing Page Artwork...</text>
+</svg>`;
+const FALLBACK_SVG_BUFFER = Buffer.from(FALLBACK_SVG);
+
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
   const key = path.join('/');
@@ -58,33 +78,50 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pat
       let fetchPromise = inFlightImageFetches.get(targetUrl);
       if (!fetchPromise) {
         fetchPromise = (async () => {
-          const headers: Record<string, string> = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-            'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
-          };
-          if (targetUrl.includes('readdetectiveconan.com') || targetUrl.includes('mangapill.com') || targetUrl.includes('atsu.moe')) {
-            headers['Referer'] = 'https://mangapill.com/';
-          }
-          const upstreamRes = await fetch(targetUrl, {
-            headers,
-            signal: AbortSignal.timeout(12000),
-          });
-
-          if (upstreamRes.ok) {
-            const contentType = upstreamRes.headers.get('content-type') || 'image/jpeg';
-            const arrayBuf = await upstreamRes.arrayBuffer();
-            const item: CachedProxyImage = {
-              buffer: new Uint8Array(arrayBuf),
-              contentType,
+          try {
+            const headers: Record<string, string> = {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+              'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
             };
-            if (imageProxyCache.size >= MAX_IMAGE_CACHE_ENTRIES) {
-              const oldestKey = imageProxyCache.keys().next().value;
-              if (oldestKey) imageProxyCache.delete(oldestKey);
+            if (targetUrl.includes('readdetectiveconan.com') || targetUrl.includes('mangapill.com') || targetUrl.includes('atsu.moe')) {
+              headers['Referer'] = 'https://mangapill.com/';
             }
-            imageProxyCache.set(targetUrl, item);
-            return item;
+            const upstreamRes = await fetch(targetUrl, {
+              headers,
+              signal: AbortSignal.timeout(3500),
+            });
+
+            if (upstreamRes.ok) {
+              const contentType = upstreamRes.headers.get('content-type') || 'image/jpeg';
+              const arrayBuf = await upstreamRes.arrayBuffer();
+              const item: CachedProxyImage = {
+                buffer: new Uint8Array(arrayBuf),
+                contentType,
+              };
+              if (imageProxyCache.size >= MAX_IMAGE_CACHE_ENTRIES) {
+                const oldestKey = imageProxyCache.keys().next().value;
+                if (oldestKey) imageProxyCache.delete(oldestKey);
+              }
+              imageProxyCache.set(targetUrl, item);
+              return item;
+            }
+
+            // If upstream responded with non-200 (e.g. 404), cache the stylized fallback SVG
+            const fallbackItem: CachedProxyImage = {
+              buffer: new Uint8Array(FALLBACK_SVG_BUFFER),
+              contentType: 'image/svg+xml',
+            };
+            imageProxyCache.set(targetUrl, fallbackItem);
+            return fallbackItem;
+          } catch {
+            // If fetch timed out or failed, cache fallback to prevent continuous thread blocking
+            const fallbackItem: CachedProxyImage = {
+              buffer: new Uint8Array(FALLBACK_SVG_BUFFER),
+              contentType: 'image/svg+xml',
+            };
+            imageProxyCache.set(targetUrl, fallbackItem);
+            return fallbackItem;
           }
-          return null;
         })().finally(() => {
           inFlightImageFetches.delete(targetUrl);
         });
@@ -102,10 +139,19 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pat
           },
         });
       }
-      return new NextResponse('Upstream image error', { status: 502 });
-    } catch (err: any) {
-      console.error('[Image Proxy] Error fetching external image:', err?.message);
-      return new NextResponse('Proxy fetch failed', { status: 502 });
+      return new NextResponse(FALLBACK_SVG_BUFFER, {
+        headers: {
+          'Content-Type': 'image/svg+xml',
+          'Cache-Control': 'public, max-age=3600',
+        },
+      });
+    } catch {
+      return new NextResponse(FALLBACK_SVG_BUFFER, {
+        headers: {
+          'Content-Type': 'image/svg+xml',
+          'Cache-Control': 'public, max-age=3600',
+        },
+      });
     }
   }
 
@@ -187,26 +233,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pat
       // Ignore fallback errors
     }
   }
-
-  // Graceful visual fallback: High resolution dark stylized manga slice canvas
-  const FALLBACK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
-    <defs>
-      <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#0a0a12"/>
-        <stop offset="50%" stop-color="#131224"/>
-        <stop offset="100%" stop-color="#08070d"/>
-      </linearGradient>
-      <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.18"/>
-        <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0"/>
-      </radialGradient>
-    </defs>
-    <rect width="100%" height="100%" fill="url(#bg)"/>
-    <circle cx="400" cy="600" r="300" fill="url(#glow)"/>
-    <rect x="30" y="30" width="740" height="1140" rx="16" fill="none" stroke="#8B5CF6" stroke-opacity="0.15" stroke-width="2"/>
-    <text x="400" y="580" text-anchor="middle" fill="#8B5CF6" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="800" letter-spacing="4">SENPAI DEN</text>
-    <text x="400" y="620" text-anchor="middle" fill="#A1A1AA" font-family="system-ui, -apple-system, sans-serif" font-size="14">Processing Page Artwork...</text>
-  </svg>`;
 
   return new NextResponse(FALLBACK_SVG, {
     headers: {

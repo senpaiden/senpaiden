@@ -31,6 +31,8 @@ export function NewMangaCard({ manga, idx }: { manga: any; idx?: number }) {
         <SmartImage 
           src={getOptimizedImageUrl(manga.cover_url || manga.cover)} 
           alt={manga.title}
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-90" 
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#161B22] via-[#161B22]/30 to-transparent" />

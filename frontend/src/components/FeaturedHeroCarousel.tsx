@@ -87,13 +87,14 @@ export function FeaturedHeroCarousel({ items }: FeaturedHeroCarouselProps) {
                 isActive ? "opacity-100 z-0" : "opacity-0 pointer-events-none"
               }`}
             >
-              {coverUrl && (
+              {coverUrl && (isActive || Math.abs(idx - currentIndex) <= 1) && (
                 <>
                   {/* Subtle Ambient Glow */}
                   <SmartImage
                     src={coverUrl}
                     alt=""
                     aria-hidden="true"
+                    loading={isActive ? "eager" : "lazy"}
                     className="absolute inset-0 w-full h-full object-cover filter blur-3xl opacity-20 scale-125 pointer-events-none"
                   />
 
@@ -102,7 +103,7 @@ export function FeaturedHeroCarousel({ items }: FeaturedHeroCarouselProps) {
                     <SmartImage
                       src={coverUrl}
                       alt={manga.title}
-                      loading="eager"
+                      loading={isActive ? "eager" : "lazy"}
                       decoding="async"
                       className="w-full h-full object-cover object-[center_top] sm:object-[center_15%] transition-transform duration-1000 group-hover:scale-105"
                     />
