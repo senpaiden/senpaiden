@@ -24,12 +24,20 @@ export async function GET(
     const mangaId = manga.id;
 
     // Fetch all chapters for navigation
-    let { data: chapters } = await supabase
-      .from('chapters')
-      .select('id, chapter_number, title, job_status, language, scanlation_group, source_url')
-      .eq('manga_id', mangaId)
-      .order('chapter_number', { ascending: true })
-      .limit(5000);
+    let chapters: any[] = [];
+    let fromCh = 0;
+    while (true) {
+      const { data: chunk } = await supabase
+        .from('chapters')
+        .select('id, chapter_number, title, job_status, language, scanlation_group, source_url')
+        .eq('manga_id', mangaId)
+        .order('chapter_number', { ascending: true })
+        .range(fromCh, fromCh + 999);
+      if (!chunk || chunk.length === 0) break;
+      chapters.push(...chunk);
+      if (chunk.length < 1000) break;
+      fromCh += 1000;
+    }
 
     // On-Demand Auto-Sync: If chapters are not yet in DB, fetch live from source provider (Atsu / Asura)
     if (!chapters || chapters.length === 0) {

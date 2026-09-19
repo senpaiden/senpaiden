@@ -179,7 +179,8 @@ export async function getCachedMangaList(params: {
         const { data: chapters } = await supabase
           .from('chapters')
           .select('manga_id, chapter_number')
-          .in('manga_id', neededIds);
+          .in('manga_id', neededIds)
+          .order('chapter_number', { ascending: false });
 
         for (const ch of chapters || []) {
           const current = maxChapterMemCache.get(ch.manga_id) || 0;
@@ -358,12 +359,20 @@ export async function getCachedMangaDetail(id: string) {
     const manga = await resolveMangaRecord(id, supabase);
     if (!manga) return null;
 
-    let { data: chapters } = await supabase
-      .from('chapters')
-      .select('id, chapter_number, title, job_status, language, scanlation_group, created_at')
-      .eq('manga_id', manga.id)
-      .order('chapter_number', { ascending: true })
-      .limit(5000);
+    let chapters: any[] = [];
+    let from = 0;
+    while (true) {
+      const { data: chunk, error } = await supabase
+        .from('chapters')
+        .select('id, chapter_number, title, job_status, language, scanlation_group, created_at')
+        .eq('manga_id', manga.id)
+        .order('chapter_number', { ascending: true })
+        .range(from, from + 999);
+      if (error || !chunk || chunk.length === 0) break;
+      chapters.push(...chunk);
+      if (chunk.length < 1000) break;
+      from += 1000;
+    }
 
     const currentMax = (chapters || []).reduce(
       (max: number, c: any) => Math.max(max, Number(c.chapter_number) || 0),
@@ -516,7 +525,8 @@ export async function getCachedRecommendations(excludeId: string) {
       const { data: chapters } = await supabase
         .from('chapters')
         .select('manga_id, chapter_number')
-        .in('manga_id', neededIds);
+        .in('manga_id', neededIds)
+        .order('chapter_number', { ascending: false });
 
       for (const ch of chapters || []) {
         const current = maxChapterMemCache.get(ch.manga_id) || 0;

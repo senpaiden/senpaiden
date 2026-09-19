@@ -8,6 +8,19 @@ interface SmartImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   onAllErrors?: () => void;
 }
 
+function resolveImageSrc(url?: string): string | undefined {
+  if (!url) return undefined;
+  if (url.startsWith("/api/image/proxy")) return url;
+  if (
+    url.includes("atsu.moe") ||
+    url.includes("mangapill.com") ||
+    url.includes("readdetectiveconan.com")
+  ) {
+    return `/api/image/proxy?url=${encodeURIComponent(url)}`;
+  }
+  return url;
+}
+
 export function SmartImage({
   src,
   fallbackSrc,
@@ -17,11 +30,11 @@ export function SmartImage({
   onAllErrors,
   ...props
 }: SmartImageProps) {
-  const [currentSrc, setCurrentSrc] = useState<string | undefined>(src);
+  const [currentSrc, setCurrentSrc] = useState<string | undefined>(() => resolveImageSrc(src));
   const [stage, setStage] = useState<number>(0);
 
   useEffect(() => {
-    setCurrentSrc(src);
+    setCurrentSrc(resolveImageSrc(src));
     setStage(0);
   }, [src]);
 
@@ -32,24 +45,26 @@ export function SmartImage({
       return;
     }
 
-    // Stage 0 -> Stage 1: Try .webp format if it's an .avif file from cdn.atsu.moe
-    if (stage === 0 && currentSrc && currentSrc.includes("cdn.atsu.moe") && currentSrc.endsWith(".avif")) {
-      const webpUrl = currentSrc.replace(".avif", ".webp");
-      setCurrentSrc(webpUrl);
+    // Stage 0: If currentSrc wasn't proxied yet, try routing through proxy
+    if (stage === 0 && !currentSrc?.startsWith("/api/image/proxy")) {
+      const proxyUrl = `/api/image/proxy?url=${encodeURIComponent(src)}`;
+      setCurrentSrc(proxyUrl);
       setStage(1);
       return;
     }
 
-    // Stage 0 or 1 -> Stage 2: Try /api/image/proxy fallback
-    if (stage < 2 && src && !currentSrc?.startsWith("/api/image/proxy")) {
-      const proxyUrl = `/api/image/proxy?url=${encodeURIComponent(src)}`;
-      setCurrentSrc(proxyUrl);
-      setStage(2);
-      return;
+    // Stage 1: If an .avif file failed, try .webp equivalent
+    if (stage <= 1 && currentSrc && currentSrc.includes(".avif")) {
+      const webpUrl = currentSrc.replace(/\.avif(\?|$)/, ".webp$1");
+      if (webpUrl !== currentSrc) {
+        setCurrentSrc(webpUrl);
+        setStage(2);
+        return;
+      }
     }
 
-    // Stage 2 -> Stage 3: Try explicit fallbackSrc if provided
-    if (stage < 3 && fallbackSrc && currentSrc !== fallbackSrc) {
+    // Stage 2: Try explicit fallbackSrc if provided
+    if (stage <= 2 && fallbackSrc && currentSrc !== fallbackSrc) {
       setCurrentSrc(fallbackSrc);
       setStage(3);
       return;
