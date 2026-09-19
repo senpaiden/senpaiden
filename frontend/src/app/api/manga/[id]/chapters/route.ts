@@ -18,7 +18,7 @@ export async function GET(
       return NextResponse.json({ error: 'Manga not found' }, { status: 404 });
     }
 
-    let allChapters: any[] = [];
+    const allChapters: any[] = [];
     let from = 0;
     while (true) {
       const { data: chunk, error } = await supabase
