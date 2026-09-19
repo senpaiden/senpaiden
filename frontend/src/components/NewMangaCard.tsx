@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Bookmark, Star } from "lucide-react";
 import { getOptimizedImageUrl } from "@/lib/manga-data";
 
+import { SmartImage } from "@/components/SmartImage";
+
 export function StarRating({ rating }: { rating: number }) {
   return (
     <div className="flex items-center gap-1">
@@ -26,8 +28,11 @@ export function NewMangaCard({ manga, idx }: { manga: any; idx?: number }) {
       className="flex-shrink-0 rounded-2xl overflow-hidden group cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl flex flex-col h-full bg-[#161B22] border border-white/5"
     >
       <div className="relative overflow-hidden bg-[#0a0d12] aspect-[3/4]">
-        <img src={getOptimizedImageUrl(manga.cover_url || manga.cover)} alt={manga.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-90" />
+        <SmartImage 
+          src={getOptimizedImageUrl(manga.cover_url || manga.cover)} 
+          alt={manga.title}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-90" 
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-[#161B22] via-[#161B22]/30 to-transparent" />
         
         {manga.isNew && (

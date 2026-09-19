@@ -87,7 +87,8 @@ export async function getCachedMangaList(params: {
     .select('id, title, cover_url, status, genres, description, updated_at, view_count, title_i18n', { count: 'exact' })
     .neq('title', 'm')
     .not('title', 'is', null)
-    .not('cover_url', 'is', null);
+    .not('cover_url', 'is', null)
+    .or('title_i18n->disabled.is.null,title_i18n->disabled.eq.false');
 
   if (sort === 'views' || sort === 'rating' || sort === 'top' || sort === 'popular') {
     query = query.order('view_count', { ascending: false, nullsFirst: false });
@@ -240,7 +241,8 @@ export async function getCachedCatalogVectors(allow18Plus: boolean = false) {
       .from('manga')
       .select('id, title, cover_url, status, genres, title_i18n')
       .neq('title', 'm')
-      .not('cover_url', 'is', null);
+      .not('cover_url', 'is', null)
+      .or('title_i18n->disabled.is.null,title_i18n->disabled.eq.false');
 
     if (!allow18Plus) {
       query = query.not('genres', 'ov', `{${MATURE_GENRES.join(',')}}`);
@@ -269,7 +271,7 @@ export async function getCachedCatalogVectors(allow18Plus: boolean = false) {
       }
     }
 
-    const mapped = initialItems
+    const mapped = (initialItems || [])
       .filter((item: any) => !item.title_i18n?.disabled && !item.title_i18n?.is_disabled)
       .map((item: any) => ({
         slug: item.id,
@@ -309,25 +311,37 @@ export async function resolveMangaRecord(idOrSlug: string, supabase: any) {
     .from('manga')
     .select('*')
     .eq('source_id', idOrSlug)
-    .maybeSingle();
-  if (bySource) return bySource;
+    .order('view_count', { ascending: false, nullsFirst: false })
+    .limit(5);
+  if (bySource && bySource.length > 0) {
+    const active = bySource.find((m: any) => !m.title_i18n?.disabled) || bySource[0];
+    return active;
+  }
 
-  // 3. Exact Title / Clean Slug lookup
+  // 3. Exact Title / Clean Slug lookup (preferring active titles)
   const cleanTitle = decodeURIComponent(idOrSlug).replace(/[-_]+/g, ' ').trim();
   const { data: byTitle } = await supabase
     .from('manga')
     .select('*')
     .ilike('title', cleanTitle)
-    .limit(1);
-  if (byTitle && byTitle.length > 0) return byTitle[0];
+    .order('view_count', { ascending: false, nullsFirst: false })
+    .limit(5);
+  if (byTitle && byTitle.length > 0) {
+    const active = byTitle.find((m: any) => !m.title_i18n?.disabled) || byTitle[0];
+    return active;
+  }
 
   // 4. Fuzzy / Substring Title lookup
   const { data: byFuzzy } = await supabase
     .from('manga')
     .select('*')
     .ilike('title', `%${cleanTitle}%`)
-    .limit(1);
-  if (byFuzzy && byFuzzy.length > 0) return byFuzzy[0];
+    .order('view_count', { ascending: false, nullsFirst: false })
+    .limit(5);
+  if (byFuzzy && byFuzzy.length > 0) {
+    const active = byFuzzy.find((m: any) => !m.title_i18n?.disabled) || byFuzzy[0];
+    return active;
+  }
 
   return null;
 }
@@ -364,7 +378,7 @@ export async function getCachedMangaDetail(id: string) {
         let rawChapters: any[] = [];
         if (manga.source_provider === 'atsu') {
           const res = await fetch(`https://atsu.moe/api/manga/allChapters?mangaId=${manga.source_id}`, {
-            signal: AbortSignal.timeout(3500),
+            signal: AbortSignal.timeout(8000),
           });
           if (res.ok) {
             const json = await res.json();
@@ -381,7 +395,7 @@ export async function getCachedMangaDetail(id: string) {
         } else if (manga.source_provider === 'asura') {
           const slug = manga.source_id.replace(/^asura:/, '');
           const res = await fetch(`https://api.asurascans.com/api/series/${slug}/chapters`, {
-            signal: AbortSignal.timeout(3500),
+            signal: AbortSignal.timeout(8000),
           });
           if (res.ok) {
             const json = await res.json();
@@ -491,6 +505,7 @@ export async function getCachedRecommendations(excludeId: string) {
       .neq('id', excludeId)
       .neq('title', 'm')
       .not('cover_url', 'is', null)
+      .or('title_i18n->disabled.is.null,title_i18n->disabled.eq.false')
       .order('updated_at', { ascending: false })
       .limit(6);
 

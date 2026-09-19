@@ -21,6 +21,7 @@ import {
   AGE_RESTRICTION_UPDATED_EVENT,
 } from "@/lib/age-restriction";
 import { formatViews, getOptimizedImageUrl } from "@/lib/manga-data";
+import { SmartImage } from "@/components/SmartImage";
 
 const CHUNK_SIZE = 50;
 
@@ -112,25 +113,56 @@ export function MangaDetailClient({
     };
   }, []);
 
+  const [currentChapters, setCurrentChapters] = useState<DetailChapter[]>(chapters || []);
+  const [loadingChapters, setLoadingChapters] = useState<boolean>(!chapters || chapters.length === 0);
+
+  // Auto-fetch chapters on client if SSR was empty or timed out
+  useEffect(() => {
+    if (chapters && chapters.length > 0) {
+      setCurrentChapters(chapters);
+      setLoadingChapters(false);
+      return;
+    }
+    let isMounted = true;
+    setLoadingChapters(true);
+    fetch(`/api/manga/${manga.id}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!isMounted) return;
+        if (Array.isArray(data.chapters) && data.chapters.length > 0) {
+          setCurrentChapters(data.chapters);
+        }
+      })
+      .catch((err) => {
+        console.warn("[MangaDetail] Failed to load chapters:", err);
+      })
+      .finally(() => {
+        if (isMounted) setLoadingChapters(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [manga.id, chapters]);
+
   const startChapter = useMemo(() => {
-    if (!chapters || chapters.length === 0) return 1;
+    if (!currentChapters || currentChapters.length === 0) return 1;
     let min = Infinity;
-    for (const c of chapters) {
+    for (const c of currentChapters) {
       const num = Number(c.chapter_number);
       if (!isNaN(num) && num < min) min = num;
     }
     return min === Infinity ? 1 : min;
-  }, [chapters]);
+  }, [currentChapters]);
 
   const latestChapter = useMemo(() => {
-    if (!chapters || chapters.length === 0) return 1;
+    if (!currentChapters || currentChapters.length === 0) return 1;
     let max = -Infinity;
-    for (const c of chapters) {
+    for (const c of currentChapters) {
       const num = Number(c.chapter_number);
       if (!isNaN(num) && num > max) max = num;
     }
     return max === -Infinity ? 1 : max;
-  }, [chapters]);
+  }, [currentChapters]);
 
   useEffect(() => {
     const syncUnlocked = () => {
@@ -229,7 +261,7 @@ export function MangaDetailClient({
   // Sorted chapter list based on sort order (strictly unique by chapter_number)
   const sortedChapters = useMemo(() => {
     const map = new Map<number, DetailChapter>();
-    for (const ch of chapters || []) {
+    for (const ch of currentChapters || []) {
       const num = Number(ch.chapter_number);
       if (!map.has(num)) {
         map.set(num, ch);
@@ -249,7 +281,7 @@ export function MangaDetailClient({
       return sortOrder === "asc" ? aNum - bNum : bNum - aNum;
     });
     return list;
-  }, [chapters, sortOrder]);
+  }, [currentChapters, sortOrder]);
 
   // Calculate 50-chapter ranges
   const ranges = useMemo(() => {
@@ -354,7 +386,7 @@ export function MangaDetailClient({
     <div className="text-foreground font-exo pb-16 md:pb-8">
       {/* Banner */}
       <div className="relative h-52 overflow-hidden">
-        <img src={getOptimizedImageUrl(manga.cover_url)} alt={manga.title} referrerPolicy="no-referrer" className="w-full h-full object-cover opacity-30" />
+        <SmartImage src={getOptimizedImageUrl(manga.cover_url)} alt={manga.title} className="w-full h-full object-cover opacity-30" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0F1117]/80 to-[#0F1117]" />
         
         {/* Breadcrumb */}
@@ -372,7 +404,7 @@ export function MangaDetailClient({
         <div className="flex flex-col md:flex-row gap-6">
           {/* Cover */}
           <div className="flex-shrink-0 mx-auto md:mx-0 rounded-2xl overflow-hidden shadow-2xl w-40 md:w-[180px] h-56 md:h-[250px] border-2 border-primary/40">
-            <img src={getOptimizedImageUrl(manga.cover_url)} alt={manga.title} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+            <SmartImage src={getOptimizedImageUrl(manga.cover_url)} alt={manga.title} className="w-full h-full object-cover" />
           </div>
 
           {/* Info */}
@@ -404,7 +436,7 @@ export function MangaDetailClient({
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <BookOpen size={14} /> 
                 <span>
-                  {latestChapter || chapters.length} Chapters
+                  {latestChapter || currentChapters.length} Chapters
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -413,7 +445,7 @@ export function MangaDetailClient({
             </div>
 
             <div className="flex items-center justify-center md:justify-start gap-3 flex-wrap">
-              {chapters.length > 0 ? (
+              {currentChapters.length > 0 ? (
                 <>
                   <Link 
                     href={`/manga/${manga.id}/${startChapter}`}
@@ -487,7 +519,7 @@ export function MangaDetailClient({
               {related.map((r: any) => (
                 <Link href={`/manga/${r.id}`} key={r.id} className="flex items-center gap-2 p-2 rounded-xl group transition-all hover:bg-white/5">
                   <div className="w-8 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-800">
-                    <img src={getOptimizedImageUrl(r.cover_url)} alt={r.title} className="w-full h-full object-cover" />
+                    <SmartImage src={getOptimizedImageUrl(r.cover_url)} alt={r.title} className="w-full h-full object-cover" />
                   </div>
                   <div className="min-w-0">
                     <div className="text-[11px] font-bold text-white group-hover:text-primary transition-colors truncate">{r.title}</div>
@@ -521,7 +553,7 @@ export function MangaDetailClient({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 p-3 rounded-2xl bg-white/[0.02] border border-white/5">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold text-white font-rajdhani">
-                    {latestChapter || chapters.length} Chapters
+                    {latestChapter || currentChapters.length} Chapters
                   </span>
                   <span className="text-xs text-muted-foreground font-noto">
                     (Showing {visibleChapters.length})
@@ -568,87 +600,122 @@ export function MangaDetailClient({
                 <AdSlot placement="manga-detail" />
               </div>
 
+              {/* Loading Chapters State */}
+              {loadingChapters && (
+                <div className="flex flex-col items-center justify-center p-12 text-center bg-white/[0.02] border border-white/5 rounded-2xl">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
+                  <p className="text-sm font-bold text-white font-rajdhani">Syncing chapters from CDN...</p>
+                  <p className="text-xs text-muted-foreground mt-1">Connecting to official chapter servers</p>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!loadingChapters && currentChapters.length === 0 && (
+                <div className="flex flex-col items-center justify-center p-12 text-center bg-white/[0.02] border border-white/5 rounded-2xl">
+                  <p className="text-sm font-bold text-zinc-300 font-rajdhani mb-2">No chapters found</p>
+                  <p className="text-xs text-muted-foreground mb-4">This title may still be updating on the upstream CDN.</p>
+                  <button
+                    onClick={() => {
+                      setLoadingChapters(true);
+                      fetch(`/api/manga/${manga.id}`)
+                        .then((r) => r.json())
+                        .then((data) => {
+                          if (Array.isArray(data.chapters) && data.chapters.length > 0) {
+                            setCurrentChapters(data.chapters);
+                          }
+                        })
+                        .finally(() => setLoadingChapters(false));
+                    }}
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-primary text-white transition hover:scale-105"
+                  >
+                    Retry Syncing Chapters
+                  </button>
+                </div>
+              )}
+
               {/* Chapter Rows */}
-              <div className="flex flex-col gap-2">
-                {visibleChapters.map((ch: DetailChapter) => {
-                  const isFastPass = isChapterFastPass(ch.chapter_number, latestChapter, chapters.length);
-                  const isUnlocked = unlockedChapters.includes(ch.chapter_number);
-                  const isLockedFastPass = isFastPass && !isUnlocked;
+              {!loadingChapters && currentChapters.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  {visibleChapters.map((ch: DetailChapter) => {
+                    const isFastPass = isChapterFastPass(ch.chapter_number, latestChapter, currentChapters.length);
+                    const isUnlocked = unlockedChapters.includes(ch.chapter_number);
+                    const isLockedFastPass = isFastPass && !isUnlocked;
 
-                  const isLoadingThis = loadingChapterNumber === ch.chapter_number;
+                    const isLoadingThis = loadingChapterNumber === ch.chapter_number;
 
-                  return (
-                    <Link 
-                      key={ch.chapter_number}
-                      href={`/manga/${manga.id}/${ch.chapter_number}`}
-                      onClick={(e) => {
-                        if (isLockedFastPass) {
-                          e.preventDefault();
-                          setFastPassModalChapter(ch.chapter_number);
-                          setIsFastPassModalOpen(true);
-                        } else {
-                          setLoadingChapterNumber(ch.chapter_number);
-                          triggerStartLoading();
-                          // Auto reset after 3.5s in case user cancels or navigates back
-                          setTimeout(() => {
-                            setLoadingChapterNumber((cur) => (cur === ch.chapter_number ? null : cur));
-                          }, 3500);
-                        }
-                      }}
-                      className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl group transition-all hover:scale-[1.01] border ${
-                        isLoadingThis
-                          ? 'bg-red-500/10 border-red-500/60 shadow-[0_0_20px_rgba(255,46,46,0.25)] animate-pulse'
-                          : isLockedFastPass 
-                          ? 'bg-[#181512]/90 border-yellow-500/20 hover:border-yellow-500/40'
-                          : 'bg-[#161B22]/80 border-white/5 hover:border-primary/25'
-                      }`}
-                    >
-                      <div className="w-12 md:w-14 text-center md:text-right">
-                        {isLoadingThis ? (
-                          <Loader2 size={16} className="animate-spin text-primary mx-auto md:ml-auto" />
-                        ) : (
-                          <span className={`text-xs md:text-sm font-black font-jetbrains ${isLockedFastPass ? 'text-yellow-400' : 'text-primary'}`}>
-                            Ch.{ch.chapter_number}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-white group-hover:text-primary transition-colors truncate">
-                          {ch.title || `Chapter ${ch.chapter_number}`}
-                        </div>
-                        <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                    return (
+                      <Link 
+                        key={ch.chapter_number}
+                        href={`/manga/${manga.id}/${ch.chapter_number}`}
+                        onClick={(e) => {
+                          if (isLockedFastPass) {
+                            e.preventDefault();
+                            setFastPassModalChapter(ch.chapter_number);
+                            setIsFastPassModalOpen(true);
+                          } else {
+                            setLoadingChapterNumber(ch.chapter_number);
+                            triggerStartLoading();
+                            // Auto reset after 3.5s in case user cancels or navigates back
+                            setTimeout(() => {
+                              setLoadingChapterNumber((cur) => (cur === ch.chapter_number ? null : cur));
+                            }, 3500);
+                          }
+                        }}
+                        className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl group transition-all hover:scale-[1.01] border ${
+                          isLoadingThis
+                            ? 'bg-red-500/10 border-red-500/60 shadow-[0_0_20px_rgba(255,46,46,0.25)] animate-pulse'
+                            : isLockedFastPass 
+                            ? 'bg-[#181512]/90 border-yellow-500/20 hover:border-yellow-500/40'
+                            : 'bg-[#161B22]/80 border-white/5 hover:border-primary/25'
+                        }`}
+                      >
+                        <div className="w-12 md:w-14 text-center md:text-right">
                           {isLoadingThis ? (
-                            <span className="text-primary font-bold flex items-center gap-1">
-                              Opening chapter & connecting to CDN...
-                            </span>
+                            <Loader2 size={16} className="animate-spin text-primary mx-auto md:ml-auto" />
                           ) : (
-                            `${ch.pages || 20} pages`
+                            <span className={`text-xs md:text-sm font-black font-jetbrains ${isLockedFastPass ? 'text-yellow-400' : 'text-primary'}`}>
+                              Ch.{ch.chapter_number}
+                            </span>
                           )}
                         </div>
-                      </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-semibold text-white group-hover:text-primary transition-colors truncate">
+                            {ch.title || `Chapter ${ch.chapter_number}`}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                            {isLoadingThis ? (
+                              <span className="text-primary font-bold flex items-center gap-1">
+                                Opening chapter & connecting to CDN...
+                              </span>
+                            ) : (
+                              `${ch.pages || 20} pages`
+                            )}
+                          </div>
+                        </div>
 
-                      {/* FastPass / New Status Badges */}
-                      {isLockedFastPass ? (
-                        <span className="flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-lg bg-yellow-400/10 text-yellow-400 border border-yellow-400/30 shadow-[0_0_10px_rgba(250,204,21,0.15)]">
-                          <Zap size={11} className="fill-yellow-400" />
-                          <span>FastPass</span>
-                        </span>
-                      ) : isFastPass && isUnlocked ? (
-                        <span className="flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                          <Unlock size={11} />
-                          <span>Unlocked</span>
-                        </span>
-                      ) : ch.chapter_number > latestChapter - 2 ? (
-                        <span className="hidden sm:inline-block text-[9px] font-black px-1.5 py-0.5 rounded bg-primary text-white">
-                          NEW
-                        </span>
-                      ) : null}
+                        {/* FastPass / New Status Badges */}
+                        {isLockedFastPass ? (
+                          <span className="flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-lg bg-yellow-400/10 text-yellow-400 border border-yellow-400/30 shadow-[0_0_10px_rgba(250,204,21,0.15)]">
+                            <Zap size={11} className="fill-yellow-400" />
+                            <span>FastPass</span>
+                          </span>
+                        ) : isFastPass && isUnlocked ? (
+                          <span className="flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                            <Unlock size={11} />
+                            <span>Unlocked</span>
+                          </span>
+                        ) : ch.chapter_number > latestChapter - 2 ? (
+                          <span className="hidden sm:inline-block text-[9px] font-black px-1.5 py-0.5 rounded bg-primary text-white">
+                            NEW
+                          </span>
+                        ) : null}
 
-                      <ChevronRight size={15} className={`transition-colors flex-shrink-0 ${isLockedFastPass ? 'text-yellow-500/70 group-hover:text-yellow-400' : 'text-muted-foreground group-hover:text-primary'}`} />
-                    </Link>
-                  );
-                })}
-              </div>
+                        <ChevronRight size={15} className={`transition-colors flex-shrink-0 ${isLockedFastPass ? 'text-yellow-500/70 group-hover:text-yellow-400' : 'text-muted-foreground group-hover:text-primary'}`} />
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -807,7 +874,7 @@ export function MangaDetailClient({
                     <div key={r.id} className="p-4 md:p-5 rounded-2xl bg-[#161B22]/80 border border-white/5">
                       <div className="flex items-start gap-3 mb-3">
                         <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-800 flex-shrink-0">
-                          <img src={r.avatar} alt={r.user} className="w-full h-full object-cover" />
+                          <img src={r.avatar} alt={r.user} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">

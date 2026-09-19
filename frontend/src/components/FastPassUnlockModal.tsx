@@ -5,6 +5,7 @@ import { Zap, X, Play, CheckCircle2, Lock, Sparkles } from "lucide-react";
 import { unlockChapter } from "@/lib/fastpass";
 import { VideoAdUnit } from "@/components/VideoAdUnit";
 import { getOptimizedImageUrl } from "@/lib/manga-data";
+import { SmartImage } from "@/components/SmartImage";
 
 interface FastPassUnlockModalProps {
   isOpen: boolean;
@@ -25,39 +26,31 @@ export function FastPassUnlockModal({
   chapterNumber,
   onUnlocked,
 }: FastPassUnlockModalProps) {
-  const [isPlayingAd, setIsPlayingAd] = useState(false);
+  const [stage, setStage] = useState<"intro" | "watching" | "success">("intro");
   const [countdown, setCountdown] = useState(5);
-  const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
-      setIsPlayingAd(false);
+      setStage("intro");
       setCountdown(5);
-      setIsCompleted(false);
     }
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isPlayingAd || countdown <= 0) return;
-
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          setIsCompleted(true);
-          // Unlock chapter
-          unlockChapter(mangaId, chapterNumber);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [isPlayingAd, countdown, mangaId, chapterNumber]);
+    let timer: NodeJS.Timeout;
+    if (stage === "watching" && countdown > 0) {
+      timer = setTimeout(() => {
+        setCountdown((c) => c - 1);
+      }, 1000);
+    } else if (stage === "watching" && countdown === 0) {
+      unlockChapter(mangaId, chapterNumber);
+      setStage("success");
+    }
+    return () => clearTimeout(timer);
+  }, [stage, countdown, mangaId, chapterNumber]);
 
   const handleStartAd = () => {
-    setIsPlayingAd(true);
+    setStage("watching");
   };
 
   const handleContinueReading = () => {
@@ -67,33 +60,22 @@ export function FastPassUnlockModal({
   if (!isOpen) return null;
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="FastPass Early Access"
-      className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200"
-    >
-      <div className="relative w-full max-w-lg rounded-3xl border border-yellow-500/20 bg-[#0F1117] p-6 shadow-2xl overflow-hidden flex flex-col text-left">
-        {/* Glow */}
-        <div className="absolute -top-24 -right-24 w-60 h-60 bg-yellow-500/15 rounded-full blur-3xl pointer-events-none" />
-
-        {/* Close */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-[#0c0d14] p-6 text-center shadow-2xl">
+        {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition"
+          className="absolute right-4 top-4 rounded-full p-2 text-zinc-400 hover:bg-white/10 hover:text-white transition"
         >
           <X className="w-5 h-5" />
         </button>
 
-        {/* Header */}
-        <div className="flex items-center gap-2 mb-4">
-          <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 text-xs font-black uppercase tracking-wider">
-            <Zap className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" /> FastPass Early Access
-          </span>
-        </div>
-
-        {!isPlayingAd && !isCompleted ? (
+        {stage === "intro" ? (
           <div>
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <Zap className="w-7 h-7" />
+            </div>
+
             <h2 className="text-xl md:text-2xl font-black text-white font-rajdhani mb-2">
               Unlock Chapter {chapterNumber} Ahead of Time
             </h2>
@@ -102,9 +84,9 @@ export function FastPassUnlockModal({
             </p>
 
             {/* Manga Info Card Preview */}
-            <div className="flex items-center gap-4 p-3.5 rounded-2xl bg-white/[0.03] border border-white/5 mb-6">
+            <div className="flex items-center gap-4 p-3.5 rounded-2xl bg-white/[0.03] border border-white/5 mb-6 text-left">
               {mangaCoverUrl ? (
-                <img
+                <SmartImage
                   src={getOptimizedImageUrl(mangaCoverUrl)}
                   alt={mangaTitle}
                   className="w-12 h-16 object-cover rounded-xl bg-zinc-800 shrink-0"
@@ -139,7 +121,7 @@ export function FastPassUnlockModal({
               </button>
             </div>
           </div>
-        ) : isPlayingAd && !isCompleted ? (
+        ) : stage === "watching" ? (
           <div className="flex flex-col items-center text-center py-2">
             <div className="w-full flex items-center justify-between mb-3 text-xs text-zinc-400">
               <span className="flex items-center gap-1.5 font-bold">

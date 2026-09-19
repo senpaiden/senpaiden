@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Play, Star, Sparkles, ChevronLeft, ChevronRight, Eye, Loader2 } from "lucide-react";
 import { formatViews, getOptimizedImageUrl } from "@/lib/manga-data";
 import { triggerStartLoading } from "@/components/TopProgressBar";
+import { SmartImage } from "@/components/SmartImage";
 
 export interface HeroMangaItem {
   slug: string;
@@ -89,14 +90,16 @@ export function FeaturedHeroCarousel({ items }: FeaturedHeroCarouselProps) {
               {coverUrl && (
                 <>
                   {/* Subtle Ambient Glow */}
-                  <div
-                    className="absolute inset-0 bg-cover bg-center filter blur-3xl opacity-25 scale-125 pointer-events-none"
-                    style={{ backgroundImage: `url(${coverUrl})` }}
+                  <SmartImage
+                    src={coverUrl}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 w-full h-full object-cover filter blur-3xl opacity-20 scale-125 pointer-events-none"
                   />
 
                   {/* Sharp Right-Aligned Character Artwork (Responsive Width: 55% on mobile, 48% on desktop) */}
                   <div className="absolute right-0 top-0 bottom-0 w-[55%] xs:w-[52%] sm:w-[50%] md:w-[48%] lg:w-[45%] h-full overflow-hidden pointer-events-none">
-                    <img
+                    <SmartImage
                       src={coverUrl}
                       alt={manga.title}
                       loading="eager"

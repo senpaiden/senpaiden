@@ -13,6 +13,7 @@ const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "G-G8GLTV3ES8";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  referrer: "no-referrer",
   title: {
     default: "Read Manga, Manhwa & Webtoons Online | Senpai Den",
     template: "%s | Senpai Den",
