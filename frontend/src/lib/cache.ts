@@ -8,6 +8,7 @@ interface CacheEntry<T> {
 
 const memoryCache = new Map<string, CacheEntry<any>>();
 const maxChapterMemCache = new Map<string, number>();
+const inFlightPromises = new Map<string, Promise<any>>();
 
 const SEARCH_ALIASES: Record<string, string> = {
   shippuden: 'naruto',
@@ -78,12 +79,16 @@ export async function getCachedMangaList(params: {
   const cached = getCached<{ data: any[]; total: number; page: number; limit: number }>(cacheKey);
   if (cached) return cached;
 
+  const inFlight = inFlightPromises.get(cacheKey);
+  if (inFlight) return inFlight;
+
   const supabase = getSupabase();
   if (!supabase) return { data: [], total: 0, page, limit };
 
-  const offset = (page - 1) * limit;
-  let query: any = supabase
-    .from('manga')
+  const fetchPromise = (async () => {
+    const offset = (page - 1) * limit;
+    let query: any = supabase
+      .from('manga')
     .select('id, title, cover_url, status, genres, description, updated_at, view_count, title_i18n', { count: 'exact' })
     .neq('title', 'm')
     .not('title', 'is', null)
@@ -197,9 +202,15 @@ export async function getCachedMangaList(params: {
     } catch {}
   }
 
-  const result = { data: enrichedData, total: count || 0, page, limit };
-  setCached(cacheKey, result, 300); // Cache for 5 minutes
-  return result;
+    const result = { data: enrichedData, total: count || 0, page, limit };
+    setCached(cacheKey, result, 300); // Cache for 5 minutes
+    return result;
+  })().finally(() => {
+    inFlightPromises.delete(cacheKey);
+  });
+
+  inFlightPromises.set(cacheKey, fetchPromise);
+  return fetchPromise;
 }
 
 export async function getCachedGenres() {
@@ -352,12 +363,16 @@ export async function getCachedMangaDetail(id: string) {
   const cached = getCached<any>(cacheKey);
   if (cached) return cached;
 
+  const inFlight = inFlightPromises.get(cacheKey);
+  if (inFlight) return inFlight;
+
   const supabase = getSupabase();
   if (!supabase) return null;
 
-  try {
-    const manga = await resolveMangaRecord(id, supabase);
-    if (!manga) return null;
+  const fetchPromise = (async () => {
+    try {
+      const manga = await resolveMangaRecord(id, supabase);
+      if (!manga) return null;
 
     let chapters: any[] = [];
     let from = 0;
@@ -497,6 +512,12 @@ export async function getCachedMangaDetail(id: string) {
   } catch {
     return null;
   }
+  })().finally(() => {
+    inFlightPromises.delete(cacheKey);
+  });
+
+  inFlightPromises.set(cacheKey, fetchPromise);
+  return fetchPromise;
 }
 
 export async function getCachedRecommendations(excludeId: string) {
@@ -504,10 +525,14 @@ export async function getCachedRecommendations(excludeId: string) {
   const cached = getCached<any[]>(cacheKey);
   if (cached) return cached;
 
+  const inFlight = inFlightPromises.get(cacheKey);
+  if (inFlight) return inFlight;
+
   const supabase = getSupabase();
   if (!supabase) return [];
 
-  try {
+  const fetchPromise = (async () => {
+    try {
     const { data: mangas } = await supabase
       .from('manga')
       .select('id, title, cover_url, status, genres, description, title_i18n')
@@ -541,9 +566,15 @@ export async function getCachedRecommendations(excludeId: string) {
       latest_chapter_number: maxChapterMemCache.get(m.id) || m.title_i18n?.latest_chapter || m.title_i18n?.total_chapters || 1,
     }));
 
-    setCached(cacheKey, result, 600); // 10 minutes
-    return result;
-  } catch {
-    return [];
-  }
+      setCached(cacheKey, result, 600); // 10 minutes
+      return result;
+    } catch {
+      return [];
+    }
+  })().finally(() => {
+    inFlightPromises.delete(cacheKey);
+  });
+
+  inFlightPromises.set(cacheKey, fetchPromise);
+  return fetchPromise;
 }

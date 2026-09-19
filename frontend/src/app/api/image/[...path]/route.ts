@@ -17,6 +17,15 @@ function getS3Client() {
   });
 }
 
+interface CachedProxyImage {
+  buffer: Uint8Array;
+  contentType: string;
+}
+
+const MAX_IMAGE_CACHE_ENTRIES = 500;
+const imageProxyCache = new Map<string, CachedProxyImage>();
+const inFlightImageFetches = new Map<string, Promise<CachedProxyImage | null>>();
+
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
   const key = path.join('/');
@@ -25,38 +34,75 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pat
     return new NextResponse('Bad Request', { status: 400 });
   }
 
-  // 0. Image Proxy for external CDNs (with anti-hotlinking referer support)
+  // 0. Image Proxy for external CDNs (with anti-hotlinking referer support and high-speed memory cache)
   if (path[0] === 'proxy') {
     const targetUrl = _req.nextUrl.searchParams.get('url');
     if (!targetUrl) {
       return new NextResponse('Bad Request: Missing url param', { status: 400 });
     }
 
-    try {
-      const headers: Record<string, string> = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
-      };
-      if (targetUrl.includes('readdetectiveconan.com') || targetUrl.includes('mangapill.com') || targetUrl.includes('atsu.moe')) {
-        headers['Referer'] = 'https://mangapill.com/';
-      }
-      const upstreamRes = await fetch(targetUrl, {
-        headers,
-        signal: AbortSignal.timeout(15000),
+    // A. Return from memory cache if available (0ms response)
+    const cached = imageProxyCache.get(targetUrl);
+    if (cached) {
+      return new NextResponse(Buffer.from(cached.buffer), {
+        headers: {
+          'Content-Type': cached.contentType,
+          'Cache-Control': 'public, max-age=31536000, immutable',
+          'Access-Control-Allow-Origin': '*',
+        },
       });
+    }
 
-      if (upstreamRes.ok) {
-        const contentType = upstreamRes.headers.get('content-type') || 'image/jpeg';
-        const buffer = await upstreamRes.arrayBuffer();
-        return new NextResponse(buffer, {
+    // B. De-duplicate concurrent in-flight fetches for the exact same image URL
+    try {
+      let fetchPromise = inFlightImageFetches.get(targetUrl);
+      if (!fetchPromise) {
+        fetchPromise = (async () => {
+          const headers: Record<string, string> = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+          };
+          if (targetUrl.includes('readdetectiveconan.com') || targetUrl.includes('mangapill.com') || targetUrl.includes('atsu.moe')) {
+            headers['Referer'] = 'https://mangapill.com/';
+          }
+          const upstreamRes = await fetch(targetUrl, {
+            headers,
+            signal: AbortSignal.timeout(12000),
+          });
+
+          if (upstreamRes.ok) {
+            const contentType = upstreamRes.headers.get('content-type') || 'image/jpeg';
+            const arrayBuf = await upstreamRes.arrayBuffer();
+            const item: CachedProxyImage = {
+              buffer: new Uint8Array(arrayBuf),
+              contentType,
+            };
+            if (imageProxyCache.size >= MAX_IMAGE_CACHE_ENTRIES) {
+              const oldestKey = imageProxyCache.keys().next().value;
+              if (oldestKey) imageProxyCache.delete(oldestKey);
+            }
+            imageProxyCache.set(targetUrl, item);
+            return item;
+          }
+          return null;
+        })().finally(() => {
+          inFlightImageFetches.delete(targetUrl);
+        });
+
+        inFlightImageFetches.set(targetUrl, fetchPromise);
+      }
+
+      const result = await fetchPromise;
+      if (result) {
+        return new NextResponse(Buffer.from(result.buffer), {
           headers: {
-            'Content-Type': contentType,
+            'Content-Type': result.contentType,
             'Cache-Control': 'public, max-age=31536000, immutable',
             'Access-Control-Allow-Origin': '*',
           },
         });
       }
-      return new NextResponse('Upstream image error', { status: upstreamRes.status });
+      return new NextResponse('Upstream image error', { status: 502 });
     } catch (err: any) {
       console.error('[Image Proxy] Error fetching external image:', err?.message);
       return new NextResponse('Proxy fetch failed', { status: 502 });
