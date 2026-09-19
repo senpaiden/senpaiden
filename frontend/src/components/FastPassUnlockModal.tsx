@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Zap, X, Play, CheckCircle2, Lock, Sparkles } from "lucide-react";
 import { unlockChapter } from "@/lib/fastpass";
 import { VideoAdUnit } from "@/components/VideoAdUnit";
+import { getOptimizedImageUrl } from "@/lib/manga-data";
 
 interface FastPassUnlockModalProps {
   isOpen: boolean;
@@ -104,7 +105,7 @@ export function FastPassUnlockModal({
             <div className="flex items-center gap-4 p-3.5 rounded-2xl bg-white/[0.03] border border-white/5 mb-6">
               {mangaCoverUrl ? (
                 <img
-                  src={mangaCoverUrl}
+                  src={getOptimizedImageUrl(mangaCoverUrl)}
                   alt={mangaTitle}
                   className="w-12 h-16 object-cover rounded-xl bg-zinc-800 shrink-0"
                 />

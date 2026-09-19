@@ -20,7 +20,7 @@ import {
   openAgeVerificationModal,
   AGE_RESTRICTION_UPDATED_EVENT,
 } from "@/lib/age-restriction";
-import { formatViews } from "@/lib/manga-data";
+import { formatViews, getOptimizedImageUrl } from "@/lib/manga-data";
 
 const CHUNK_SIZE = 50;
 
@@ -275,6 +275,7 @@ export function MangaDetailClient({
   const toggleSort = () => {
     setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
     setSelectedRangeIndex(0);
+    setLoadingChapterNumber(null);
   };
 
   useEffect(() => {
@@ -353,7 +354,7 @@ export function MangaDetailClient({
     <div className="text-foreground font-exo pb-16 md:pb-8">
       {/* Banner */}
       <div className="relative h-52 overflow-hidden">
-        <img src={manga.cover_url} alt={manga.title} referrerPolicy="no-referrer" className="w-full h-full object-cover opacity-30" />
+        <img src={getOptimizedImageUrl(manga.cover_url)} alt={manga.title} referrerPolicy="no-referrer" className="w-full h-full object-cover opacity-30" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0F1117]/80 to-[#0F1117]" />
         
         {/* Breadcrumb */}
@@ -371,7 +372,7 @@ export function MangaDetailClient({
         <div className="flex flex-col md:flex-row gap-6">
           {/* Cover */}
           <div className="flex-shrink-0 mx-auto md:mx-0 rounded-2xl overflow-hidden shadow-2xl w-40 md:w-[180px] h-56 md:h-[250px] border-2 border-primary/40">
-            <img src={manga.cover_url} alt={manga.title} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+            <img src={getOptimizedImageUrl(manga.cover_url)} alt={manga.title} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
           </div>
 
           {/* Info */}
@@ -486,7 +487,7 @@ export function MangaDetailClient({
               {related.map((r: any) => (
                 <Link href={`/manga/${r.id}`} key={r.id} className="flex items-center gap-2 p-2 rounded-xl group transition-all hover:bg-white/5">
                   <div className="w-8 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-800">
-                    <img src={r.cover_url} alt={r.title} className="w-full h-full object-cover" />
+                    <img src={getOptimizedImageUrl(r.cover_url)} alt={r.title} className="w-full h-full object-cover" />
                   </div>
                   <div className="min-w-0">
                     <div className="text-[11px] font-bold text-white group-hover:text-primary transition-colors truncate">{r.title}</div>
@@ -501,7 +502,10 @@ export function MangaDetailClient({
         {/* Tabs */}
         <div className="flex gap-1 mt-8 mb-6 p-1 rounded-xl w-full sm:w-fit bg-black/30 overflow-x-auto no-scrollbar">
           {(["chapters", "info", "reviews"] as const).map((tab) => (
-            <button key={tab} onClick={() => setActiveTab(tab)}
+            <button key={tab} onClick={() => {
+              setActiveTab(tab);
+              setLoadingChapterNumber(null);
+            }}
               className={`flex-1 sm:flex-none px-5 py-2.5 rounded-lg text-sm font-bold capitalize transition-all ${activeTab === tab ? 'bg-primary text-white shadow-[0_0_12px_rgba(255,46,46,0.4)]' : 'bg-transparent text-muted-foreground hover:text-white'}`}>
               {tab}
             </button>
@@ -530,7 +534,10 @@ export function MangaDetailClient({
                     <div className="relative flex items-center">
                       <select
                         value={selectedRangeIndex}
-                        onChange={(e) => setSelectedRangeIndex(Number(e.target.value))}
+                        onChange={(e) => {
+                          setSelectedRangeIndex(Number(e.target.value));
+                          setLoadingChapterNumber(null);
+                        }}
                         aria-label="Select chapter range"
                         className="appearance-none cursor-pointer pl-3 pr-8 py-1.5 rounded-xl text-xs font-bold bg-[#161B22] text-white border border-white/10 hover:border-primary/40 focus:border-primary focus:outline-none transition-all"
                       >
@@ -582,6 +589,10 @@ export function MangaDetailClient({
                         } else {
                           setLoadingChapterNumber(ch.chapter_number);
                           triggerStartLoading();
+                          // Auto reset after 3.5s in case user cancels or navigates back
+                          setTimeout(() => {
+                            setLoadingChapterNumber((cur) => (cur === ch.chapter_number ? null : cur));
+                          }, 3500);
                         }
                       }}
                       className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-xl group transition-all hover:scale-[1.01] border ${

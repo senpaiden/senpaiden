@@ -181,3 +181,14 @@
 @utility glass-panel {
   @apply bg-white/5 backdrop-blur-md border border-white/10;
 }
+
+@utility sd-gradient {
+  background: linear-gradient(135deg, #FF2E2E 0%, #D61B1B 100%);
+}
+
+@utility sd-glass {
+  background: rgba(15, 17, 23, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}

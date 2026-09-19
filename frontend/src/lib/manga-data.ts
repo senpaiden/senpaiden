@@ -44,3 +44,16 @@ export function formatViews(views?: number | string): string {
 export function coverGradient(m: Manga) {
   return `linear-gradient(135deg, oklch(0.4 0.15 ${m.coverHue}) 0%, oklch(0.2 0.1 ${m.coverHue2}) 100%)`;
 }
+
+export function getOptimizedImageUrl(url?: string): string {
+  if (!url) return "";
+  if (url.startsWith("/api/image/proxy")) return url;
+  if (
+    url.includes("atsu.moe") ||
+    url.includes("mangapill.com") ||
+    url.includes("readdetectiveconan.com")
+  ) {
+    return `/api/image/proxy?url=${encodeURIComponent(url)}`;
+  }
+  return url;
+}

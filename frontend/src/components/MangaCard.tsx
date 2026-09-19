@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { coverGradient, formatViews, type Manga } from "@/lib/manga-data";
+import { coverGradient, formatViews, getOptimizedImageUrl, type Manga } from "@/lib/manga-data";
 import { isMatureManga } from "@/lib/age-restriction";
 import { Eye } from "lucide-react";
 
@@ -30,7 +30,7 @@ export function MangaCard({ manga, showChapter, rank, className = "" }: Props) {
         {/* Procedural cover fallback or Real Image */}
         {manga.cover_url && !imgError ? (
           <img 
-            src={manga.cover_url} 
+            src={getOptimizedImageUrl(manga.cover_url)} 
             alt={manga.title} 
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" 
             loading="lazy" 

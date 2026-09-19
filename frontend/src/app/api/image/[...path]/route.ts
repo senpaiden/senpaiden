@@ -37,7 +37,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pat
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
         'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
       };
-      if (targetUrl.includes('readdetectiveconan.com') || targetUrl.includes('mangapill.com')) {
+      if (targetUrl.includes('readdetectiveconan.com') || targetUrl.includes('mangapill.com') || targetUrl.includes('atsu.moe')) {
         headers['Referer'] = 'https://mangapill.com/';
       }
       const upstreamRes = await fetch(targetUrl, {
@@ -52,6 +52,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ pat
           headers: {
             'Content-Type': contentType,
             'Cache-Control': 'public, max-age=31536000, immutable',
+            'Access-Control-Allow-Origin': '*',
           },
         });
       }

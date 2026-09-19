@@ -29,7 +29,7 @@ export function ReaderImage({ src, width, height, priority = false, blurhash, co
     setRetryKey((prev) => prev + 1);
   };
 
-  const imageSrc = retryKey > 0 ? `${src}?retry=${retryKey}` : src;
+  const imageSrc = retryKey > 0 ? `${src}${src.includes('?') ? '&' : '?'}retry=${retryKey}` : src;
 
   const getAlignClass = () => {
     if (align === "left") return "mr-auto ml-0";

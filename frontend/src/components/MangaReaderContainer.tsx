@@ -74,13 +74,20 @@ const getSliceUrl = (baseUrl: string, key: string) => {
   if (key.startsWith('gdrive/')) {
     return `/api/image/${key}`;
   }
-  if (key.includes('readdetectiveconan.com') || key.includes('mangapill.com')) {
+  if (
+    key.includes('readdetectiveconan.com') ||
+    key.includes('mangapill.com') ||
+    key.includes('atsu.moe')
+  ) {
     return `/api/image/proxy?url=${encodeURIComponent(key)}`;
   }
   let url = key;
   if (!key.startsWith('http://') && !key.startsWith('https://') && !key.startsWith('/')) {
-    const cleanBase = baseUrl.replace(/\/$/, '');
+    const cleanBase = baseUrl ? baseUrl.replace(/\/$/, '') : '';
     const cleanKey = key.replace(/^\//, '');
+    if (!cleanBase || cleanBase.includes('localhost:9000')) {
+      return `/api/image/${cleanKey}`;
+    }
     url = `${cleanBase}/${cleanKey}`;
   }
   // Replace volatile/expired MangaDex @home CDN nodes with persistent uploads server
@@ -462,6 +469,11 @@ export function MangaReaderContainer({
 
   // Handle center vs side screen clicks
   const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Never hijack clicks originating from buttons, links, dropdowns, or inputs
+    if ((e.target as HTMLElement)?.closest("button, a, select, input, textarea, [role='button'], .no-reader-click")) {
+      return;
+    }
+
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const width = rect.width;
@@ -661,13 +673,17 @@ export function MangaReaderContainer({
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => window.location.reload()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.location.reload();
+                }}
                 className="px-6 py-2.5 rounded-xl bg-primary text-white font-bold text-sm shadow-[0_0_20px_rgba(255,46,46,0.3)] hover:scale-105 transition active:scale-95"
               >
                 Refresh Pages
               </button>
               <Link
                 href={`/manga/${mangaId}`}
+                onClick={(e) => e.stopPropagation()}
                 className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 font-semibold text-sm border border-white/10 transition"
               >
                 Back to Manga
@@ -800,7 +816,8 @@ export function MangaReaderContainer({
                   <Link
                     href={`/manga/${mangaId}/${nextChapter.chapter_number}`}
                     scroll={true}
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       if (typeof window !== "undefined") {
                         window.scrollTo({ top: 0, left: 0, behavior: "instant" });
                       }
@@ -812,7 +829,10 @@ export function MangaReaderContainer({
                   </Link>
                 ) : (
                   <button
-                    onClick={() => setIsEndModalOpen(true)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsEndModalOpen(true);
+                    }}
                     className="w-full sm:w-auto px-7 py-3 rounded-xl font-black text-white bg-gradient-to-r from-violet-600 to-cyan-500 hover:scale-105 transition-all text-sm flex items-center justify-center gap-2 font-rajdhani shadow-lg shadow-violet-500/25"
                   >
                     <span>View Series Recommendations</span>
@@ -821,6 +841,7 @@ export function MangaReaderContainer({
 
                 <Link
                   href={`/manga/${mangaId}`}
+                  onClick={(e) => e.stopPropagation()}
                   className="w-full sm:w-auto px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-zinc-300 transition-colors border border-white/10 text-center"
                 >
                   Manga Details
