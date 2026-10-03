@@ -2,7 +2,7 @@ import Link from "next/link";
 import { MangaCard } from "@/components/MangaCard";
 import { AdvancedFilterPanel } from "@/components/AdvancedFilterPanel";
 import { CategorySearchBar } from "@/components/CategorySearchBar";
-import { AdSlot } from "@/components/AdSlot";
+import { AdSlot, ADS_ENABLED } from "@/components/ads";
 import { ChevronLeft, ChevronRight, Frown } from "lucide-react";
 import { cookies } from "next/headers";
 import { getCachedMangaList } from "@/lib/cache";
@@ -213,7 +213,11 @@ export default async function Discover({ searchParams }: { searchParams: Promise
             )}
           </div>
         </div>
-        <div className="mt-8 border-t border-white/5 pt-8"><AdSlot placement="discover-bottom" /></div>
+        {ADS_ENABLED && (
+          <div className="mt-8 border-t border-white/5 pt-8">
+            <AdSlot placement="discover-bottom" />
+          </div>
+        )}
       </div>
     </div>
   );

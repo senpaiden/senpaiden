@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { getLocalCatalogue, type CatalogueManga } from "@/lib/local-catalogue";
 import { SITE_URL, mangaCanonical } from "@/lib/seo";
 import { fetchApi } from "@/lib/api-client";
+import { ADS_ENABLED } from "@/lib/monetization";
 
 const staticRoutes: Array<{ path: string; changeFrequency: "daily" | "weekly" | "monthly"; priority: number }> = [
   { path: "", changeFrequency: "daily", priority: 1 },
@@ -12,8 +13,10 @@ const staticRoutes: Array<{ path: string; changeFrequency: "daily" | "weekly" | 
   { path: "/cookies", changeFrequency: "monthly", priority: 0.3 },
   { path: "/terms", changeFrequency: "monthly", priority: 0.3 },
   { path: "/copyright", changeFrequency: "monthly", priority: 0.4 },
-  { path: "/partners", changeFrequency: "monthly", priority: 0.4 },
-  { path: "/affiliate-disclosure", changeFrequency: "monthly", priority: 0.3 },
+  ...(ADS_ENABLED ? [
+    { path: "/partners" as const, changeFrequency: "monthly" as const, priority: 0.4 },
+    { path: "/affiliate-disclosure" as const, changeFrequency: "monthly" as const, priority: 0.3 },
+  ] : []),
 ];
 
 async function getSitemapManga(): Promise<CatalogueManga[]> {

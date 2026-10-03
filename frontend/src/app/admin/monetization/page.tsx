@@ -1,6 +1,7 @@
 import { BadgeCheck, CircleAlert, CircleX, Gauge, ShieldCheck } from "lucide-react";
 import {
   ADS_ENABLED,
+  ADS_TEMPORARILY_DISABLED,
   ADSTERRA_DESKTOP_KEY,
   ADSTERRA_MOBILE_KEY,
   ADSTERRA_NATIVE_CONTAINER,
@@ -46,6 +47,21 @@ export default function MonetizationStatusPage() {
           Configuration visibility only. Secrets and full identifiers are never displayed here.
         </p>
       </header>
+
+      {ADS_TEMPORARILY_DISABLED && (
+        <div className="mt-6 flex items-start gap-3 rounded-3xl border border-amber-500/20 bg-amber-500/10 p-5 text-amber-300">
+          <CircleAlert className="h-6 w-6 shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <strong className="block font-bold text-amber-200">
+              Ads & Commercial Pages Temporarily Disabled (Growth Phase)
+            </strong>
+            <p className="mt-1 text-xs text-amber-200/80 leading-relaxed">
+              All client-facing advertisements, popunder scripts, banners, video sponsors, and commercial links (/partners, /affiliate-disclosure) are disabled to maximize reader acquisition and retention.
+              To re-enable when ready, switch <code className="bg-black/30 px-1 py-0.5 rounded font-mono">ADS_TEMPORARILY_DISABLED = false</code> in <code className="bg-black/30 px-1 py-0.5 rounded font-mono">src/lib/monetization.ts</code>.
+            </p>
+          </div>
+        </div>
+      )}
 
       <section className="mt-6 overflow-hidden rounded-3xl border border-white/10 bg-[#11131A]">
         <div className="flex items-center justify-between border-b border-white/5 p-5 md:p-6">

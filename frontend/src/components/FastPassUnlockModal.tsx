@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Zap, X, Play, CheckCircle2, Lock, Sparkles } from "lucide-react";
 import { unlockChapter } from "@/lib/fastpass";
-import { VideoAdUnit } from "@/components/VideoAdUnit";
+import { VideoAdUnit } from "@/components/ads";
 import { getOptimizedImageUrl } from "@/lib/manga-data";
 import { SmartImage } from "@/components/SmartImage";
 

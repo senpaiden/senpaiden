@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { ReaderImage } from "@/components/ReaderImage";
 import { RecommendationsRow } from "@/components/RecommendationsRow";
 import { StaleBanner } from "@/components/StaleBanner";
-import { AdSlot } from "@/components/AdSlot";
+import { AdSlot, ADS_ENABLED } from "@/components/ads";
 import { isChapterUnlocked, FASTPASS_UPDATED_EVENT } from "@/lib/fastpass";
 import { FastPassUnlockModal } from "@/components/FastPassUnlockModal";
 import { saveHistoryLocal } from "@/lib/history-storage";
@@ -849,9 +849,11 @@ export function MangaReaderContainer({
               </div>
 
               {/* Intermission Ad Banner */}
-              <div className="w-full">
-                <AdSlot placement="reader-bottom" />
-              </div>
+              {ADS_ENABLED && (
+                <div className="w-full">
+                  <AdSlot placement="reader-bottom" />
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -997,19 +999,21 @@ export function MangaReaderContainer({
       )}
 
       {/* FastPass Lock Modal */}
-      <FastPassUnlockModal
-        isOpen={isFastPassLockActive}
-        onClose={() => {
-          router.push(`/manga/${mangaId}`);
-        }}
-        mangaId={mangaId}
-        mangaTitle={mangaTitle}
-        mangaCoverUrl={mangaCoverUrl}
-        chapterNumber={currentChapterNum}
-        onUnlocked={() => {
-          setIsFastPassLockActive(false);
-        }}
-      />
+      {ADS_ENABLED && (
+        <FastPassUnlockModal
+          isOpen={isFastPassLockActive}
+          onClose={() => {
+            router.push(`/manga/${mangaId}`);
+          }}
+          mangaId={mangaId}
+          mangaTitle={mangaTitle}
+          mangaCoverUrl={mangaCoverUrl}
+          chapterNumber={currentChapterNum}
+          onUnlocked={() => {
+            setIsFastPassLockActive(false);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -1,5 +1,9 @@
-export const ADS_ENABLED = process.env.NEXT_PUBLIC_ADS_ENABLED === "true";
-export const ADS_PREVIEW = process.env.NEXT_PUBLIC_ADS_PREVIEW === "true";
+// Master switch to temporarily disable all ads & commercial pages while website is in growth phase.
+// Set ADS_TEMPORARILY_DISABLED = false when ready to turn ads back on in the future!
+export const ADS_TEMPORARILY_DISABLED = true;
+
+export const ADS_ENABLED = !ADS_TEMPORARILY_DISABLED && process.env.NEXT_PUBLIC_ADS_ENABLED === "true";
+export const ADS_PREVIEW = !ADS_TEMPORARILY_DISABLED && process.env.NEXT_PUBLIC_ADS_PREVIEW === "true";
 
 // Google AdSense
 export const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "";
@@ -22,15 +26,15 @@ export const ADSTERRA_NATIVE_SRC = "https://pl30953537.effectivecpmnetwork.com/d
 export const ADSTERRA_SMARTLINK_URL = process.env.NEXT_PUBLIC_ADSTERRA_SMARTLINK_URL || "";
 
 export const AD_PLACEMENT_ENABLED: Record<AdPlacement, boolean> = {
-  "home-feed": process.env.NEXT_PUBLIC_ADS_PLACEMENT_HOME !== "false",
-  "discover-grid": process.env.NEXT_PUBLIC_ADS_PLACEMENT_DISCOVER !== "false",
-  "manga-detail": process.env.NEXT_PUBLIC_ADS_PLACEMENT_DETAIL !== "false",
-  "reader-top": process.env.NEXT_PUBLIC_ADS_PLACEMENT_READER_TOP !== "false",
-  "reader-bottom": process.env.NEXT_PUBLIC_ADS_PLACEMENT_READER_BOTTOM !== "false",
-  "library-bottom": process.env.NEXT_PUBLIC_ADS_PLACEMENT_LIBRARY !== "false",
-  "history-bottom": process.env.NEXT_PUBLIC_ADS_PLACEMENT_HISTORY !== "false",
-  "notifications-bottom": process.env.NEXT_PUBLIC_ADS_PLACEMENT_NOTIFICATIONS !== "false",
-  "discover-bottom": process.env.NEXT_PUBLIC_ADS_PLACEMENT_DISCOVER_BOTTOM !== "false",
+  "home-feed": ADS_ENABLED && process.env.NEXT_PUBLIC_ADS_PLACEMENT_HOME !== "false",
+  "discover-grid": ADS_ENABLED && process.env.NEXT_PUBLIC_ADS_PLACEMENT_DISCOVER !== "false",
+  "manga-detail": ADS_ENABLED && process.env.NEXT_PUBLIC_ADS_PLACEMENT_DETAIL !== "false",
+  "reader-top": ADS_ENABLED && process.env.NEXT_PUBLIC_ADS_PLACEMENT_READER_TOP !== "false",
+  "reader-bottom": ADS_ENABLED && process.env.NEXT_PUBLIC_ADS_PLACEMENT_READER_BOTTOM !== "false",
+  "library-bottom": ADS_ENABLED && process.env.NEXT_PUBLIC_ADS_PLACEMENT_LIBRARY !== "false",
+  "history-bottom": ADS_ENABLED && process.env.NEXT_PUBLIC_ADS_PLACEMENT_HISTORY !== "false",
+  "notifications-bottom": ADS_ENABLED && process.env.NEXT_PUBLIC_ADS_PLACEMENT_NOTIFICATIONS !== "false",
+  "discover-bottom": ADS_ENABLED && process.env.NEXT_PUBLIC_ADS_PLACEMENT_DISCOVER_BOTTOM !== "false",
 };
 
 export type AdPlacement =
@@ -57,6 +61,7 @@ export const AD_SLOT_BY_PLACEMENT: Record<AdPlacement, string> = {
 };
 
 export function canServeAdsInBrowser() {
+  if (ADS_TEMPORARILY_DISABLED || !ADS_ENABLED) return false;
   if (typeof window === "undefined") return false;
   return true;
 }

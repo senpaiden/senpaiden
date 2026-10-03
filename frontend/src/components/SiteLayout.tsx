@@ -9,7 +9,7 @@ import { getUnreadNotificationCount, NOTIFICATIONS_UPDATED_EVENT } from "@/lib/n
 import { getLevel, getReaderProgression, PROGRESSION_UPDATED_EVENT } from "@/lib/reader-progression";
 import { AUTH_UPDATED_EVENT, getStoredAccount, isSignedIn } from "@/lib/auth-storage";
 import { OPEN_CONSENT_EVENT } from "@/lib/consent";
-import { StickyAnchorAd } from "@/components/StickyAnchorAd";
+import { StickyAnchorAd, ADS_ENABLED } from "@/components/ads";
 import { AgeRestrictionToggle } from "@/components/AgeRestrictionToggle";
 import { AgeConfirmationModal } from "@/components/AgeConfirmationModal";
 import {
@@ -465,11 +465,11 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
               <nav aria-label="Legal and company links" className="flex flex-wrap gap-x-5 gap-y-3">
                 {[
                   { label: "About", href: "/about" },
-                  { label: "Partners", href: "/partners" },
+                  ...(ADS_ENABLED ? [{ label: "Partners", href: "/partners" }] : []),
                   { label: "Contact", href: "/contact" },
                   { label: "Privacy", href: "/privacy" },
                   { label: "Cookies", href: "/cookies" },
-                  { label: "Affiliate disclosure", href: "/affiliate-disclosure" },
+                  ...(ADS_ENABLED ? [{ label: "Affiliate disclosure", href: "/affiliate-disclosure" }] : []),
                   { label: "Terms", href: "/terms" },
                   { label: "Copyright", href: "/copyright" },
                 ].map((item) => (
@@ -497,7 +497,7 @@ export function SiteLayout({ children }: { children: React.ReactNode }) {
       <AgeConfirmationModal />
 
       {/* Floating Status Bar / Bottom Anchor Ad Banner */}
-      {!isReader && <StickyAnchorAd />}
+      {!isReader && ADS_ENABLED && <StickyAnchorAd />}
     </div>
   );
 }

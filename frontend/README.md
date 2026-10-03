@@ -12,11 +12,10 @@ The client-facing Progressive Web App (PWA) for Senpai Den, built with **Next.js
   - **Double Spread Book View**: Two-page book rendering with automated Japanese right-to-left (RTL) reading layout.
 - **In-Memory Slice Preloader**: Background preloading of 4–6 upcoming image segments to ensure zero buffering during reading.
 - **Multi-Language Sub-Layer Switcher**: 1-tap switching between language scans (`en`, `es`, `fr`, `ja`).
-- **Responsive Monetization UX**:
-  - Non-intrusive, space-reserved Adsterra banner units (728x90 desktop / 320x50 mobile).
-  - Sticky bottom anchor ad that intelligently avoids mobile navigation collisions.
-  - Reader canvas is ad-free at the top; next chapter navigation button always appears above bottom ads.
-  - Premium subscriber ad-suppression check (`hasActivePremium()`).
+- **Responsive Monetization UX (Quarantined in `src/components/ads/`)**:
+  - Centralized module for all ad units (`AdSlot`, `VideoAdUnit`, `StickyAnchorAd`, `InterstitialAdModal`, `MonetizationProvider`).
+  - Governed by a single master switch (`ADS_TEMPORARILY_DISABLED` in `src/lib/monetization.ts`).
+  - Currently paused in **Growth Mode** for maximum reader acquisition. See [`docs/MONETIZATION_ARCHITECTURE.md`](../docs/MONETIZATION_ARCHITECTURE.md) for full documentation.
 - **SEO & Discoverability**: Dynamic OpenGraph tags, JSON-LD structured schema, dynamic `sitemap.ts`, and `robots.ts`.
 
 ---
@@ -42,5 +41,6 @@ npm run build
 ## 📂 Architecture & Directory Structure
 
 - `src/app/`: App router routes (Manga details, Chapter Reader, Catalog Search, Discovery, Bookmarks, History).
-- `src/components/`: Modular UI units (`MangaReaderContainer.tsx`, `AdSlot.tsx`, `SiteLayout.tsx`, `FeaturedHeroCarousel.tsx`).
+- `src/components/`: Modular UI units (`MangaReaderContainer.tsx`, `SiteLayout.tsx`, `FeaturedHeroCarousel.tsx`).
+- `src/components/ads/`: Isolated monetization subsystem (`AdSlot.tsx`, `VideoAdUnit.tsx`, `StickyAnchorAd.tsx`, `MonetizationProvider.tsx`, `index.ts`).
 - `src/lib/`: Database clients (`supabase.ts`), monetization switches (`monetization.ts`), and client utilities.

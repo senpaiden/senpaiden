@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { resolve } from "path";
 
 console.log("=== EMPIRICAL CHALLENGE SUITE: MONETIZATION & AD INFRASTRUCTURE (M1) ===\n");
@@ -35,7 +35,10 @@ placements.forEach(p => {
 
 // 2. AdSlot Component Structure & Layout Stability (CLS Prevention)
 console.log("\n--- 2. AdSlot Component Verification (CLS & Layout) ---");
-const adSlotSrc = readFileSync(resolve("src/components/AdSlot.tsx"), "utf-8");
+const adSlotFile = existsSync(resolve("src/components/ads/AdSlot.tsx"))
+  ? resolve("src/components/ads/AdSlot.tsx")
+  : resolve("src/components/AdSlot.tsx");
+const adSlotSrc = readFileSync(adSlotFile, "utf-8");
 
 assert(adSlotSrc.includes("min-h-[74px] md:min-h-[114px]"), "Outer aside container reserves min-h-[74px] (mobile) and md:min-h-[114px] (desktop)");
 assert(adSlotSrc.includes("min-h-[50px] md:min-h-[90px]"), "Inner container reserves min-h-[50px] (320x50) and md:min-h-[90px] (728x90)");
@@ -54,7 +57,10 @@ assert(adSlotSrc.includes("try {") && adSlotSrc.includes("catch (err)"), "AdSlot
 
 // 4. MonetizationProvider Global Script Handling
 console.log("\n--- 4. MonetizationProvider Verification ---");
-const providerSrc = readFileSync(resolve("src/components/MonetizationProvider.tsx"), "utf-8");
+const providerFile = existsSync(resolve("src/components/ads/MonetizationProvider.tsx"))
+  ? resolve("src/components/ads/MonetizationProvider.tsx")
+  : resolve("src/components/MonetizationProvider.tsx");
+const providerSrc = readFileSync(providerFile, "utf-8");
 
 assert(providerSrc.includes("hasActivePremium()"), "MonetizationProvider checks hasActivePremium() before injecting scripts");
 assert(providerSrc.includes("ADSENSE_SCRIPT_ID"), "MonetizationProvider uses distinct ADSENSE_SCRIPT_ID");

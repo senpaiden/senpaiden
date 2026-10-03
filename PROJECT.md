@@ -3,8 +3,9 @@
 ## Architecture
 Senpai Den is a Next.js (App Router) manga reading and catalog platform.
 - **Frontend Stack**: Next.js 16, React 19, TypeScript, Tailwind CSS, Lucide Icons, TanStack Virtualizer.
-- **Monetization Layer**: Adsterra production ad banners (728x90 desktop, 320x50 mobile) and native scripts encapsulated inside `AdSlot.tsx`, with global script management via `MonetizationProvider.tsx` and placement control via `lib/monetization.ts`.
-- **Layout System**: Responsive `SiteLayout.tsx` supporting desktop persistent sidebar (`w-[260px]`) and mobile fixed bottom nav (`h-16`) + sticky bottom anchor ad (`StickyAnchorAd.tsx`).
+- **Monetization Layer**: Isolated subsystem under `frontend/src/components/ads/` containing `AdSlot.tsx`, `VideoAdUnit.tsx`, `StickyAnchorAd.tsx`, `InterstitialAdModal.tsx`, `MonetizationProvider.tsx`, and `index.ts`. Governed by a centralized master kill-switch in `lib/monetization.ts`.
+- **Growth Mode Status**: **ADS TEMPORARILY DISABLED** (`ADS_TEMPORARILY_DISABLED = true`). Zero ads, zero popunders, zero tracking scripts, and zero commercial pages (`/partners`, `/affiliate-disclosure`, `/ads.txt` return 404) are served until audience growth milestones are achieved.
+- **Layout System**: Responsive `SiteLayout.tsx` supporting desktop persistent sidebar (`w-[260px]`) and mobile fixed bottom nav (`h-16`) + sticky bottom anchor ad (`StickyAnchorAd.tsx`, suppressed in growth mode).
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
@@ -24,6 +25,7 @@ Senpai Den is a Next.js (App Router) manga reading and catalog platform.
 | 13 | Upgrade / Decommission Mock Video Ads | Replace or clean up dummy Unsplash `VideoAdUnit.tsx` references | M3 | Survey |
 | 14 | Admin Monetization Status Alignment | Update `/admin/monetization` to monitor production Adsterra banner keys | M3 | Survey |
 | 15 | Multi-Viewport Build & Gate Verification | Verify `npm run build` in `frontend/`, check 0 errors, pass challenger and auditor checks | M4 | Survey |
+| 16 | Dedicated Ads Folder & Growth Quarantine | Quarantined all ad files into `src/components/ads/`, added master kill-switch, disabled ad pages and FastPass ad gates | M5 | User Request |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
@@ -32,8 +34,13 @@ Senpai Den is a Next.js (App Router) manga reading and catalog platform.
 | M2 | Reader Immersion, Interstitial Removal & Mobile Layout | `MangaReaderContainer.tsx`, `SiteLayout.tsx`, `ContinueReadingBubble.tsx`, `library/page.tsx`, `history/page.tsx` | M1 | DONE |
 | M3 | In-Feed Grid Refactor, MangaDetail Cleanup & Admin Alignment | `page.tsx`, `discover/page.tsx`, `search/page.tsx`, `notifications/page.tsx`, `manga/[id]/MangaDetailClient.tsx`, `admin/monetization/page.tsx` | M2 | DONE |
 | M4 | Final Build Verification & Review Gate | Full frontend build, responsive layout verification, audit & challenge | M3 | DONE |
+| M5 | Growth-Phase Ads Isolation Subsystem | `src/components/ads/`, master kill-switch, commercial route gates (404) | M4 | DONE |
 
 ## Interface Contracts
+### Centralized Ads Module (`@/components/ads`)
+- Exports all ad units (`AdSlot`, `VideoAdUnit`, `StickyAnchorAd`, `InterstitialAdModal`, `MonetizationProvider`) and constants (`ADS_ENABLED`, `ADS_TEMPORARILY_DISABLED`).
+- When `ADS_TEMPORARILY_DISABLED = true`: Every component returns `null` immediately, scripts are not injected, and wrappers are suppressed.
+
 ### AdSlot ↔ Application Pages
 - `AdSlot` accepts `placement: AdPlacement`, `variant?: "banner" | "native"`, `className?: string`.
 - Guarantees space-reserved container dimensions with dark styling (`bg-[#0E1422]/60 border border-white/[0.08]`).
@@ -43,6 +50,7 @@ Senpai Den is a Next.js (App Router) manga reading and catalog platform.
 ### Manga Reader ↔ Monetization
 - Active reading canvas (`MangaReaderContainer.tsx`) has ZERO ads at the top (`reader-top` removed).
 - Chapter Completion Intermission Card renders primary "Next Chapter" navigation CTA at top, followed by `reader-bottom` ad at the bottom.
+- FastPass locked chapter ad-gate is fully disabled during growth phase.
 
 ### Mobile Navigation ↔ Sticky Chrome
 - Mobile bottom navigation bar height: `64px` (`h-16`).
@@ -51,12 +59,17 @@ Senpai Den is a Next.js (App Router) manga reading and catalog platform.
 - Main page container bottom padding: `pb-36` (mobile) / `pb-20` (desktop).
 
 ## Code Layout
-- `frontend/src/components/AdSlot.tsx`: Core ad container and Adsterra iframe / native injector.
-- `frontend/src/components/StickyAnchorAd.tsx`: Viewport bottom sticky banner.
+- `frontend/src/components/ads/`:
+  - `index.ts`: Centralized barrel export.
+  - `AdSlot.tsx`: Core responsive ad unit (Adsterra & native).
+  - `VideoAdUnit.tsx`: Video sponsor ad container.
+  - `StickyAnchorAd.tsx`: Viewport bottom sticky banner.
+  - `InterstitialAdModal.tsx`: Intermission modal.
+  - `MonetizationProvider.tsx`: Global third-party ad script injector.
 - `frontend/src/components/SiteLayout.tsx`: Top navbar, desktop sidebar, mobile bottom nav, sticky ad mount.
 - `frontend/src/components/MangaReaderContainer.tsx`: Reader canvas, header/footer HUDs, intermission card.
 - `frontend/src/components/ContinueReadingBubble.tsx`: Floating quick-resume reading bubble.
-- `frontend/src/lib/monetization.ts`: Monetization constants and placement switches.
+- `frontend/src/lib/monetization.ts`: Master kill-switch (`ADS_TEMPORARILY_DISABLED`) and placement configuration.
 - `frontend/src/app/page.tsx`: Home page feed.
 - `frontend/src/app/discover/page.tsx`: Discover catalog grid.
 - `frontend/src/app/search/page.tsx`: Search results grid.
