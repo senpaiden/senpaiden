@@ -4,8 +4,7 @@ import { TopMangaSection } from "@/components/TopMangaSection";
 import { HomeLibraryRow } from "@/components/HomeLibraryRow";
 import { PersonalizedFeedRow } from "@/components/PersonalizedFeedRow";
 import { ContinueReadingBubble } from "@/components/ContinueReadingBubble";
-import { AdSlot } from "@/components/AdSlot";
-import { VideoAdUnit } from "@/components/VideoAdUnit";
+import { AdSlot, VideoAdUnit, ADS_ENABLED } from "@/components/ads";
 import { FeaturedHeroCarousel } from "@/components/FeaturedHeroCarousel";
 import { Frown, ChevronRight } from "lucide-react";
 import { getLocalCatalogue, type CatalogueManga } from "@/lib/local-catalogue";
@@ -200,7 +199,11 @@ export default async function Home({ searchParams }: { searchParams?: Promise<{ 
       {/* Tier 3 Personalization: Recommended For You */}
       <PersonalizedFeedRow />
 
-      <div className="mx-auto mt-8 max-w-7xl px-4 md:px-8"><AdSlot placement="home-feed" /></div>
+      {ADS_ENABLED && (
+        <div className="mx-auto mt-8 max-w-7xl px-4 md:px-8">
+          <AdSlot placement="home-feed" />
+        </div>
+      )}
 
       {/* Latest Releases & New Chapters */}
       <section className="mx-auto max-w-7xl px-4 md:px-8">
@@ -213,9 +216,11 @@ export default async function Home({ searchParams }: { searchParams?: Promise<{ 
       </section>
 
       {/* High-CPM Video Ad Unit */}
-      <section className="mx-auto mt-8 max-w-7xl px-4 md:px-8">
-        <VideoAdUnit />
-      </section>
+      {ADS_ENABLED && (
+        <section className="mx-auto mt-8 max-w-7xl px-4 md:px-8">
+          <VideoAdUnit />
+        </section>
+      )}
 
       {/* Top 100 Most Viewed Manga (Ranked by All-Time Views) */}
       <TopMangaSection items={top100} />

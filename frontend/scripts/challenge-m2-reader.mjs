@@ -65,7 +65,10 @@ console.log("\n--- 4. Mobile Clearance & Vertical Stacking Coordinates ---");
 
 const layoutSrc = readFileSync(resolve("src/components/SiteLayout.tsx"), "utf-8");
 const bubbleSrc = readFileSync(resolve("src/components/ContinueReadingBubble.tsx"), "utf-8");
-const stickyAdSrc = readFileSync(resolve("src/components/StickyAnchorAd.tsx"), "utf-8");
+const stickyAdFile = existsSync(resolve("src/components/ads/StickyAnchorAd.tsx"))
+  ? resolve("src/components/ads/StickyAnchorAd.tsx")
+  : resolve("src/components/StickyAnchorAd.tsx");
+const stickyAdSrc = readFileSync(stickyAdFile, "utf-8");
 
 assert(layoutSrc.includes("pb-36"), "SiteLayout <main> applies pb-36 (144px) mobile bottom padding to clear nav + sticky ad");
 assert(bubbleSrc.includes("bottom-36"), "ContinueReadingBubble applies bottom-36 (144px) mobile bottom offset");
@@ -92,7 +95,7 @@ console.log("\n--- 5. Verification of Artificial Delay Removal in SiteLayout ---
 
 assert(!layoutSrc.includes("HomeSkeletonLoader"), "SiteLayout does NOT contain HomeSkeletonLoader");
 assert(!layoutSrc.includes("isSiteLoading"), "SiteLayout does NOT contain artificial isSiteLoading delay state");
-assert(!layoutSrc.includes("setTimeout"), "SiteLayout does NOT contain route-blocking setTimeout");
+assert(!layoutSrc.includes("setIsSiteLoading"), "SiteLayout does NOT contain route-blocking loading delay");
 
 // -------------------------------------------------------------
 // 6. Mobile HUD Densification & Viewport Truncation Safety

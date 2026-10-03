@@ -1,4 +1,12 @@
+import { ADS_ENABLED } from "@/lib/monetization";
+
 export function GET() {
+  if (!ADS_ENABLED) {
+    return new Response("Ad inventory is not active.\n", {
+      status: 404,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
+  }
   const client = process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "";
   const publisherId = client.replace(/^ca-/, "");
   if (!/^pub-\d+$/.test(publisherId)) return new Response("Ad inventory is not active.\n", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });

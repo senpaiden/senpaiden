@@ -2,7 +2,7 @@ import { cache } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { MangaDetailClient } from "./MangaDetailClient";
-import { AdSlot } from "@/components/AdSlot";
+import { AdSlot, ADS_ENABLED } from "@/components/ads";
 import { getLocalCatalogue, type CatalogueManga } from "@/lib/local-catalogue";
 import { getCachedMangaDetail, getCachedRecommendations } from "@/lib/cache";
 import { cleanDescription, mangaCanonical, SITE_NAME, absoluteUrl } from "@/lib/seo";
@@ -113,7 +113,11 @@ export default async function MangaDetail({ params }: { params: Promise<{ id: st
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <MangaDetailClient manga={manga} chapters={chapters || []} related={related} />
-      <div className="mx-auto max-w-6xl px-4 pb-10 md:px-8"><AdSlot placement="manga-detail" /></div>
+      {ADS_ENABLED && (
+        <div className="mx-auto max-w-6xl px-4 pb-10 md:px-8">
+          <AdSlot placement="manga-detail" />
+        </div>
+      )}
     </>
   );
 }

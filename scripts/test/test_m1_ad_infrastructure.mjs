@@ -27,13 +27,21 @@ function assert(condition, message) {
 
 // TEST SUITE 1: File Presence & Code Integrity
 console.log("\n--- Suite 1: File Existence & Code Integrity ---");
-const adSlotPath = path.join(rootDir, "frontend/src/components/AdSlot.tsx");
+const adSlotPath = fs.existsSync(path.join(rootDir, "frontend/src/components/ads/AdSlot.tsx"))
+  ? path.join(rootDir, "frontend/src/components/ads/AdSlot.tsx")
+  : path.join(rootDir, "frontend/src/components/AdSlot.tsx");
+const adSlotShimPath = path.join(rootDir, "frontend/src/components/AdSlot.tsx");
 const monetizationPath = path.join(rootDir, "frontend/src/lib/monetization.ts");
-const monetizationProviderPath = path.join(rootDir, "frontend/src/components/MonetizationProvider.tsx");
+const monetizationProviderPath = fs.existsSync(path.join(rootDir, "frontend/src/components/ads/MonetizationProvider.tsx"))
+  ? path.join(rootDir, "frontend/src/components/ads/MonetizationProvider.tsx")
+  : path.join(rootDir, "frontend/src/components/MonetizationProvider.tsx");
+const monetizationProviderShimPath = path.join(rootDir, "frontend/src/components/MonetizationProvider.tsx");
 
 assert(fs.existsSync(adSlotPath), "AdSlot.tsx exists at expected path");
+assert(fs.existsSync(adSlotShimPath), "AdSlot.tsx shim exists for backward compatibility");
 assert(fs.existsSync(monetizationPath), "monetization.ts exists at expected path");
 assert(fs.existsSync(monetizationProviderPath), "MonetizationProvider.tsx exists at expected path");
+assert(fs.existsSync(monetizationProviderShimPath), "MonetizationProvider.tsx shim exists for backward compatibility");
 
 const adSlotContent = fs.readFileSync(adSlotPath, "utf8");
 const monetizationContent = fs.readFileSync(monetizationPath, "utf8");

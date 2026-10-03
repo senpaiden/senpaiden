@@ -6,7 +6,7 @@ import "./globals.css";
 import { SiteLayout } from "@/components/SiteLayout";
 import { TopProgressBar } from "@/components/TopProgressBar";
 import { CookieConsent } from "@/components/CookieConsent";
-import { MonetizationProvider } from "@/components/MonetizationProvider";
+import { MonetizationProvider } from "@/components/ads";
 import { DEFAULT_DESCRIPTION, SITE_NAME, SITE_URL, absoluteUrl } from "@/lib/seo";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "G-G8GLTV3ES8";

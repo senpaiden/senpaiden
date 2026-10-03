@@ -9,8 +9,7 @@ import {
   Zap, Unlock, Check, MessageSquarePlus, Send,
   ShieldAlert, CheckCircle2, Loader2
 } from "lucide-react";
-import { AdSlot } from "@/components/AdSlot";
-import { VideoAdUnit } from "@/components/VideoAdUnit";
+import { AdSlot, VideoAdUnit, ADS_ENABLED } from "@/components/ads";
 import { triggerStartLoading } from "@/components/TopProgressBar";
 import { isChapterFastPass, getUnlockedChapters, FASTPASS_UPDATED_EVENT } from "@/lib/fastpass";
 import { FastPassUnlockModal } from "@/components/FastPassUnlockModal";
@@ -596,9 +595,11 @@ export function MangaDetailClient({
               </div>
 
               {/* Top Banner Ad */}
-              <div className="mb-4">
-                <AdSlot placement="manga-detail" />
-              </div>
+              {ADS_ENABLED && (
+                <div className="mb-4">
+                  <AdSlot placement="manga-detail" />
+                </div>
+              )}
 
               {/* Loading Chapters State */}
               {loadingChapters && (
@@ -761,9 +762,11 @@ export function MangaDetailClient({
               </div>
 
               {/* Video Ad Unit inside Info Tab */}
-              <div className="col-span-full mt-4">
-                <VideoAdUnit title={`Sponsor Spotlight: Trending Anime & Manga Universe`} />
-              </div>
+              {ADS_ENABLED && (
+                <div className="col-span-full mt-4">
+                  <VideoAdUnit title={`Sponsor Spotlight: Trending Anime & Manga Universe`} />
+                </div>
+              )}
             </div>
           )}
 
@@ -920,7 +923,7 @@ export function MangaDetailClient({
       </div>
 
       {/* FastPass Rewarded Unlock Modal */}
-      {fastPassModalChapter !== null && (
+      {ADS_ENABLED && fastPassModalChapter !== null && (
         <FastPassUnlockModal
           isOpen={isFastPassModalOpen}
           onClose={() => setIsFastPassModalOpen(false)}

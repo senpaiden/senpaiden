@@ -6,7 +6,7 @@ import { fetchApi } from "@/lib/api-client";
 import { MangaCard } from "@/components/MangaCard";
 import { History as HistoryIcon, Trash2 } from "lucide-react";
 import type { Manga } from "@/lib/manga-data";
-import { AdSlot } from "@/components/AdSlot";
+import { AdSlot, ADS_ENABLED } from "@/components/ads";
 
 interface HistoryItem {
   manga: Manga;
@@ -171,7 +171,7 @@ export default function HistoryPage() {
             {history.map((item, index) => (
               <div key={item.manga.slug} className="contents">
                 <MangaCard manga={item.manga} showChapter />
-                {(index + 1) % 6 === 0 && index < history.length - 1 && (
+                {ADS_ENABLED && (index + 1) % 6 === 0 && index < history.length - 1 && (
                   <div className="col-span-full my-3">
                     <AdSlot placement="history-bottom" />
                   </div>
@@ -180,7 +180,7 @@ export default function HistoryPage() {
             ))}
           </div>
         )}
-        {isLoaded && history.length > 0 && (
+        {ADS_ENABLED && isLoaded && history.length > 0 && (
           <div className="mt-10 border-t border-white/5 pt-8">
             <AdSlot placement="history-bottom" />
           </div>

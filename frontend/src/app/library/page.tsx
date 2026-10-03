@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { MangaCard } from "@/components/MangaCard";
 import { Bookmark, Trash2 } from "lucide-react";
 import type { Manga } from "@/lib/manga-data";
-import { AdSlot } from "@/components/AdSlot";
+import { AdSlot, ADS_ENABLED } from "@/components/ads";
 
 export default function LibraryPage() {
   const [library, setLibrary] = useState<Manga[]>([]);
@@ -88,7 +88,7 @@ export default function LibraryPage() {
             {library.map((manga, index) => (
               <div key={manga.slug} className="contents">
                 <MangaCard manga={manga} showChapter />
-                {(index + 1) % 6 === 0 && index < library.length - 1 && (
+                {ADS_ENABLED && (index + 1) % 6 === 0 && index < library.length - 1 && (
                   <div className="col-span-full my-3">
                     <AdSlot placement="library-bottom" />
                   </div>
@@ -97,7 +97,7 @@ export default function LibraryPage() {
             ))}
           </div>
         )}
-        {isLoaded && library.length > 0 && (
+        {ADS_ENABLED && isLoaded && library.length > 0 && (
           <div className="mt-10 border-t border-white/5 pt-8">
             <AdSlot placement="library-bottom" />
           </div>

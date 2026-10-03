@@ -521,5 +521,51 @@ Senpai Den implements a zero-cost, high-speed recommendation system combining co
 
 ---
 
-*This architecture document is locked for v1.0. Changes require explicit architecture review and PRD update.*
+## 9. Monetization & Ads Isolation Subsystem
+
+### 9.1 Architecture Philosophy: Reader-First Growth Quarantine
+During early adoption and audience scaling, user retention is paramount. Aggressive monetization, popunders, and locked chapter ad-gates degrade user experience and increase churn. To solve this, all ad units and monetization routines are quarantined into a dedicated, isolated subsystem (`src/components/ads/`) with an absolute master kill-switch.
+
+### 9.2 Directory Layout & Encapsulation
+All monetization components reside exclusively in `frontend/src/components/ads/`:
+```
+frontend/src/components/ads/
+├── index.ts                   # Centralized barrel export & type re-exports
+├── AdSlot.tsx                 # Responsive viewport banner (728x90 desktop / 320x50 mobile)
+├── VideoAdUnit.tsx            # High-CPM video ad sponsor container
+├── StickyAnchorAd.tsx         # Viewport bottom sticky banner with collapse/close controls
+├── InterstitialAdModal.tsx    # Timed countdown intermission partner modal
+└── MonetizationProvider.tsx   # Global script orchestrator (Adsterra & AdSense injection)
+```
+
+Backwards-compatible bridge shims are maintained at `frontend/src/components/AdSlot.tsx`, etc., to prevent breaking third-party dependencies, while all application code imports directly from `@/components/ads`.
+
+### 9.3 Zero-Overhead Master Kill-Switch
+A single configuration constant controls the entire monetization layer:
+- **Location:** `frontend/src/lib/monetization.ts`
+- **Flag:** `export const ADS_TEMPORARILY_DISABLED = true;`
+
+When `ADS_TEMPORARILY_DISABLED` is `true`:
+1. **Component Short-Circuiting:** `AdSlot`, `VideoAdUnit`, `StickyAnchorAd`, `InterstitialAdModal`, and `MonetizationProvider` return `null` immediately prior to hook execution. Zero DOM elements, zero iframes, and zero background timers exist in memory.
+2. **Third-Party Script Suppression:** Neither Google AdSense (`pagead2.googlesyndication.com`) nor Adsterra (`invoke.js` / social bar scripts) are injected into `<head>` or `<body>`.
+3. **Layout Padding / Margin Elimination:** Parent page sections on Home, Discover, Search, Library, History, Notifications, Manga Detail, and Reader check `ADS_ENABLED`, preventing empty whitespace or border artifacts.
+4. **Commercial Route Purge:**
+   - `/partners` → Returns Next.js `notFound()` (404).
+   - `/affiliate-disclosure` → Returns Next.js `notFound()` (404).
+   - `/ads.txt` → Returns HTTP 404 (`Ad inventory is not active.`).
+   - `sitemap.xml` → Omit commercial routes from search engine indexing.
+   - Footer Navigation → Removes "Partners" and "Affiliate disclosure" links.
+   - Cookie Consent → Omits "Advertising" checkbox and cookie marketing text.
+5. **FastPass Chapter Unlocking:** `isChapterFastPass()` returns `false`, ensuring all chapters remain freely readable with zero ad interruptions.
+
+### 9.4 1-Step Future Re-Activation Procedure
+When the platform reaches the required scale and traffic milestones:
+1. In `frontend/src/lib/monetization.ts`, set `ADS_TEMPORARILY_DISABLED = false`.
+2. In `frontend/.env`, set `NEXT_PUBLIC_ADS_ENABLED=true`.
+All ad units, providers, partner pages, footer links, and sitemap entries will seamlessly re-activate without any file-by-file refactoring.
+
+---
+
+*This architecture document reflects v1.2 (Monetization Isolation & Reader-First Growth Mode).*
+
 

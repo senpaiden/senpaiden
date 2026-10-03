@@ -66,7 +66,7 @@ export default function AccountPage() {
     window.setTimeout(() => setSaved(false), 3000);
   };
 
-  const shareReferral = async () => {
+  const _shareReferral = async () => {
     const link = `${window.location.origin}/login?mode=signup&ref=${encodeURIComponent(referralShareCode)}`;
     const shareText = `Join me on SenpaiDen and discover your next manga. Use my referral code ${referralShareCode}: ${link}`;
     try {
@@ -82,7 +82,7 @@ export default function AccountPage() {
     }
   };
 
-  const copyInviteLink = async () => {
+  const _copyInviteLink = async () => {
     const link = `${window.location.origin}/login?mode=signup&ref=${encodeURIComponent(referralShareCode)}`;
     await navigator.clipboard.writeText(link);
     setReferralMessage("Referral link copied.");
